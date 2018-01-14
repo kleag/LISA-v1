@@ -60,7 +60,7 @@ for lr in ${lrs[@]}; do
                                                     for parents_layer in ${parents_layers[@]}; do
                                                         for use_bilinear in ${use_bilinears[@]}; do
                                                             for rep in `seq $reps`; do
-                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$grandparents_penalty-$parents_layer-$use_bilinear-$margin"
+                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$use_bilinear-$margin"
                                                                 commands+=("srun --gres=gpu:1 --partition=titanx-short,m40-short --time=04:00:00 python network.py \
                                                                 --config_file config/trans-only-attn.cfg \
                                                                 --save_dir $OUT_LOG/scores-$fname_append \

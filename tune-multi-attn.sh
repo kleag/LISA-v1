@@ -12,7 +12,7 @@ fi
 
 echo "Writing to $OUT_LOG"
 
-num_gpus=100
+num_gpus=90
 #num_gpus=40
 
 lrs="0.04" # 0.06"
@@ -25,17 +25,21 @@ batch_sizes="5000"
 trans_layers="4" # 3
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
-head_sizes="64 128"
+head_sizes="64"
 relu_hidden_sizes="256"
 
 parents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:1 parents:3 parents:1,3"
-grandparents_layers="grandparents:1 grandparents:3 grandparents:1,3"
+parents_layers="parents:0,1,2,3"
+use_bilinears="True False"
+margins="-1.0 0.5 0.1 0.0001 0.01"
 
 reps="2"
 
-# 2*2*5*5*3*3
+# 6*2*5*3 = 180
+
+#--multitask_layers \"$parents_layer;$grandparents_layer\" \
+#--multitask_penalties \"parents:$parents_penalty;grandparents:$grandparents_penalty\"
+
 
 # array to hold all the commands we'll distribute
 declare -a commands
@@ -52,13 +56,13 @@ for lr in ${lrs[@]}; do
                                     for relu_hidden_size in ${relu_hidden_sizes[@]}; do
                                         for batch_size in ${batch_sizes[@]}; do
                                             for parents_penalty in ${parents_penalties[@]}; do
-                                                for grandparents_penalty in ${grandparents_penalties[@]}; do
+                                                for margin in ${margins[@]}; do
                                                     for parents_layer in ${parents_layers[@]}; do
-                                                        for grandparents_layer in ${grandparents_layers[@]}; do
+                                                        for use_bilinear in ${use_bilinears[@]}; do
                                                             for rep in `seq $reps`; do
-                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$grandparents_penalty-$parents_layer-$grandparents_layer"
-                                                                commands+=("srun --gres=gpu:1 --partition=titanx-short --time=04:00:00 python network.py \
-                                                                --config_file config/trans-fast.cfg \
+                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$grandparents_penalty-$parents_layer-$use_bilinear-$margin"
+                                                                commands+=("srun --gres=gpu:1 --partition=titanx-short,m40-short --time=04:00:00 python network.py \
+                                                                --config_file config/trans-only-attn.cfg \
                                                                 --save_dir $OUT_LOG/scores-$fname_append \
                                                                 --save_every 500 \
                                                                 --train_iters 100000 \
@@ -73,8 +77,10 @@ for lr in ${lrs[@]}; do
                                                                 --mu $mu \
                                                                 --nu $nu \
                                                                 --epsilon $epsilon \
-                                                                --multitask_layers \"$parents_layer;$grandparents_layer\" \
-                                                                --multitask_penalties \"parents:$parents_penalty;grandparents:$grandparents_penalty\"
+                                                                --multitask_layers \"$parents_layer\" \
+                                                                --multitask_penalties \"parents:$parents_penalty\"
+                                                                --use_bilinear $use_bilinear \
+                                                                --margin $margin \
                                                                 --svd_tree False \
                                                                 --mask_pairs True \
                                                                 --mask_roots True \

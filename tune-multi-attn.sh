@@ -12,8 +12,8 @@ fi
 
 echo "Writing to $OUT_LOG"
 
-num_gpus=90
-#num_gpus=40
+#num_gpus=90
+num_gpus=40
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -35,7 +35,7 @@ margins="-1.0 0.5 0.1 0.0001 0.01"
 
 reps="2"
 
-# 6*2*5*3 = 180
+# 6*2*5*2 = 120
 
 #--multitask_layers \"$parents_layer;$grandparents_layer\" \
 #--multitask_penalties \"parents:$parents_penalty;grandparents:$grandparents_penalty\"
@@ -61,7 +61,7 @@ for lr in ${lrs[@]}; do
                                                         for use_bilinear in ${use_bilinears[@]}; do
                                                             for rep in `seq $reps`; do
                                                                 fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$use_bilinear-$margin"
-                                                                commands+=("srun --gres=gpu:1 --partition=titanx-short,m40-short --time=04:00:00 python network.py \
+                                                                commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12:00:00 python network.py \
                                                                 --config_file config/trans-only-attn.cfg \
                                                                 --save_dir $OUT_LOG/scores-$fname_append \
                                                                 --save_every 500 \

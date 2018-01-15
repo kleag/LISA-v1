@@ -263,12 +263,12 @@ class Network(Configurable):
       filename = self.valid_file
       minibatches = self.valid_minibatches
       dataset = self._validset
-      op = self.ops['test_op'][:4]
+      op = self.ops['test_op'][:5]
     else:
       filename = self.test_file
       minibatches = self.test_minibatches
       dataset = self._testset
-      op = self.ops['test_op'][4:]
+      op = self.ops['test_op'][5:]
     
     all_predictions = [[]]
     all_sents = [[]]

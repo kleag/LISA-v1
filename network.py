@@ -282,13 +282,16 @@ class Network(Configurable):
     forward_total_time = 0.
     non_tree_preds_total = []
     attention_weights = {}
+    attn_correct = {}
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
       forward_start = time.time()
-      probs, n_cycles, len_2_cycles, attn_weights = sess.run(op, feed_dict=feed_dict)
+      probs, n_cycles, len_2_cycles, attn_weights, attn_correct = sess.run(op, feed_dict=feed_dict)
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
+      for k, v in attn_correct.iteritems():
+        attn_correct[k] += v
       forward_total_time += time.time() - forward_start
       preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles)
       total_time += parse_time
@@ -309,12 +312,14 @@ class Network(Configurable):
     print("Total time in forward: %f" % forward_total_time)
     print("Not tree: %d" % not_tree_total)
     print("Roots < 1: %d; Roots > 1: %d; 2-cycles: %d; n-cycles: %d" % (roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total))
+    n_tokens = 0
     with open(os.path.join(self.save_dir, os.path.basename(filename)), 'w') as f:
       for bkt_idx, idx in dataset._metabucket.data:
         data = dataset._metabucket[bkt_idx].data[idx]
         preds = all_predictions[bkt_idx][idx]
         words = all_sents[bkt_idx][idx]
         for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+          n_tokens += 1
           tup = (
             i+1,
             word,
@@ -338,6 +343,14 @@ class Network(Configurable):
     las = np.mean(correct["LAS"]) * 100
     uas = np.mean(correct["UAS"]) * 100
     print('UAS: %.2f    LAS: %.2f' % (uas, las))
+    for k, v in attn_correct.iteritems():
+      attn_correct[k] = v/n_tokens
+    print("Attention UAS: ")
+    multitask_uas_str = ''
+    for k, v in attn_correct.iteritems():
+      attn_correct[k] = v/n_tokens
+      multitask_uas_str += '\t%s UAS: %f' % (k, attn_correct[k])
+    print(multitask_uas_str)
     return correct
   
   #=============================================================
@@ -416,10 +429,12 @@ class Network(Configurable):
                       valid_output['n_cycles'],
                       valid_output['len_2_cycles'],
                       valid_output['attn_weights'],
+                      valid_output['attn_correct'],
                       test_output['probabilities'],
                       test_output['n_cycles'],
                       test_output['len_2_cycles'],
                       test_output['attn_weights'],
+                      test_output['attn_correct'],
                       ]
     ops['optimizer'] = optimizer
     

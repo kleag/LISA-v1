@@ -265,6 +265,7 @@ class Parser(BaseParser):
     margin_mask = tf.ones([batch_size, bucket_size], dtype=tf.float32)
     multitask_losses = {}
     multitask_loss_sum = 0
+    multitask_correct = {}
     # for l, attn_weights in attn_weights_by_layer.iteritems():
     for l in sorted(attn_weights_by_layer):
       attn_weights = attn_weights_by_layer[l]
@@ -276,6 +277,7 @@ class Parser(BaseParser):
         margin_mask = outputs['margin_mask'] * margin_mask
         loss = self.multi_penalties['parents'] * outputs['loss']
         multitask_losses['parents%s' % l] = loss
+        multitask_correct['parents%s' % l] = outputs['n_correct']
         multitask_loss_sum += loss
       if 'grandparents' in self.multi_layers.keys() and l in self.multi_layers['grandparents']:
         outputs = self.output_svd(attn_weights[attn_idx], multitask_targets['grandparents']); attn_idx += 1
@@ -334,6 +336,8 @@ class Parser(BaseParser):
     attn_weights_by_layer_softmaxed = {k: tf.transpose(tf.nn.softmax(v), [1, 0, 2, 3]) for k, v in attn_weights_by_layer.iteritems()}
 
     output['attn_weights'] = attn_weights_by_layer_softmaxed
+
+    output['attn_correct'] = multitask_correct
 
     # output['cycles'] = arc_output['n_cycles'] + arc_output['len_2_cycles']
 

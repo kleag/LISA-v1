@@ -1006,7 +1006,7 @@ class NN(Configurable):
     # these are the margins. we want them to be > self.margin
     margins_sm = gold_scores_sm - max_scores_sm
 
-    n_correct = tf.Print(n_correct, [tf.shape(logits3D), tf.shape(margins), margins], "margins", summarize=1000)
+    margins_sm = tf.Print(margins_sm, [tf.shape(logits3D), tf.shape(margins), margins], "margins", summarize=1000)
     n_correct = tf.Print(n_correct, [tf.shape(margins_sm), margins_sm], "margins softmaxed", summarize=1000)
 
 

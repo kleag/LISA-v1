@@ -371,14 +371,14 @@ class Network(Configurable):
       print("Masked attention UAS: ")
       multitask_uas_str = ''
       for k in sorted(attn_correct_masked_counts):
-        attn_correct_masked_counts[k] = attn_correct_masked_counts[k] / attn_n_tokens_masked_counts[k]
+        attn_correct_masked_counts[k] = attn_correct_masked_counts[k] / attn_n_tokens_masked_counts[k] if attn_n_tokens_masked_counts[k] > 0 else 0.
         multitask_uas_str += '\t%s UAS: %.2f (%.2f%%)' % (k, attn_correct_masked_counts[k]*100, (attn_n_tokens_masked_counts[k]/n_tokens) * 100)
       print(multitask_uas_str)
 
       print("Unmasked attention UAS: ")
       multitask_uas_str = ''
       for k in sorted(attn_correct_unmasked_counts):
-        attn_correct_unmasked_counts[k] = attn_correct_unmasked_counts[k] / attn_n_tokens_unmasked_counts[k]
+        attn_correct_unmasked_counts[k] = attn_correct_unmasked_counts[k] / attn_n_tokens_unmasked_counts[k] if attn_n_tokens_unmasked_counts[k] > 0 else 0.
         multitask_uas_str += '\t%s UAS: %.2f (%.2f%%)' % (k, attn_correct_unmasked_counts[k]*100, (attn_n_tokens_unmasked_counts[k]/n_tokens) * 100)
       print(multitask_uas_str)
 

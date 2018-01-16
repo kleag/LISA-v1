@@ -997,7 +997,7 @@ class NN(Configurable):
     # these are the margins. we want them to be > self.margin
     margins = gold_scores - max_scores
 
-    margins = tf.Print(margins, [margins], "margins", summarize=1000)
+    n_correct = tf.Print(n_correct, [margins], "margins", summarize=1000)
 
     new_margin_mask = tf.cast(tf.less_equal(margins, self.margin), tf.float32)
 

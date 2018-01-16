@@ -982,8 +982,8 @@ class NN(Configurable):
     n_correct_masked = tf.reduce_sum(correct1D * tokens_to_keep1D * flat_margin_mask)
     n_tokens_masked = tf.reduce_sum(tokens_to_keep1D * flat_margin_mask)
 
-    margin_mask = tf.Print(margin_mask, [n_correct_masked, n_tokens_masked], "n_correct_masked")
-    n_correct_masked = tf.Print(n_correct_masked, [tf.shape(margin_mask), margin_mask], "margin_msk", summarize=1000)
+    # margin_mask = tf.Print(margin_mask, [n_correct_masked, n_tokens_masked], "n_correct_masked")
+    # n_correct_masked = tf.Print(n_correct_masked, [tf.shape(margin_mask), margin_mask], "margin_msk", summarize=1000)
 
 
     loss = tf.reduce_sum(cross_entropy1D * tokens_to_keep1D * flat_margin_mask) / n_tokens_masked

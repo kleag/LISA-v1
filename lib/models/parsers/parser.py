@@ -77,6 +77,10 @@ class Parser(BaseParser):
 
     roots_mask = 1. - tf.expand_dims(tf.eye(bucket_size), 0)
 
+    multitask_losses = {}
+    multitask_loss_sum = 0
+    multitask_correct = {}
+
     # normal parse edges
     # multitask_targets['parents'] = adj
     # multitask_targets['children'] = tf.transpose(adj, [0, 2, 1]) * roots_mask
@@ -146,17 +150,17 @@ class Parser(BaseParser):
               with tf.variable_scope('layer%d' % i, reuse=reuse):
                 if self.inject_manual_attn and moving_params is None and 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                   manual_attn = adj
-                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
+                  this_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                attn_dropout, relu_dropout, prepost_dropout, self.relu_hidden_size,
                                                self.info_func, reuse, manual_attn)
                 elif self.inject_manual_attn and moving_params is None and 'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:
                   manual_attn = grand_adj
-                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
+                  this_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                              attn_dropout, relu_dropout, prepost_dropout,
                                                              self.relu_hidden_size,
                                                              self.info_func, reuse, manual_attn)
                 else:
-                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
+                  this_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                              attn_dropout, relu_dropout, prepost_dropout,
                                                              self.relu_hidden_size, self.info_func, reuse)
                 # head x batch x seq_len x seq_len
@@ -260,43 +264,34 @@ class Parser(BaseParser):
     # todo pass this in at command line
     # attn_multitask_layer = self.n_recur-1
     # attn_weights = attn_weights_by_layer[attn_multitask_layer]
-
-
-    margin_mask = tf.zeros([batch_size, bucket_size], dtype=tf.float32)
-    multitask_losses = {}
-    multitask_loss_sum = 0
-    multitask_correct = {}
-    multitask_correct_masked = {}
-    multitask_n_tokens_masked = {}
-    multitask_correct_unmasked = {}
-    multitask_n_tokens_unmasked = {}
-    # for l, attn_weights in attn_weights_by_layer.iteritems():
     for l in sorted(attn_weights_by_layer):
       attn_weights = attn_weights_by_layer[l]
       # attn_weights is: head x batch x seq_len x seq_len
       # idx into attention heads
       attn_idx = 0
       if 'parents' in self.multi_layers.keys() and l in self.multi_layers['parents']:
-        outputs = self.output_margin(attn_weights[attn_idx], multitask_targets['parents'], margin_mask); attn_idx += 1
-        margin_mask = outputs['margin_mask'] * margin_mask
+        outputs = self.output(attn_weights[attn_idx], multitask_targets['parents']);
+        attn_idx += 1
         loss = self.multi_penalties['parents'] * outputs['loss']
         multitask_losses['parents%s' % l] = loss
         multitask_correct['parents%s' % l] = outputs['n_correct']
-        multitask_correct_masked['parents%s' % l] = outputs['n_correct_masked']
-        multitask_n_tokens_masked['parents%s' % l] = outputs['n_tokens_masked']
-        multitask_correct_unmasked['parents%s' % l] = outputs['n_correct_unmasked']
-        multitask_n_tokens_unmasked['parents%s' % l] = outputs['n_tokens_unmasked']
         multitask_loss_sum += loss
       if 'grandparents' in self.multi_layers.keys() and l in self.multi_layers['grandparents']:
-        outputs = self.output_svd(attn_weights[attn_idx], multitask_targets['grandparents']); attn_idx += 1
+        outputs = self.output_svd(attn_weights[attn_idx], multitask_targets['grandparents']);
+        attn_idx += 1
         loss = self.multi_penalties['grandparents'] * outputs['loss']
         multitask_losses['grandparents%s' % l] = loss
         multitask_loss_sum += loss
       if 'children' in self.multi_layers.keys() and l in self.multi_layers['children']:
-        outputs = self.output_multi(attn_weights[attn_idx], multitask_targets['children']); attn_idx += 1
+        outputs = self.output_multi(attn_weights[attn_idx], multitask_targets['children']);
+        attn_idx += 1
         loss = self.multi_penalties['children'] * outputs['loss']
         multitask_losses['children%s' % l] = loss
         multitask_loss_sum += loss
+
+
+    # for l, attn_weights in attn_weights_by_layer.iteritems():
+
     # multitask_losses = {'parents': multitask_outputs['parents']['loss'],
     #                     'children': multitask_outputs['children']['loss'],
     #                     'grandparents': multitask_outputs['grandparents']['loss']}
@@ -346,11 +341,6 @@ class Parser(BaseParser):
     output['attn_weights'] = attn_weights_by_layer_softmaxed
 
     output['attn_correct'] = multitask_correct
-    output['attn_correct_masked'] = multitask_correct_masked
-    output['attn_n_tokens_masked'] = multitask_n_tokens_masked
-    output['attn_correct_unmasked'] = multitask_correct_unmasked
-    output['attn_n_tokens_unmasked'] = multitask_n_tokens_unmasked
-
 
     # output['cycles'] = arc_output['n_cycles'] + arc_output['len_2_cycles']
 

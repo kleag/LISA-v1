@@ -988,15 +988,17 @@ class NN(Configurable):
     targets_mask = tf.scatter_nd(idx, tf.fill([batch_size, bucket_size], np.NINF), [batch_size, bucket_size, bucket_size])
     logits_augmented = logits3D + targets_mask
 
+    ###### This code uses raw logits, not softmaxed for margin ######
     # these are maxes that are not the gold label
-    max_scores = tf.reduce_max(logits_augmented, axis=-1)
+    # max_scores = tf.reduce_max(logits_augmented, axis=-1)
+    #
+    # # these are the scores of the gold labels
+    # gold_scores = tf.gather_nd(logits3D, idx)
+    #
+    # # these are the margins. we want them to be > self.margin
+    # margins = gold_scores - max_scores
 
-    # these are the scores of the gold labels
-    gold_scores = tf.gather_nd(logits3D, idx)
-
-    # these are the margins. we want them to be > self.margin
-    margins = gold_scores - max_scores
-
+    ###### Use softmaxed attentions for magin ######
     # these are maxes that are not the gold label
     max_scores_sm = tf.reduce_max(tf.nn.softmax(logits_augmented), axis=-1)
 
@@ -1006,11 +1008,10 @@ class NN(Configurable):
     # these are the margins. we want them to be > self.margin
     margins_sm = gold_scores_sm - max_scores_sm
 
-    margins_sm = tf.Print(margins_sm, [tf.shape(logits3D), tf.shape(margins), margins], "margins", summarize=1000)
-    n_correct = tf.Print(n_correct, [tf.shape(margins_sm), margins_sm], "margins softmaxed", summarize=1000)
+    # margins_sm = tf.Print(margins_sm, [tf.shape(logits3D), tf.shape(margins), margins], "margins", summarize=1000)
+    # n_correct = tf.Print(n_correct, [tf.shape(margins_sm), margins_sm], "margins softmaxed", summarize=1000)
 
-
-    new_margin_mask = tf.cast(tf.less_equal(margins, self.margin), tf.float32)
+    new_margin_mask = tf.cast(tf.less_equal(margins_sm, self.margin), tf.float32)
 
     # i1, i2, i3 = tf.meshgrid(tf.range(self.batch_size), tf.range(self.max_seq_len - 1), tf.range(self.max_seq_len),
     #                          indexing="ij")

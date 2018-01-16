@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=90
-num_gpus=32
+num_gpus=36
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -22,20 +22,20 @@ epsilons="1e-12"
 warmup_steps="8000"
 batch_sizes="5000"
 
-trans_layers="4 5 6 8" # 3
+trans_layers="4 5 6" # 3
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
 head_sizes="64"
 relu_hidden_sizes="256"
 
-parents_penalties="0.0 0.01 0.0001"
+parents_penalties="0.0 0.1 0.01"
 #parents_layers="parents:0,1,2,3"
 use_bilinears="True False"
-margins="-1.0 0.1"
+margins="-inf 0.01 0.1 0.5"
 
 reps="2"
 
-# 4*3*2*2*2 = 96
+# 3*3*2*4*2 = 144
 
 #--multitask_layers \"$parents_layer;$grandparents_layer\" \
 #--multitask_penalties \"parents:$parents_penalty;grandparents:$grandparents_penalty\"

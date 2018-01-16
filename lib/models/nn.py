@@ -964,6 +964,8 @@ class NN(Configurable):
     bucket_size = original_shape[1]
     flat_shape = tf.stack([batch_size, bucket_size])
 
+    flat_margin_mask = tf.reshape(margin_mask, [-1])
+
     logits2D = tf.reshape(logits3D, tf.stack([batch_size*bucket_size, -1]))
     targets1D = tf.reshape(targets3D, [-1])
     tokens_to_keep1D = tf.reshape(self.tokens_to_keep3D, [-1])
@@ -975,7 +977,7 @@ class NN(Configurable):
     correct1D = tf.to_float(tf.equal(predictions1D, targets1D))
     n_correct = tf.reduce_sum(correct1D * tokens_to_keep1D)
     accuracy = n_correct / self.n_tokens
-    loss = tf.reduce_sum(cross_entropy1D * tokens_to_keep1D * tf.reshape(margin_mask, [-1])) / self.n_tokens
+    loss = tf.reduce_sum(cross_entropy1D * tokens_to_keep1D * flat_margin_mask) / self.n_tokens
 
     # compute new margin mask
     # want to mask rows where gold head > next best with margin
@@ -994,6 +996,8 @@ class NN(Configurable):
 
     # these are the margins. we want them to be > self.margin
     margins = gold_scores - max_scores
+
+    margins = tf.Print(margins, [margins], "margins", summarize=1000)
 
     new_margin_mask = tf.cast(tf.less_equal(margins, self.margin), tf.float32)
 

@@ -1051,8 +1051,8 @@ class NN(Configurable):
       'correct': correct1D * tokens_to_keep1D,
       'n_correct': n_correct,
       'n_tokens': self.n_tokens,
-      'n_correct_mask': n_correct_masked,
-      'n_tokens_mask': n_tokens_masked,
+      'n_correct_masked': n_correct_masked,
+      'n_tokens_masked': n_tokens_masked,
       'accuracy': accuracy,
       'loss': loss,
       'margin_mask': new_margin_mask

@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=90
-num_gpus=40
+num_gpus=32
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -22,20 +22,20 @@ epsilons="1e-12"
 warmup_steps="8000"
 batch_sizes="5000"
 
-trans_layers="4" # 3
+trans_layers="4 5 6 8" # 3
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
 head_sizes="64"
 relu_hidden_sizes="256"
 
-parents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:0,1,2,3"
+parents_penalties="0.0 0.01 0.0001"
+#parents_layers="parents:0,1,2,3"
 use_bilinears="True False"
-margins="-1.0 0.5 0.1 0.0001 0.01"
+margins="-1.0 0.1"
 
 reps="2"
 
-# 6*2*5*2 = 120
+# 4*3*2*2*2 = 96
 
 #--multitask_layers \"$parents_layer;$grandparents_layer\" \
 #--multitask_penalties \"parents:$parents_penalty;grandparents:$grandparents_penalty\"
@@ -57,10 +57,18 @@ for lr in ${lrs[@]}; do
                                         for batch_size in ${batch_sizes[@]}; do
                                             for parents_penalty in ${parents_penalties[@]}; do
                                                 for margin in ${margins[@]}; do
-                                                    for parents_layer in ${parents_layers[@]}; do
+#                                                    for parents_layer in ${parents_layers[@]}; do
                                                         for use_bilinear in ${use_bilinears[@]}; do
                                                             for rep in `seq $reps`; do
-                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$use_bilinear-$margin"
+                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$use_bilinear-$margin"
+
+                                                                # create parents attn at every layer
+                                                                parents_str="parents:"
+                                                                for i in `seq $trans_layer`; do
+                                                                    parents_str="$parents_str$((i-1)),"
+                                                                done
+                                                                parents_str=${parents_str%?}
+
                                                                 commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12:00:00 python network.py \
                                                                 --config_file config/trans-only-attn.cfg \
                                                                 --save_dir $OUT_LOG/scores-$fname_append \
@@ -77,7 +85,7 @@ for lr in ${lrs[@]}; do
                                                                 --mu $mu \
                                                                 --nu $nu \
                                                                 --epsilon $epsilon \
-                                                                --multitask_layers \"$parents_layer\" \
+                                                                --multitask_layers \"$parents_str\" \
                                                                 --multitask_penalties \"parents:$parents_penalty\"
                                                                 --use_bilinear $use_bilinear \
                                                                 --margin $margin \
@@ -89,7 +97,7 @@ for lr in ${lrs[@]}; do
                                                                 &> $OUT_LOG/train-$fname_append.log")
                                                             done
                                                         done
-                                                    done
+#                                                    done
                                                 done
                                             done
                                         done

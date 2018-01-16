@@ -262,7 +262,7 @@ class Parser(BaseParser):
     # attn_weights = attn_weights_by_layer[attn_multitask_layer]
 
 
-    margin_mask = tf.ones([batch_size, bucket_size], dtype=tf.float32)
+    margin_mask = tf.zeros([batch_size, bucket_size], dtype=tf.float32)
     multitask_losses = {}
     multitask_loss_sum = 0
     multitask_correct = {}

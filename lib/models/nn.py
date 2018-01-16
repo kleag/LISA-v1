@@ -1020,7 +1020,7 @@ class NN(Configurable):
     # margins_sm = tf.Print(margins_sm, [tf.shape(logits3D), tf.shape(margins), margins], "margins", summarize=1000)
     # n_correct = tf.Print(n_correct, [tf.shape(margins_sm), margins_sm], "margins softmaxed", summarize=1000)
 
-    new_margin_mask = tf.cast(tf.less_equal(margins_sm, self.margin), tf.float32)
+    new_margin_mask = tf.cast(tf.greater_equal(margins_sm, self.margin), tf.float32)
 
     # i1, i2, i3 = tf.meshgrid(tf.range(self.batch_size), tf.range(self.max_seq_len - 1), tf.range(self.max_seq_len),
     #                          indexing="ij")

@@ -300,7 +300,7 @@ class Network(Configurable):
         if k not in attn_correct_masked_counts:
           attn_correct_masked_counts[k] = 0.
         attn_correct_masked_counts[k] += v
-      for k, v in attn_n_tokens_masked.iteritems():
+      for k, v in attn_n_tokens_masked_counts.iteritems():
         if k not in attn_n_tokens_masked_counts:
           attn_n_tokens_masked_counts[k] = 0.
         attn_n_tokens_masked_counts[k] += v
@@ -362,7 +362,7 @@ class Network(Configurable):
       multitask_uas_str = ''
       for k in sorted(attn_correct_masked_counts):
         attn_correct_masked_counts[k] = attn_correct_masked_counts[k] / attn_n_tokens_masked_counts[k]
-        multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_masked_counts[k]*100)
+        multitask_uas_str += '\t%s UAS: %.2f (%.2f%%)' % (k, attn_correct_masked_counts[k]*100, (attn_n_tokens_masked_counts[k]/n_tokens) * 100)
       print(multitask_uas_str)
 
     # print(non_tree_preds_total)

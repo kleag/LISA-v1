@@ -345,7 +345,7 @@ class Network(Configurable):
       multitask_uas_str = ''
       for k in sorted(attn_correct_counts):
         attn_correct_counts[k] = attn_correct_counts[k] / n_tokens
-        multitask_uas_str += '\t%s UAS: %f' % (k, attn_correct_counts[k])
+        multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k]*100)
       print(multitask_uas_str)
 
     # print(non_tree_preds_total)

@@ -282,7 +282,7 @@ class Network(Configurable):
     forward_total_time = 0.
     non_tree_preds_total = []
     attention_weights = {}
-    attn_correct = {}
+    attn_correct_counts = {}
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
@@ -291,7 +291,9 @@ class Network(Configurable):
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
       for k, v in attn_correct.iteritems():
-        attn_correct[k] += v
+        if k not in attn_correct_counts:
+          attn_correct_counts[k] = 0.
+        attn_correct_counts[k] += v
       forward_total_time += time.time() - forward_start
       preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles)
       total_time += parse_time
@@ -338,6 +340,14 @@ class Network(Configurable):
     if validate:
       attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
       np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
+
+      print("Attention UAS: ")
+      multitask_uas_str = ''
+      for k, v in attn_correct_counts.iteritems():
+        attn_correct_counts[k] = v / n_tokens
+        multitask_uas_str += '\t%s UAS: %f' % (k, attn_correct_counts[k])
+      print(multitask_uas_str)
+
     # print(non_tree_preds_total)
     # print(non_tree_preds_total, file=f)
     las = np.mean(correct["LAS"]) * 100
@@ -345,12 +355,7 @@ class Network(Configurable):
     print('UAS: %.2f    LAS: %.2f' % (uas, las))
     for k, v in attn_correct.iteritems():
       attn_correct[k] = v/n_tokens
-    print("Attention UAS: ")
-    multitask_uas_str = ''
-    for k, v in attn_correct.iteritems():
-      attn_correct[k] = v/n_tokens
-      multitask_uas_str += '\t%s UAS: %f' % (k, attn_correct[k])
-    print(multitask_uas_str)
+
     return correct
   
   #=============================================================

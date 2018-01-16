@@ -88,7 +88,7 @@ for lr in ${lrs[@]}; do
                                                                 --multitask_layers \"$parents_str\" \
                                                                 --multitask_penalties \"parents:$parents_penalty\"
                                                                 --use_bilinear $use_bilinear \
-                                                                --margin $margin \
+                                                                --margin=$margin \
                                                                 --svd_tree False \
                                                                 --mask_pairs True \
                                                                 --mask_roots True \

@@ -266,6 +266,8 @@ class Parser(BaseParser):
     multitask_losses = {}
     multitask_loss_sum = 0
     multitask_correct = {}
+    multitask_correct_masked = {}
+    multitask_n_tokens_masked = {}
     # for l, attn_weights in attn_weights_by_layer.iteritems():
     for l in sorted(attn_weights_by_layer):
       attn_weights = attn_weights_by_layer[l]
@@ -278,6 +280,8 @@ class Parser(BaseParser):
         loss = self.multi_penalties['parents'] * outputs['loss']
         multitask_losses['parents%s' % l] = loss
         multitask_correct['parents%s' % l] = outputs['n_correct']
+        multitask_correct_masked['parents%s' % l] = outputs['n_correct_masked']
+        multitask_n_tokens_masked['parents%s' % l] = outputs['n_tokens_masked']
         multitask_loss_sum += loss
       if 'grandparents' in self.multi_layers.keys() and l in self.multi_layers['grandparents']:
         outputs = self.output_svd(attn_weights[attn_idx], multitask_targets['grandparents']); attn_idx += 1
@@ -338,6 +342,9 @@ class Parser(BaseParser):
     output['attn_weights'] = attn_weights_by_layer_softmaxed
 
     output['attn_correct'] = multitask_correct
+    output['attn_correct_masked'] = multitask_correct_masked
+    output['attn_n_tokens_masked'] = multitask_n_tokens_masked
+
 
     # output['cycles'] = arc_output['n_cycles'] + arc_output['len_2_cycles']
 

@@ -989,7 +989,7 @@ class NN(Configurable):
     # n_correct_masked = tf.Print(n_correct_masked, [tf.shape(margin_mask), margin_mask], "margin_msk", summarize=1000)
 
     loss = tf.cond(tf.equal(n_tokens_unmasked, 0),
-                   lambda: tf.constant(0),
+                   lambda: tf.constant(0.),
                    lambda: tf.reduce_sum(cross_entropy1D * tokens_to_keep1D * flat_margin_mask) / n_tokens_unmasked)
 
     # compute new margin mask

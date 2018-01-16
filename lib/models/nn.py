@@ -982,11 +982,13 @@ class NN(Configurable):
     n_correct_masked = tf.reduce_sum(correct1D * tokens_to_keep1D * flat_margin_mask)
     n_tokens_masked = tf.reduce_sum(tokens_to_keep1D * flat_margin_mask)
 
+    n_correct_unmasked = tf.reduce_sum(correct1D * tokens_to_keep1D * (1 - flat_margin_mask))
+    n_tokens_unmasked = tf.reduce_sum(tokens_to_keep1D * (1 - flat_margin_mask))
+
     # margin_mask = tf.Print(margin_mask, [n_correct_masked, n_tokens_masked], "n_correct_masked")
     # n_correct_masked = tf.Print(n_correct_masked, [tf.shape(margin_mask), margin_mask], "margin_msk", summarize=1000)
 
-
-    loss = tf.reduce_sum(cross_entropy1D * tokens_to_keep1D * flat_margin_mask) / n_tokens_masked
+    loss = tf.reduce_sum(cross_entropy1D * tokens_to_keep1D * flat_margin_mask) / n_tokens_unmasked
 
     # compute new margin mask
     # want to mask rows where gold head > next best with margin
@@ -1020,6 +1022,7 @@ class NN(Configurable):
     # margins_sm = tf.Print(margins_sm, [tf.shape(logits3D), tf.shape(margins), margins], "margins", summarize=1000)
     # n_correct = tf.Print(n_correct, [tf.shape(margins_sm), margins_sm], "margins softmaxed", summarize=1000)
 
+    # want to mask the cells with margin > self.margin
     new_margin_mask = tf.cast(tf.greater_equal(margins_sm, self.margin), tf.float32)
 
     # i1, i2, i3 = tf.meshgrid(tf.range(self.batch_size), tf.range(self.max_seq_len - 1), tf.range(self.max_seq_len),
@@ -1057,6 +1060,8 @@ class NN(Configurable):
       'n_tokens': self.n_tokens,
       'n_correct_masked': n_correct_masked,
       'n_tokens_masked': n_tokens_masked,
+      'n_correct_unmasked': n_correct_unmasked,
+      'n_tokens_unmasked': n_tokens_unmasked,
       'accuracy': accuracy,
       'loss': loss,
       'margin_mask': new_margin_mask

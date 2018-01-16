@@ -263,12 +263,12 @@ class Network(Configurable):
       filename = self.valid_file
       minibatches = self.valid_minibatches
       dataset = self._validset
-      op = self.ops['test_op'][:7]
+      op = self.ops['test_op'][:9]
     else:
       filename = self.test_file
       minibatches = self.test_minibatches
       dataset = self._testset
-      op = self.ops['test_op'][7:]
+      op = self.ops['test_op'][9:]
     
     all_predictions = [[]]
     all_sents = [[]]
@@ -285,11 +285,13 @@ class Network(Configurable):
     attn_correct_counts = {}
     attn_correct_masked_counts = {}
     attn_n_tokens_masked_counts = {}
+    attn_correct_unmasked_counts = {}
+    attn_n_tokens_unmasked_counts = {}
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
       forward_start = time.time()
-      probs, n_cycles, len_2_cycles, attn_weights, attn_correct, attn_correct_masked, attn_n_tokens_masked = sess.run(op, feed_dict=feed_dict)
+      probs, n_cycles, len_2_cycles, attn_weights, attn_correct, attn_correct_masked, attn_n_tokens_masked, attn_correct_unmasked, attn_n_tokens_unmasked  = sess.run(op, feed_dict=feed_dict)
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
       for k, v in attn_correct.iteritems():
@@ -304,6 +306,14 @@ class Network(Configurable):
         if k not in attn_n_tokens_masked_counts:
           attn_n_tokens_masked_counts[k] = 0.
         attn_n_tokens_masked_counts[k] += v
+      for k, v in attn_correct_unmasked.iteritems():
+        if k not in attn_correct_unmasked_counts:
+          attn_correct_unmasked_counts[k] = 0.
+        attn_correct_unmasked_counts[k] += v
+      for k, v in attn_n_tokens_unmasked.iteritems():
+        if k not in attn_n_tokens_unmasked_counts:
+          attn_n_tokens_unmasked_counts[k] = 0.
+        attn_n_tokens_unmasked_counts[k] += v
       forward_total_time += time.time() - forward_start
       preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles)
       total_time += parse_time
@@ -358,11 +368,18 @@ class Network(Configurable):
         multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k]*100)
       print(multitask_uas_str)
 
-      print("Attention UAS w/ masking: ")
+      print("Masked attention UAS: ")
       multitask_uas_str = ''
       for k in sorted(attn_correct_masked_counts):
         attn_correct_masked_counts[k] = attn_correct_masked_counts[k] / attn_n_tokens_masked_counts[k]
         multitask_uas_str += '\t%s UAS: %.2f (%.2f%%)' % (k, attn_correct_masked_counts[k]*100, (attn_n_tokens_masked_counts[k]/n_tokens) * 100)
+      print(multitask_uas_str)
+
+      print("Unmasked attention UAS: ")
+      multitask_uas_str = ''
+      for k in sorted(attn_correct_unmasked_counts):
+        attn_correct_unmasked_counts[k] = attn_correct_unmasked_counts[k] / attn_n_tokens_unmasked_counts[k]
+        multitask_uas_str += '\t%s UAS: %.2f (%.2f%%)' % (k, attn_correct_unmasked_counts[k]*100, (attn_n_tokens_unmasked_counts[k]/n_tokens) * 100)
       print(multitask_uas_str)
 
     # print(non_tree_preds_total)
@@ -452,6 +469,8 @@ class Network(Configurable):
                       valid_output['attn_correct'],
                       valid_output['attn_correct_masked'],
                       valid_output['attn_n_tokens_masked'],
+                      valid_output['attn_correct_unmasked'],
+                      valid_output['attn_n_tokens_unmasked'],
                       test_output['probabilities'],
                       test_output['n_cycles'],
                       test_output['len_2_cycles'],
@@ -459,6 +478,8 @@ class Network(Configurable):
                       test_output['attn_correct'],
                       test_output['attn_correct_masked'],
                       test_output['attn_n_tokens_masked'],
+                      test_output['attn_correct_unmasked'],
+                      test_output['attn_n_tokens_unmasked'],
                       ]
     ops['optimizer'] = optimizer
     

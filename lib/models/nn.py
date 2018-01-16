@@ -997,7 +997,18 @@ class NN(Configurable):
     # these are the margins. we want them to be > self.margin
     margins = gold_scores - max_scores
 
-    n_correct = tf.Print(n_correct, [margins], "margins", summarize=1000)
+    # these are maxes that are not the gold label
+    max_scores_sm = tf.reduce_max(tf.nn.softmax(logits_augmented), axis=-1)
+
+    # these are the scores of the gold labels
+    gold_scores_sm = tf.gather_nd(tf.nn.softmax(logits3D), idx)
+
+    # these are the margins. we want them to be > self.margin
+    margins_sm = gold_scores_sm - max_scores_sm
+
+    n_correct = tf.Print(n_correct, [tf.shape(logits3D), tf.shape(margins), margins], "margins", summarize=1000)
+    n_correct = tf.Print(n_correct, [tf.shape(margins_sm), margins_sm], "margins softmaxed", summarize=1000)
+
 
     new_margin_mask = tf.cast(tf.less_equal(margins, self.margin), tf.float32)
 

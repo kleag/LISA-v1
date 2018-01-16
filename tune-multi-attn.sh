@@ -22,7 +22,7 @@ epsilons="1e-12"
 warmup_steps="8000"
 batch_sizes="5000"
 
-trans_layers="4 5 6" # 3
+trans_layers="4 5 6 8" # 3
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
 head_sizes="64"
@@ -31,11 +31,10 @@ relu_hidden_sizes="256"
 parents_penalties="0.0 0.1 0.01"
 #parents_layers="parents:0,1,2,3"
 use_bilinears="True False"
-margins="-inf 0.01 0.1 0.5"
 
-reps="2"
+reps="3"
 
-# 3*3*2*4*2 = 144
+# 4*3*2*3 = 72
 
 #--multitask_layers \"$parents_layer;$grandparents_layer\" \
 #--multitask_penalties \"parents:$parents_penalty;grandparents:$grandparents_penalty\"
@@ -56,49 +55,46 @@ for lr in ${lrs[@]}; do
                                     for relu_hidden_size in ${relu_hidden_sizes[@]}; do
                                         for batch_size in ${batch_sizes[@]}; do
                                             for parents_penalty in ${parents_penalties[@]}; do
-                                                for margin in ${margins[@]}; do
-#                                                    for parents_layer in ${parents_layers[@]}; do
-                                                        for use_bilinear in ${use_bilinears[@]}; do
-                                                            for rep in `seq $reps`; do
-                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$use_bilinear-$margin"
+#                                                for parents_layer in ${parents_layers[@]}; do
+                                                    for use_bilinear in ${use_bilinears[@]}; do
+                                                        for rep in `seq $reps`; do
+                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$use_bilinear"
 
-                                                                # create parents attn at every layer
-                                                                parents_str="parents:"
-                                                                for i in `seq $trans_layer`; do
-                                                                    parents_str="$parents_str$((i-1)),"
-                                                                done
-                                                                parents_str=${parents_str%?}
-
-                                                                commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12:00:00 python network.py \
-                                                                --config_file config/trans-only-attn.cfg \
-                                                                --save_dir $OUT_LOG/scores-$fname_append \
-                                                                --save_every 500 \
-                                                                --train_iters 100000 \
-                                                                --train_batch_size $batch_size \
-                                                                --warmup_steps $warmup_steps \
-                                                                --learning_rate $lr \
-                                                                --cnn_dim $cnn_dim \
-                                                                --n_recur $trans_layer \
-                                                                --num_heads $num_head \
-                                                                --head_size $head_size \
-                                                                --relu_hidden_size $relu_hidden_size \
-                                                                --mu $mu \
-                                                                --nu $nu \
-                                                                --epsilon $epsilon \
-                                                                --multitask_layers \"$parents_str\" \
-                                                                --multitask_penalties \"parents:$parents_penalty\"
-                                                                --use_bilinear $use_bilinear \
-                                                                --margin=$margin \
-                                                                --svd_tree False \
-                                                                --mask_pairs True \
-                                                                --mask_roots True \
-                                                                --ensure_tree False \
-                                                                --save False \
-                                                                &> $OUT_LOG/train-$fname_append.log")
+                                                            # create parents attn at every layer
+                                                            parents_str="parents:"
+                                                            for i in `seq $trans_layer`; do
+                                                                parents_str="$parents_str$((i-1)),"
                                                             done
+                                                            parents_str=${parents_str%?}
+
+                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12:00:00 python network.py \
+                                                            --config_file config/trans-only-attn.cfg \
+                                                            --save_dir $OUT_LOG/scores-$fname_append \
+                                                            --save_every 500 \
+                                                            --train_iters 100000 \
+                                                            --train_batch_size $batch_size \
+                                                            --warmup_steps $warmup_steps \
+                                                            --learning_rate $lr \
+                                                            --cnn_dim $cnn_dim \
+                                                            --n_recur $trans_layer \
+                                                            --num_heads $num_head \
+                                                            --head_size $head_size \
+                                                            --relu_hidden_size $relu_hidden_size \
+                                                            --mu $mu \
+                                                            --nu $nu \
+                                                            --epsilon $epsilon \
+                                                            --multitask_layers \"$parents_str\" \
+                                                            --multitask_penalties \"parents:$parents_penalty\"
+                                                            --use_bilinear $use_bilinear \
+                                                            --svd_tree False \
+                                                            --mask_pairs True \
+                                                            --mask_roots True \
+                                                            --ensure_tree False \
+                                                            --save False \
+                                                            &> $OUT_LOG/train-$fname_append.log")
                                                         done
+                                                    done
 #                                                    done
-                                                done
                                             done
                                         done
                                     done

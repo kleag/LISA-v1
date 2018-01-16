@@ -343,8 +343,8 @@ class Network(Configurable):
 
       print("Attention UAS: ")
       multitask_uas_str = ''
-      for k, v in attn_correct_counts.iteritems():
-        attn_correct_counts[k] = v / n_tokens
+      for k in sorted(attn_correct_counts):
+        attn_correct_counts[k] = attn_correct_counts[k] / n_tokens
         multitask_uas_str += '\t%s UAS: %f' % (k, attn_correct_counts[k])
       print(multitask_uas_str)
 
@@ -353,8 +353,6 @@ class Network(Configurable):
     las = np.mean(correct["LAS"]) * 100
     uas = np.mean(correct["UAS"]) * 100
     print('UAS: %.2f    LAS: %.2f' % (uas, las))
-    for k, v in attn_correct.iteritems():
-      attn_correct[k] = v/n_tokens
 
     return correct
   

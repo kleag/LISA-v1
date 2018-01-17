@@ -179,7 +179,7 @@ class Network(Configurable):
             # Dump the profile to '/tmp/train_dir' after the step.
             pctx.dump_next_step()
 
-          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, multitask_losses = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
+          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, multitask_losses, lr = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
           train_time += time.time() - start_time
           train_loss += loss
           train_log_loss += log_loss
@@ -242,10 +242,9 @@ class Network(Configurable):
             train_srl_accuracy = 100 * n_train_srl_correct / n_train_srl_count
             train_trigger_accuracy = 100 * n_train_trigger_correct / n_train_trigger_count
             train_time = n_train_sents / train_time
-            learn_rate = self._ops['optimizer'].learning_rate
             print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f\n'
                   '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
-                  (total_train_iters, train_loss, train_accuracy, train_time, learn_rate, valid_loss, valid_accuracy, valid_time))
+                  (total_train_iters, train_loss, train_accuracy, train_time, lr, valid_loss, valid_accuracy, valid_time))
             print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\troots loss: %f\t2cycle loss: %f\tsvd loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_trigger_loss, train_roots_loss, train_cycle2_loss, train_svd_loss))
             multitask_losses_str = ''
             for n, l in train_mul_loss.iteritems():
@@ -594,6 +593,8 @@ class Network(Configurable):
     
     optimizer = optimizers.RadamOptimizer(self._config, global_step=self.global_step)
     train_output = self._model(self._trainset)
+
+    lr = optimizer.learning_rate
     
     train_op = optimizer.minimize(train_output['loss'])
     # These have to happen after optimizer.minimize is called
@@ -629,7 +630,8 @@ class Network(Configurable):
                            train_output['trigger_loss'],
                            train_output['trigger_count'],
                            train_output['trigger_correct'],
-                           train_output['multitask_losses']]
+                           train_output['multitask_losses'],
+                           lr]
     ops['valid_op'] = [valid_output['loss'],
                        valid_output['n_correct'],
                        valid_output['n_tokens'],

@@ -134,8 +134,8 @@ class Dataset(Configurable):
           #   print("stuff:",  word, tag1, tag2, head, rel)
           #   print("srl_fields", [token[idx] for idx in range(len(token)-1)])
           srl_tags = [srls[s][0] for s in srl_fields]
-          is_trigger = str(np.any([s in self.trigger_indices for s in srl_tags]))
-          buff[i][j] = (word,) + words[word] + tags[tag1] + trigs[is_trigger] + tags[tag2] + (head,) + rels[rel] + tuple(srl_tags)
+          is_trigger = np.any([s in self.trigger_indices for s in srl_tags])
+          buff[i][j] = (word,) + words[word] + tags[tag1] + trigs[str(is_trigger)] + tags[tag2] + (head,) + rels[rel] + tuple(srl_tags)
         # sent.insert(0, ('root', Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, 0, Vocab.ROOT))
     print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
     return buff

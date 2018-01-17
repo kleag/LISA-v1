@@ -40,7 +40,7 @@ add_pos_tags="True" # False"
 
 reps="2"
 
-# 4*4*2 = 32
+# 4*4m*2 = 32
 
 # array to hold all the commands we'll distribute
 declare -a commands

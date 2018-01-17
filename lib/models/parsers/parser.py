@@ -150,17 +150,17 @@ class Parser(BaseParser):
               with tf.variable_scope('layer%d' % i, reuse=reuse):
                 if self.inject_manual_attn and moving_params is None and 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                   manual_attn = adj
-                  this_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
+                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                attn_dropout, relu_dropout, prepost_dropout, self.relu_hidden_size,
                                                self.info_func, reuse, manual_attn)
                 elif self.inject_manual_attn and moving_params is None and 'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:
                   manual_attn = grand_adj
-                  this_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
+                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                              attn_dropout, relu_dropout, prepost_dropout,
                                                              self.relu_hidden_size,
                                                              self.info_func, reuse, manual_attn)
                 else:
-                  this_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
+                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                              attn_dropout, relu_dropout, prepost_dropout,
                                                              self.relu_hidden_size, self.info_func, reuse)
                 # head x batch x seq_len x seq_len

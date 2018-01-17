@@ -78,7 +78,7 @@ class Parser(BaseParser):
 
     # do parse update if the random ~ unif(0,1) <= proportion
     # otherwise, do srl update
-    do_parse_update = tf.less_equal(tf.random_uniform([1]), self.parse_update_proportion)
+    do_parse_update = tf.less_equal(tf.reshape(tf.random_uniform([1]), []), self.parse_update_proportion)
 
     # do_arc_update = tf.not_equal(self.arc_loss_penalty, 0.)
     # do_rel_update = tf.not_equal(self.rel_loss_penalty, 0.)

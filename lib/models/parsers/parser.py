@@ -309,6 +309,7 @@ class Parser(BaseParser):
     # def dummy_compute_rels_output():
 
     multitask_losses = {}
+    multitask_correct = {}
     multitask_loss_sum = 0
     for l, attn_weights in attn_weights_by_layer.iteritems():
       # attn_weights is: head x batch x seq_len x seq_len
@@ -320,6 +321,7 @@ class Parser(BaseParser):
         # outputs = tf.Print(outputs, [tf.shape(attn_weights[attn_idx]), tf.reduce_sum(attn_weights[attn_idx], axis=), attn_weights[attn_idx]], "attn_weights", summarize=1000)
         loss = self.multi_penalties['parents'] * outputs['loss']
         multitask_losses['parents%s' % l] = loss
+        multitask_correct['parents%s' % l] = outputs['n_correct']
         multitask_loss_sum += loss
       if 'grandparents' in self.multi_layers.keys() and l in self.multi_layers['grandparents']:
         outputs = self.output_svd(attn_weights[attn_idx], multitask_targets['grandparents']);
@@ -423,6 +425,7 @@ class Parser(BaseParser):
                                        attn_weights_by_layer.iteritems()}
 
     output['attn_weights'] = attn_weights_by_layer_softmaxed
+    output['attn_correct'] = multitask_correct
 
     return output
   

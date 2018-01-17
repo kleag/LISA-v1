@@ -63,7 +63,7 @@ for lr in ${lrs[@]}; do
                                                             for add_pos in ${add_pos_tags[@]}; do
                                                                 for rep in `seq $reps`; do
                                                                     fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$trigger_mlp_size-$role_mlp_size-$add_pos"
-                                                                    commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=16:00:00 python network.py --mem=16000 \
+                                                                    commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long python network.py --mem=16000 \
                                                                     --config_file config/trans-conll12-bio-multi-attn.cfg \
                                                                     --save_dir $OUT_LOG/scores-$fname_append \
                                                                     --save_every 500 \

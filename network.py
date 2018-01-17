@@ -415,12 +415,12 @@ class Network(Configurable):
       filename = self.valid_file
       minibatches = self.valid_minibatches
       dataset = self._validset
-      op = self.ops['test_op'][:12]
+      op = self.ops['test_op'][:13]
     else:
       filename = self.test_file
       minibatches = self.test_minibatches
       dataset = self._testset
-      op = self.ops['test_op'][12:]
+      op = self.ops['test_op'][13:]
     
     all_predictions = [[]]
     all_sents = [[]]
@@ -436,15 +436,20 @@ class Network(Configurable):
     forward_total_time = 0.
     non_tree_preds_total = []
     attention_weights = {}
+    attn_correct_counts = {}
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
       forward_start = time.time()
-      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_trigger, srl_trigger_targets, transition_params, attn_weights = sess.run(op, feed_dict=feed_dict)
+      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_trigger, srl_trigger_targets, transition_params, attn_weights, attn_correct = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
       preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_trigger, srl_trigger_targets, transition_params)
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
+      for k, v in attn_correct.iteritems():
+        if k not in attn_correct_counts:
+          attn_correct_counts[k] = 0.
+        attn_correct_counts[k] += v
       total_time += parse_time
       roots_lt_total += roots_lt
       roots_gt_total += roots_gt
@@ -465,12 +470,14 @@ class Network(Configurable):
     print("Total time in forward: %f" % forward_total_time)
     print("Not tree: %d" % not_tree_total)
     print("Roots < 1: %d; Roots > 1: %d; 2-cycles: %d; n-cycles: %d" % (roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total))
+    n_tokens = 0
     with open(os.path.join(self.save_dir, os.path.basename(filename)), 'w') as f:
       for bkt_idx, idx in dataset._metabucket.data:
         data = dataset._metabucket[bkt_idx].data[idx]
         preds = all_predictions[bkt_idx][idx]
         words = all_sents[bkt_idx][idx]
         for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+          n_tokens += 1
           tup = (
             i+1,
             word,
@@ -540,9 +547,19 @@ class Network(Configurable):
       s, correct = self.model.evaluate(os.path.join(self.save_dir, os.path.basename(filename)), punct=self.model.PUNCT)
       f.write(s)
 
-    if validate and self.save_attn_weights:
+    if validate:
+
+      print("Attention UAS: ")
+      multitask_uas_str = ''
+      for k in sorted(attn_correct_counts):
+        attn_correct_counts[k] = attn_correct_counts[k] / n_tokens
+        multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k] * 100)
+      print(multitask_uas_str)
+
+      if self.save_attn_weights:
         attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
         np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
+
 
     correct['F1'] = overall_f1
     # if validate:
@@ -648,6 +665,7 @@ class Network(Configurable):
                       valid_output['srl_trigger_targets'],
                       valid_output['transition_params'],
                       valid_output['attn_weights'],
+                      valid_output['attn_correct'],
                       test_output['probabilities'],
                       test_output['n_cycles'],
                       test_output['len_2_cycles'],
@@ -660,6 +678,7 @@ class Network(Configurable):
                       test_output['srl_trigger_targets'],
                       test_output['transition_params'],
                       test_output['attn_weights'],
+                      test_output['attn_correct'],
                       ]
     ops['optimizer'] = optimizer
     

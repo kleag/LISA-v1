@@ -242,7 +242,10 @@ class Network(Configurable):
             train_srl_accuracy = 100 * n_train_srl_correct / n_train_srl_count
             train_trigger_accuracy = 100 * n_train_trigger_correct / n_train_trigger_count
             train_time = n_train_sents / train_time
-            print('%6d) Train loss: %.4f    Train acc: %5.2f%%    SRL acc: %5.2f%%    Trig acc:%5.2f%%    Train rate: %6.1f sents/sec\n\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' % (total_train_iters, train_loss, train_accuracy, train_srl_accuracy, train_trigger_accuracy, train_time, valid_loss, valid_accuracy, valid_time))
+            learn_rate = self._ops['optimizer'].learning_rate
+            print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f\n'
+                  '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
+                  (total_train_iters, train_loss, train_accuracy, train_time, learn_rate, valid_loss, valid_accuracy, valid_time))
             print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\troots loss: %f\t2cycle loss: %f\tsvd loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_trigger_loss, train_roots_loss, train_cycle2_loss, train_svd_loss))
             multitask_losses_str = ''
             for n, l in train_mul_loss.iteritems():

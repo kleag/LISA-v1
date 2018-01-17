@@ -28,19 +28,19 @@ num_heads="8" #4 8"
 head_sizes="64"
 relu_hidden_sizes="256"
 
-parents_penalties="0.1 1.0 0.01 10.0 0.0001"
+parents_penalties="0.1 1.0 0.01 0.0001"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
 parents_layers="parents:0 parents:1 parents:2 parents:3"
 #grandparents_layers="grandparents:1 grandparents:3 grandparents:1,3"
 
 trigger_mlp_sizes="256"
 role_mlp_sizes="256"
-add_pos_tags="True False"
+add_pos_tags="True" # False"
 #trigger_pred_mlp_sizes="256"
 
 reps="2"
 
-# 5*4*2*2 = 80
+# 4*4*2 = 32
 
 # array to hold all the commands we'll distribute
 declare -a commands
@@ -63,7 +63,7 @@ for lr in ${lrs[@]}; do
                                                             for add_pos in ${add_pos_tags[@]}; do
                                                                 for rep in `seq $reps`; do
                                                                     fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$trigger_mlp_size-$role_mlp_size-$add_pos"
-                                                                    commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=16:00:00 python network.py \
+                                                                    commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=16:00:00 python network.py --mem=16000 \
                                                                     --config_file config/trans-conll12-bio-multi-attn.cfg \
                                                                     --save_dir $OUT_LOG/scores-$fname_append \
                                                                     --save_every 500 \

@@ -78,7 +78,8 @@ class Parser(BaseParser):
 
     # do parse update if the random ~ unif(0,1) <= proportion
     # otherwise, do srl update
-    do_parse_update = tf.less_equal(np.random.rand(), self.parse_update_proportion)
+    do_parse_update = tf.less_equal(tf.random_uniform([1]), self.parse_update_proportion)
+
     # do_arc_update = tf.not_equal(self.arc_loss_penalty, 0.)
     # do_rel_update = tf.not_equal(self.rel_loss_penalty, 0.)
     # do_parse_update = tf.logical_and(do_arc_update, do_rel_update)
@@ -399,7 +400,7 @@ class Parser(BaseParser):
     output['rel_loss'] = rel_loss # rel_output['loss']
     output['log_loss'] = arc_loss # arc_output['log_loss']
     output['2cycle_loss'] = arc_output['2cycle_loss']
-    output['roots_loss'] = actual_parse_loss #arc_output['roots_loss']
+    output['roots_loss'] = arc_output['roots_loss']
     output['svd_loss'] = arc_output['svd_loss']
     output['n_cycles'] = arc_output['n_cycles']
     output['len_2_cycles'] = arc_output['len_2_cycles']

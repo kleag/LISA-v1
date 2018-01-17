@@ -384,7 +384,6 @@ class Parser(BaseParser):
     # output['loss'] = srl_loss + trigger_loss + actual_parse_loss
     # output['loss'] = actual_srl_loss + arc_loss + rel_loss
 
-
     if self.word_l2_reg > 0:
       output['loss'] += word_loss
 
@@ -400,7 +399,7 @@ class Parser(BaseParser):
     output['rel_loss'] = rel_loss # rel_output['loss']
     output['log_loss'] = arc_loss # arc_output['log_loss']
     output['2cycle_loss'] = arc_output['2cycle_loss']
-    output['roots_loss'] = arc_output['roots_loss']
+    output['roots_loss'] = actual_parse_loss #arc_output['roots_loss']
     output['svd_loss'] = arc_output['svd_loss']
     output['n_cycles'] = arc_output['n_cycles']
     output['len_2_cycles'] = arc_output['len_2_cycles']

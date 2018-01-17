@@ -67,7 +67,7 @@ for lr in ${lrs[@]}; do
                                                                     if [[ "$parents_layer" == "parents:0,1,2,3" ]]; then
                                                                         partition="m40-long"
                                                                     fi
-                                                                    commands+=("srun --gres=gpu:1 --partition=$partition python network.py --mem=16000 \
+                                                                    commands+=("srun --gres=gpu:1 --partition=$partition --mem=16000 python network.py  \
                                                                     --config_file config/trans-conll12-bio-multi-attn.cfg \
                                                                     --save_dir $OUT_LOG/scores-$fname_append \
                                                                     --save_every 500 \

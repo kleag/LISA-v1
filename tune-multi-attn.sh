@@ -22,19 +22,19 @@ epsilons="1e-12"
 warmup_steps="8000"
 batch_sizes="5000"
 
-trans_layers="4 5 6 8" # 3
+trans_layers="4" # 3
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
 head_sizes="64"
 relu_hidden_sizes="256"
 
 parents_penalties="0.0 0.1 0.01"
-#parents_layers="parents:0,1,2,3"
-use_bilinears="True False"
+parents_layers="parents:0;grandparents:3;inner_sibs:3 parents:1;grandparents:3;inner_sibs:3 parents:2;grandparents:3;inner_sibs:3 parents:3;grandparents:3;inner_sibs:3 parents:1;grandparents:3;inner_sibs:1 parents:1;grandparents:3;inner_sibs:2"
+use_bilinears="True"
 
-reps="3"
+reps="2"
 
-# 4*3*2*3 = 72
+# 3*6*2 = 72
 
 #--multitask_layers \"$parents_layer;$grandparents_layer\" \
 #--multitask_penalties \"parents:$parents_penalty;grandparents:$grandparents_penalty\"
@@ -67,7 +67,7 @@ for lr in ${lrs[@]}; do
                                                             done
                                                             parents_str=${parents_str%?}
 
-                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12:00:00 python network.py \
+                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=16:00:00 python network.py \
                                                             --config_file config/trans-only-attn.cfg \
                                                             --save_dir $OUT_LOG/scores-$fname_append \
                                                             --save_every 500 \
@@ -84,7 +84,7 @@ for lr in ${lrs[@]}; do
                                                             --nu $nu \
                                                             --epsilon $epsilon \
                                                             --multitask_layers \"$parents_str\" \
-                                                            --multitask_penalties \"parents:$parents_penalty\"
+                                                            --multitask_penalties \"parents:$parents_penalty;grandparents:$parents_penalty;inner_sibs:$parents_penalty\"
                                                             --use_bilinear $use_bilinear \
                                                             --svd_tree False \
                                                             --mask_pairs True \

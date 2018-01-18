@@ -256,7 +256,7 @@ class BaseOptimizer(Configurable):
   def learning_rate(self):
     if self.warmup_steps > 0:
       lr = super(BaseOptimizer, self).learning_rate
-      lr *= tf.minimum(tf.rsqrt(self.global_step), tf.multiply(self.global_step, self.warmup_steps**-1.5))
+      lr *= tf.minimum(tf.rsqrt(self.global_step), tf.multiply(self.global_step, self.warmup_steps**-self.decay))
       return lr
     else:
       if self.decay_steps > 0:

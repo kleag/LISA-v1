@@ -12,30 +12,35 @@ fi
 
 echo "Writing to $OUT_LOG"
 
-#num_gpus=108
-num_gpus=36
+num_gpus=96
+#num_gpus=36
 
-lrs="0.04" # 0.06"
+lrs="0.04 0.08 0.1 0.02" # 0.06"
 mus="0.9"
 nus="0.98"
 epsilons="1e-12"
-warmup_steps="8000" # 2000 1000"
-batch_sizes="1000"
+warmup_steps="2000 4000 8000 16000" # 2000 1000"
+batch_sizes="1000 1500 2000"
+decays="1.5 1.25 0.75 1.0 1.75"
+
+#learn_rates = [0.04, 0.08, 0.1, 0.02]
+#warmup_steps = [2000, 4000, 8000, 16000]
+#decays = [1.5, 1.25, 0.75, 1.0, 1.75]
 
 trans_layers="4" # 3
 cnn_dims="1024" # 512 768 1024"
 num_heads="8" # 4 8"
 head_sizes="64" # 128"
 relu_hidden_sizes="256"
-trigger_mlp_sizes="128 256 512"
-trigger_pred_mlp_sizes="128 256 512"
-role_mlp_sizes="128 256 512"
+trigger_mlp_sizes="256"
+trigger_pred_mlp_sizes="256"
+role_mlp_sizes="256"
 subsample_trigger_rates="1.0"
-add_pos_tags="True False"
+add_pos_tags="True"
 
 reps="2"
 
-# 3*3*3*2*2
+# 4*4*3*5*2 = 480
 
 
 
@@ -57,36 +62,39 @@ for lr in ${lrs[@]}; do
                                                 for trigger_mlp_size in ${trigger_mlp_sizes[@]}; do
                                                     for trigger_pred_mlp_size in ${trigger_pred_mlp_sizes[@]}; do
                                                         for add_pos in ${add_pos_tags[@]}; do
-                                                            for rep in `seq $reps`; do
-                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$role_mlp_size-$trigger_mlp_size-$trigger_pred_mlp_size-$add_pos"
-                                                                commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12:00:00 --mem=12000
-                                                                 python network.py \
-                                                                --config_file config/trans-fast-conll12-bio.cfg \
-                                                                --save_dir $OUT_LOG/scores-$fname_append \
-                                                                --save_every 500 \
-                                                                --train_iters 500000 \
-                                                                --train_batch_size $batch_size \
-                                                                --test_batch_size $batch_size \
-                                                                --warmup_steps $warmup_steps \
-                                                                --learning_rate $lr \
-                                                                --cnn_dim $cnn_dim \
-                                                                --n_recur $trans_layer \
-                                                                --num_heads $num_head \
-                                                                --head_size $head_size \
-                                                                --relu_hidden_size $relu_hidden_size \
-                                                                --mu $mu \
-                                                                --nu $nu \
-                                                                --epsilon $epsilon \
-                                                                --trigger_mlp_size $trigger_mlp_size \
-                                                                --trigger_pred_mlp_size $trigger_pred_mlp_size \
-                                                                --role_mlp_size $role_mlp_size \
-                                                                --add_pos_to_input $add_pos \
-                                                                --svd_tree False \
-                                                                --mask_pairs True \
-                                                                --mask_roots True \
-                                                                --ensure_tree True \
-                                                                --save False \
-                                                                &> $OUT_LOG/train-$fname_append.log")
+                                                            for decay in ${decayss[@]}; do
+                                                                for rep in `seq $reps`; do
+                                                                    fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$role_mlp_size-$trigger_mlp_size-$trigger_pred_mlp_size-$add_pos-$decay"
+                                                                    commands+=("srun --gres=gpu:1 --partition=titanx-short,m40-short --time=4:00:00 --mem=12000
+                                                                     python network.py \
+                                                                    --config_file config/trans-fast-conll12-bio.cfg \
+                                                                    --save_dir $OUT_LOG/scores-$fname_append \
+                                                                    --save_every 500 \
+                                                                    --train_iters 500000 \
+                                                                    --train_batch_size $batch_size \
+                                                                    --test_batch_size $batch_size \
+                                                                    --warmup_steps $warmup_steps \
+                                                                    --learning_rate $lr \
+                                                                    --cnn_dim $cnn_dim \
+                                                                    --n_recur $trans_layer \
+                                                                    --num_heads $num_head \
+                                                                    --head_size $head_size \
+                                                                    --relu_hidden_size $relu_hidden_size \
+                                                                    --mu $mu \
+                                                                    --nu $nu \
+                                                                    --epsilon $epsilon \
+                                                                    --decay $decay \
+                                                                    --trigger_mlp_size $trigger_mlp_size \
+                                                                    --trigger_pred_mlp_size $trigger_pred_mlp_size \
+                                                                    --role_mlp_size $role_mlp_size \
+                                                                    --add_pos_to_input $add_pos \
+                                                                    --svd_tree False \
+                                                                    --mask_pairs True \
+                                                                    --mask_roots True \
+                                                                    --ensure_tree True \
+                                                                    --save False \
+                                                                    &> $OUT_LOG/train-$fname_append.log")
+                                                                done
                                                             done
                                                         done
                                                     done

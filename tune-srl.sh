@@ -62,7 +62,7 @@ for lr in ${lrs[@]}; do
                                                 for trigger_mlp_size in ${trigger_mlp_sizes[@]}; do
                                                     for trigger_pred_mlp_size in ${trigger_pred_mlp_sizes[@]}; do
                                                         for add_pos in ${add_pos_tags[@]}; do
-                                                            for decay in ${decayss[@]}; do
+                                                            for decay in ${decays[@]}; do
                                                                 for rep in `seq $reps`; do
                                                                     fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$role_mlp_size-$trigger_mlp_size-$trigger_pred_mlp_size-$add_pos-$decay"
                                                                     commands+=("srun --gres=gpu:1 --partition=titanx-short,m40-short --time=4:00:00 --mem=12000

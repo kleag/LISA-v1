@@ -92,7 +92,7 @@ for lr in ${lrs[@]}; do
                                                             --mask_roots True \
                                                             --ensure_tree False \
                                                             --save False \
-                                                            &> $OUT_LOG/train-$fname_append.log")
+                                                            &> \"$OUT_LOG/train-$fname_append.log\"")
                                                         done
                                                     done
                                                 done

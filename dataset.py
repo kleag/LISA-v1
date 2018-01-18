@@ -99,13 +99,48 @@ class Dataset(Configurable):
     
     words, tags, rels = self.vocabs
     for i, sent in enumerate(buff):
+      # maps from head index to list of sib indices under that head
+      siblings = {}
       for j, token in enumerate(sent):
         word, tag1, tag2, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
         if rel == 'root':
           head = j
         else:
           head = int(head) - 1
-        buff[i][j] = (word,) + words[word] + tags[tag1] + tags[tag2] + (head,) + rels[rel]
+        siblings[head] = j
+        # last two are left, right inner sibs, which default to self
+        buff[i][j] = (word,) + words[word] + tags[tag1] + tags[tag2] + (head,) + rels[rel] + (j,) + (j,)
+      # compute left/right inner sibling feats
+      for head_idx, sib_indices in siblings.iteritems():
+        sorted_sibs = np.array(sorted(sib_indices))
+
+        # left inner sib is sib with greatest idx < this idx and > head idx
+        sibs_greater = sorted_sibs[np.where(sorted_sibs > head_idx)]
+        for sib_idx in sibs_greater:
+          inner_sibs = sibs_greater[np.where(sibs_greater < sib_idx)]
+          leftmost_inner = inner_sibs[-1] if inner_sibs else sib_idx
+          buff[i][sib_idx][7] = leftmost_inner
+
+        # right inner sib is sib with smalleset idx > this idx and < head idx
+        sibs_lesser = sorted_sibs[np.where(sorted_sibs < head_idx)]
+        for sib_idx in sibs_lesser:
+          inner_sibs = sibs_lesser[np.where(sibs_lesser > sib_idx)]
+          rightmost_inner = inner_sibs[0] if inner_sibs else sib_idx
+          buff[i][sib_idx][8] = rightmost_inner
+
+        # sibs_greater = sorted_sibs[np.where(sorted_sibs > head_idx)]
+        # left_inner_sib = sibs_greater[0] if sibs_greater else -1
+        # if left_inner_sib != -1:
+        #   for sib_idx in sibs_greater:
+        #     buff[i][sib_idx][7] = left_inner_sib
+        #
+        # # right inner sib is sib with largest idx < head_idx
+        # sibs_lesser = sorted_sibs[np.where(sorted_sibs < head_idx)]
+        # right_inner_sib = sibs_lesser[-1] if sibs_lesser else -1
+        # if right_inner_sib != -1:
+        #   for sib_idx in sibs_lesser:
+        #     buff[i][sib_idx][8] = right_inner_sib
+
       # sent.insert(0, ('root', Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, 0, Vocab.ROOT))
     return buff
   

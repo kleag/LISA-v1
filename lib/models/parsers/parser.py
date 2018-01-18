@@ -89,6 +89,27 @@ class Parser(BaseParser):
     parents = targets[:, :, 1]
     multitask_targets['parents'] = parents
 
+    # create inner sibling targets
+    left_inner_sibs = targets[:, :, 3]
+    multitask_targets['left_inner_sibs'] = left_inner_sibs
+    left_inner_sibs_idx = tf.stack([i1, i2, left_inner_sibs], axis=-1)
+    left_inner_sibs_adj = tf.scatter_nd(left_inner_sibs_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])
+    left_inner_sibs_adj = left_inner_sibs_adj * mask
+
+    right_inner_sibs = targets[:, :, 4]
+    multitask_targets['right_inner_sibs'] = right_inner_sibs
+    right_inner_sibs_idx = tf.stack([i1, i2, right_inner_sibs], axis=-1)
+    right_inner_sibs_adj = tf.scatter_nd(right_inner_sibs_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])
+    right_inner_sibs_adj = right_inner_sibs_adj * mask
+
+    self_indices = tf.tile(tf.expand_dims(tf.range(bucket_size), 0), [batch_size, 1])
+
+    inner_sibs = tf.where(tf.not_equal(right_inner_sibs, self_indices), right_inner_sibs, left_inner_sibs)
+    multitask_targets['inner_sibs'] = inner_sibs
+    inner_sibs_idx = tf.stack([i1, i2, inner_sibs], axis=-1)
+    inner_sibs_adj = tf.scatter_nd(inner_sibs_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])
+    inner_sibs_adj = inner_sibs_adj * mask
+
     # create children targets
     multitask_targets['children'] = tf.transpose(adj, [0, 2, 1]) * roots_mask
 
@@ -148,21 +169,30 @@ class Parser(BaseParser):
             top_recur = nn.add_timing_signal_1d(top_recur)
             for i in range(self.n_recur):
               with tf.variable_scope('layer%d' % i, reuse=reuse):
-                if self.inject_manual_attn and moving_params is None and 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
-                  manual_attn = adj
-                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                                               attn_dropout, relu_dropout, prepost_dropout, self.relu_hidden_size,
-                                               self.info_func, reuse, manual_attn)
-                elif self.inject_manual_attn and moving_params is None and 'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:
-                  manual_attn = grand_adj
-                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                                                             attn_dropout, relu_dropout, prepost_dropout,
-                                                             self.relu_hidden_size,
-                                                             self.info_func, reuse, manual_attn)
-                else:
-                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                                                             attn_dropout, relu_dropout, prepost_dropout,
-                                                             self.relu_hidden_size, self.info_func, reuse)
+                # set manual attn
+                manual_attn = None
+                if self.inject_manual_attn and moving_params is None:
+                  if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
+                    manual_attn = adj
+                  # top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
+                  #                              attn_dropout, relu_dropout, prepost_dropout, self.relu_hidden_size,
+                  #                              self.info_func, reuse, manual_attn)
+                  elif 'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:
+                    manual_attn = grand_adj
+                  # top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
+                  #                                            attn_dropout, relu_dropout, prepost_dropout,
+                  #                                            self.relu_hidden_size,
+                  #                                            self.info_func, reuse, manual_attn)
+                  elif 'inner_sibs' in self.multi_layers.keys() and i in self.multi_layers['inner_siblings']:
+                    manual_attn = inner_sibs_adj
+                  elif 'left_inner_sibs' in self.multi_layers.keys() and i in self.multi_layers['left_inner_sibs']:
+                    manual_attn = left_inner_sibs_adj
+                  elif 'right_inner_sibs' in self.multi_layers.keys() and i in self.multi_layers['right_inner_sibs']:
+                    manual_attn = right_inner_sibs_adj
+                # else:
+                top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
+                                                           attn_dropout, relu_dropout, prepost_dropout,
+                                                           self.relu_hidden_size, self.info_func, reuse, manual_attn)
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
 
@@ -270,20 +300,38 @@ class Parser(BaseParser):
       # idx into attention heads
       attn_idx = 0
       if 'parents' in self.multi_layers.keys() and l in self.multi_layers['parents']:
-        outputs = self.output(attn_weights[attn_idx], multitask_targets['parents']);
+        outputs = self.output(attn_weights[attn_idx], multitask_targets['parents'])
         attn_idx += 1
         loss = self.multi_penalties['parents'] * outputs['loss']
         multitask_losses['parents%s' % l] = loss
         multitask_correct['parents%s' % l] = outputs['n_correct']
         multitask_loss_sum += loss
       if 'grandparents' in self.multi_layers.keys() and l in self.multi_layers['grandparents']:
-        outputs = self.output_svd(attn_weights[attn_idx], multitask_targets['grandparents']);
+        outputs = self.output(attn_weights[attn_idx], multitask_targets['grandparents'])
         attn_idx += 1
         loss = self.multi_penalties['grandparents'] * outputs['loss']
         multitask_losses['grandparents%s' % l] = loss
         multitask_loss_sum += loss
+      if 'inner_sibs' in self.multi_layers.keys() and l in self.multi_layers['inner_sibs']:
+        outputs = self.output(attn_weights[attn_idx], multitask_targets['inner_sibs'])
+        attn_idx += 1
+        loss = self.multi_penalties['inner_sibs'] * outputs['loss']
+        multitask_losses['inner_sibs%s' % l] = loss
+        multitask_loss_sum += loss
+      if 'left_inner_sibs' in self.multi_layers.keys() and l in self.multi_layers['left_inner_sibs']:
+        outputs = self.output(attn_weights[attn_idx], multitask_targets['left_inner_sibs'])
+        attn_idx += 1
+        loss = self.multi_penalties['left_inner_sibs'] * outputs['loss']
+        multitask_losses['left_inner_sibs%s' % l] = loss
+        multitask_loss_sum += loss
+      if 'right_inner_sibs' in self.multi_layers.keys() and l in self.multi_layers['right_inner_sibs']:
+        outputs = self.output(attn_weights[attn_idx], multitask_targets['right_inner_sibs'])
+        attn_idx += 1
+        loss = self.multi_penalties['right_inner_sibs'] * outputs['loss']
+        multitask_losses['right_inner_sibs%s' % l] = loss
+        multitask_loss_sum += loss
       if 'children' in self.multi_layers.keys() and l in self.multi_layers['children']:
-        outputs = self.output_multi(attn_weights[attn_idx], multitask_targets['children']);
+        outputs = self.output_multi(attn_weights[attn_idx], multitask_targets['children'])
         attn_idx += 1
         loss = self.multi_penalties['children'] * outputs['loss']
         multitask_losses['children%s' % l] = loss

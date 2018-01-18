@@ -87,7 +87,7 @@ class BaseParser(NN):
       if roots_lt or roots_gt or len_2_cycle or n_cycle:
         non_trees_total += 1.
         non_tree_preds.append((parse_probs, targets, length, int(len_2_cycle), int(n_cycle)))
-      sent = -np.ones( (length, 9), dtype=int)
+      sent = -np.ones( (length, 11), dtype=int)
       tokens = np.arange(length)
       sent[:,0] = tokens
       sent[:,1:4] = inputs[tokens]

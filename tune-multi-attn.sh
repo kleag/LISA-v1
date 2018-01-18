@@ -66,7 +66,7 @@ for lr in ${lrs[@]}; do
 #                                                                parents_str="$parents_str$((i-1)),"
 #                                                            done
 #                                                            parents_str=${parents_str%?}
-                                                            echo $parents_layer
+#                                                            echo $parents_layer
 
                                                             commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12:00:00 python network.py \
                                                             --config_file config/trans-only-attn.cfg \
@@ -110,7 +110,7 @@ for lr in ${lrs[@]}; do
 done
 
 # now distribute them to the gpus
-num_jobs=${#commands[@]}
+num_jobs=1 #${#commands[@]}
 jobs_per_gpu=$((num_jobs / num_gpus))
 echo "Distributing $num_jobs jobs to $num_gpus gpus ($jobs_per_gpu jobs/gpu)"
 

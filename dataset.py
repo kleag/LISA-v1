@@ -120,14 +120,14 @@ class Dataset(Configurable):
         sibs_greater = sorted_sibs[np.where(sorted_sibs > head_idx)]
         for sib_idx in sibs_greater:
           inner_sibs = sibs_greater[np.where(sibs_greater < sib_idx)]
-          leftmost_inner = inner_sibs[-1] if inner_sibs else sib_idx
+          leftmost_inner = inner_sibs[-1] if np.any(inner_sibs) else sib_idx
           buff[i][sib_idx] = buff[i][sib_idx][:7] + (leftmost_inner,) + buff[i][sib_idx][8:]
 
         # right inner sib is sib with smalleset idx > this idx and < head idx
         sibs_lesser = sorted_sibs[np.where(sorted_sibs < head_idx)]
         for sib_idx in sibs_lesser:
           inner_sibs = sibs_lesser[np.where(sibs_lesser > sib_idx)]
-          rightmost_inner = inner_sibs[0] if inner_sibs else sib_idx
+          rightmost_inner = inner_sibs[0] if np.any(inner_sibs) else sib_idx
           buff[i][sib_idx] = buff[i][sib_idx][:8] + (rightmost_inner,) + buff[i][sib_idx][9:]
 
         # sibs_greater = sorted_sibs[np.where(sorted_sibs > head_idx)]

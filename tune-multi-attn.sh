@@ -111,7 +111,7 @@ done
 
 # now distribute them to the gpus
 num_jobs=1 #${#commands[@]}
-jobs_per_gpu=$((num_jobs / num_gpus))
+jobs_per_gpu=1 #$((num_jobs / num_gpus))
 echo "Distributing $num_jobs jobs to $num_gpus gpus ($jobs_per_gpu jobs/gpu)"
 
 j=0

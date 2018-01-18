@@ -66,8 +66,9 @@ for lr in ${lrs[@]}; do
 #                                                                parents_str="$parents_str$((i-1)),"
 #                                                            done
 #                                                            parents_str=${parents_str%?}
+                                                            echo $parents_layer
 
-                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12sta:00:00 python network.py \
+                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12:00:00 python network.py \
                                                             --config_file config/trans-only-attn.cfg \
                                                             --save_dir $OUT_LOG/scores-$fname_append \
                                                             --save_every 500 \

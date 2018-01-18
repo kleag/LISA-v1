@@ -107,7 +107,9 @@ class Dataset(Configurable):
           head = j
         else:
           head = int(head) - 1
-        siblings[head] = j
+        if head not in siblings:
+          siblings[head] = []
+        siblings[head].append(j)
         # last two are left, right inner sibs, which default to self
         buff[i][j] = (word,) + words[word] + tags[tag1] + tags[tag2] + (head,) + rels[rel] + (j,) + (j,)
       # compute left/right inner sibling feats

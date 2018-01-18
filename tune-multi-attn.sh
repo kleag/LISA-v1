@@ -55,19 +55,19 @@ for lr in ${lrs[@]}; do
                                     for relu_hidden_size in ${relu_hidden_sizes[@]}; do
                                         for batch_size in ${batch_sizes[@]}; do
                                             for parents_penalty in ${parents_penalties[@]}; do
-#                                                for parents_layer in ${parents_layers[@]}; do
+                                                for parents_layer in ${parents_layers[@]}; do
                                                     for use_bilinear in ${use_bilinears[@]}; do
                                                         for rep in `seq $reps`; do
-                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$use_bilinear"
+                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$use_bilinear"
 
                                                             # create parents attn at every layer
-                                                            parents_str="parents:"
-                                                            for i in `seq $trans_layer`; do
-                                                                parents_str="$parents_str$((i-1)),"
-                                                            done
-                                                            parents_str=${parents_str%?}
+#                                                            parents_str="parents:"
+#                                                            for i in `seq $trans_layer`; do
+#                                                                parents_str="$parents_str$((i-1)),"
+#                                                            done
+#                                                            parents_str=${parents_str%?}
 
-                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=16:00:00 python network.py \
+                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12sta:00:00 python network.py \
                                                             --config_file config/trans-only-attn.cfg \
                                                             --save_dir $OUT_LOG/scores-$fname_append \
                                                             --save_every 500 \
@@ -83,7 +83,7 @@ for lr in ${lrs[@]}; do
                                                             --mu $mu \
                                                             --nu $nu \
                                                             --epsilon $epsilon \
-                                                            --multitask_layers \"$parents_str\" \
+                                                            --multitask_layers \"$parents_layer\" \
                                                             --multitask_penalties \"parents:$parents_penalty;grandparents:$parents_penalty;inner_sibs:$parents_penalty\"
                                                             --use_bilinear $use_bilinear \
                                                             --svd_tree False \
@@ -94,7 +94,7 @@ for lr in ${lrs[@]}; do
                                                             &> $OUT_LOG/train-$fname_append.log")
                                                         done
                                                     done
-#                                                    done
+                                                done
                                             done
                                         done
                                     done

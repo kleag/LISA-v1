@@ -7,9 +7,10 @@ import string
 
 plt.ioff()
 
-data = np.load("attn_weights_multitask.npz")
+# data = np.load("attn_weights_multitask.npz")
+data = np.load("attention_weights_multi_nobilin.npz")
 lines = map(lambda x: x.split('\t'), open("sanitycheck.txt", 'r').readlines())
-save_dir = "attn_plots_multitask"
+save_dir = "attention_weights_multi_nobilin"
 sentences = []
 current_sent = []
 for line in lines:
@@ -25,7 +26,10 @@ remove_padding = True
 plot = True
 
 batch_sum = 0
-fig, axes = plt.subplots(nrows=2, ncols=4)
+
+num_heads_to_plot = 1
+fig, axes = plt.subplots(nrows=1, ncols=1)
+# fig, axes = plt.subplots(nrows=2, ncols=4)
 # For each batch+layer
 for arr_name in sorted(data.files):
     print("Processing %s" % arr_name)
@@ -69,21 +73,36 @@ for arr_name in sorted(data.files):
         if plot:
             correct_dir = "correct" if len(incorrect_indices[0]) == 0 else "incorrect"
 
-            fig.suptitle(name, fontsize=16)
-            # For each attention head
-            for arr, ax in zip(arrays, axes.flat):
-                res = ax.imshow(arr[:sent_len, :sent_len], cmap=plt.cm.viridis, interpolation=None)
-                ax.set_xticks(range(sent_len))
-                ax.set_yticks(range(sent_len))
-                ax.set_xticklabels(text, rotation=75, fontsize=2)
-                ax.set_yticklabels(text, fontsize=2)
+            if num_heads_to_plot > 1:
+                fig.suptitle(name, fontsize=16)
+                # For each attention head
+                for arr, ax in zip(arrays[:num_heads_to_plot], axes.flat):
+                    res = ax.imshow(arr[:sent_len, :sent_len], cmap=plt.cm.viridis, interpolation=None)
+                    ax.set_xticks(range(sent_len))
+                    ax.set_yticks(range(sent_len))
+                    ax.set_xticklabels(text, rotation=75, fontsize=2)
+                    ax.set_yticklabels(text, fontsize=2)
 
-                map(lambda x: ax.text(x[0][1], x[0][0], x[1], ha="center", va="center", fontsize=1), zip(gold_deps_xy, gold_labels))
-                map(lambda x: ax.text(x[0][1], x[0][0], x[1], ha="center", va="bottom", fontsize=1, color='red'), zip(pred_deps_xy_incorrect, pred_labels_incorrect))
+                    map(lambda x: ax.text(x[0][1], x[0][0], x[1], ha="center", va="center", fontsize=1), zip(gold_deps_xy, gold_labels))
+                    map(lambda x: ax.text(x[0][1], x[0][0], x[1], ha="center", va="bottom", fontsize=1, color='red'), zip(pred_deps_xy_incorrect, pred_labels_incorrect))
+            else:
+                axes.set_title(name, fontsize=16)
+                res = axes.imshow(arrays[0][:sent_len, :sent_len], cmap=plt.cm.viridis, interpolation=None)
+                axes.set_xticks(range(sent_len))
+                axes.set_yticks(range(sent_len))
+                axes.set_xticklabels(text, rotation=75, fontsize=2)
+                axes.set_yticklabels(text, fontsize=2)
+                map(lambda x: axes.text(x[0][1], x[0][0], x[1], ha="center", va="center", fontsize=1),
+                    zip(gold_deps_xy, gold_labels))
+                map(lambda x: axes.text(x[0][1], x[0][0], x[1], ha="center", va="bottom", fontsize=1, color='red'),
+                    zip(pred_deps_xy_incorrect, pred_labels_incorrect))
 
             fig.tight_layout()
             fig.savefig(os.path.join(save_dir, correct_dir, name + ".pdf"))
-            map(lambda x: x.clear(), axes.flat)
+            if num_heads_to_plot > 1:
+                map(lambda x: x.clear(), axes.flat)
+            else:
+                axes.clear()
 
     if layer == max_layer:
         batch_sum += batch_size

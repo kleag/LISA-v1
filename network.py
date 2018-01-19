@@ -396,6 +396,9 @@ class Network(Configurable):
       elif combined_str[-1] == ")" and combined_str[0] != "(":
         combined_str = '*' + combined_str
       converted.append(combined_str)
+    if parens_count < 0:
+      print("over-ended stuff", strings)
+      print(converted)
     while len(started_types) > 0:
       converted[-1] += ')'
       started_types.pop()

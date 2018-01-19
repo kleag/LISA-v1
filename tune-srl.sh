@@ -12,22 +12,22 @@ fi
 
 echo "Writing to $OUT_LOG"
 
-num_gpus=96
-#num_gpus=36
+#num_gpus=96
+num_gpus=36
 
-lrs="0.04 0.08 0.1 0.02" # 0.06"
+lrs="0.04" # 0.06"
 mus="0.9"
 nus="0.98"
 epsilons="1e-12"
-warmup_steps="2000 4000 8000 16000" # 2000 1000"
-batch_sizes="1000 1500 2000"
-decays="1.5 1.25 0.75 1.0 1.75"
+warmup_steps="4000" # 2000 1000"
+batch_sizes="2000 1500"
+decays="1.5"
 
 #learn_rates = [0.04, 0.08, 0.1, 0.02]
 #warmup_steps = [2000, 4000, 8000, 16000]
 #decays = [1.5, 1.25, 0.75, 1.0, 1.75]
 
-trans_layers="4" # 3
+trans_layers="4 5 6" # 3
 cnn_dims="1024" # 512 768 1024"
 num_heads="8" # 4 8"
 head_sizes="64" # 128"
@@ -36,11 +36,11 @@ trigger_mlp_sizes="256"
 trigger_pred_mlp_sizes="256"
 role_mlp_sizes="256"
 subsample_trigger_rates="1.0"
-add_pos_tags="True"
+add_pos_tags="True False"
 
-reps="2"
+reps="3"
 
-# 4*4*3*5*2 = 480
+# 2*3*2*3 = 36
 
 
 
@@ -65,7 +65,7 @@ for lr in ${lrs[@]}; do
                                                             for decay in ${decays[@]}; do
                                                                 for rep in `seq $reps`; do
                                                                     fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$role_mlp_size-$trigger_mlp_size-$trigger_pred_mlp_size-$add_pos-$decay"
-                                                                    commands+=("srun --gres=gpu:1 --partition=titanx-short,m40-short --time=4:00:00 --mem=12000
+                                                                    commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --mem=16000
                                                                      python network.py \
                                                                     --config_file config/trans-fast-conll12-bio.cfg \
                                                                     --save_dir $OUT_LOG/scores-$fname_append \

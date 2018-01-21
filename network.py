@@ -396,6 +396,9 @@ class Network(Configurable):
       elif combined_str[-1] == ")" and combined_str[0] != "(":
         combined_str = '*' + combined_str
       converted.append(combined_str)
+    if parens_count < 0:
+      print("over-ended stuff", strings)
+      print(converted)
     while len(started_types) > 0:
       converted[-1] += ')'
       started_types.pop()
@@ -526,12 +529,18 @@ class Network(Configurable):
         srl_preds = preds[:, 11+num_gold_srls+num_pred_srls:]
         trigger_indices = preds[:, 11:11+num_pred_srls]
         srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+        verb = False
         for i, (datum, word) in enumerate(zip(data, words)):
           pred = srl_preds_str[i] if srl_preds_str else []
           word_str = word if i in trigger_indices else '-'
+          if word_str == 'plunged':
+            verb = True
           fields = (word_str,) + tuple(pred)
           owpl_str = '\t'.join(fields)
           f.write(owpl_str + "\n")
+        if verb:
+          print(srl_preds_str)
+          print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
         f.write('\n')
 
     with open(os.devnull, 'w') as devnull:

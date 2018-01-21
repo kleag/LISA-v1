@@ -539,7 +539,7 @@ class Network(Configurable):
           owpl_str = '\t'.join(fields)
           f.write(owpl_str + "\n")
         if verb:
-          print(srl_preds_str)
+          print(np.transpose(srl_preds_str))
           print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
         f.write('\n')
 

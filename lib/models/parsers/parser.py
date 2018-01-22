@@ -356,7 +356,6 @@ class Parser(BaseParser):
       gathered_triggers = tf.expand_dims(tf.gather_nd(trigger_mlp, tf.where(tf.equal(trigger_predictions, 0))), 1)
       # srl_logits = self.bilinear_classifier_nary(trigger_mlp, role_mlp, num_srl_classes)
       srl_logits = self.bilinear_classifier_nary(gathered_triggers, role_mlp, num_srl_classes)
-
       srl_output = self.output_srl_gather(srl_logits, targets, trigger_predictions, vocabs[3]["O"][0], transition_params if self.viterbi_train else None)
 
     trigger_loss = self.trigger_loss_penalty * trigger_output['loss']

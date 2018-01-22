@@ -191,20 +191,22 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
     inputs2_bucket_size = inputs2_shape[ndims - 2]
     inputs2_size = inputs2.get_shape().as_list()[-1]
     # output_shape = []
-    batch_size = 1
+    batch_size1 = 1
+    batch_size2 = 1
     for i in xrange(ndims - 2):
-      batch_size *= inputs1_shape[i]
+      batch_size1 *= inputs1_shape[i]
+      batch_size2 *= inputs2_shape[i]
       # output_shape.append(inputs1_shape[i])
     # output_shape.append(inputs1_bucket_size)
     # output_shape.append(output_size)
     # output_shape.append(inputs2_bucket_size)
     # output_shape = tf.stack(output_shape)
-    inputs1 = tf.reshape(inputs1, tf.stack([batch_size, inputs1_bucket_size, inputs1_size]))
-    inputs2 = tf.reshape(inputs2, tf.stack([batch_size, inputs2_bucket_size, inputs2_size]))
+    inputs1 = tf.reshape(inputs1, tf.stack([batch_size1, inputs1_bucket_size, inputs1_size]))
+    inputs2 = tf.reshape(inputs2, tf.stack([batch_size2, inputs2_bucket_size, inputs2_size]))
     if add_bias1:
-      inputs1 = tf.concat(axis=2, values=[inputs1, tf.ones(tf.stack([batch_size, inputs1_bucket_size, 1]))])
+      inputs1 = tf.concat(axis=2, values=[inputs1, tf.ones(tf.stack([batch_size1, inputs1_bucket_size, 1]))])
     if add_bias2:
-      inputs2 = tf.concat(axis=2, values=[inputs2, tf.ones(tf.stack([batch_size, inputs2_bucket_size, 1]))])
+      inputs2 = tf.concat(axis=2, values=[inputs2, tf.ones(tf.stack([batch_size2, inputs2_bucket_size, 1]))])
 
     # Get the matrix
     if initializer is None and moving_params is None:
@@ -224,7 +226,7 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
                     tf.reshape(weights, [inputs1_size + add_bias1, -1]))
     # (b x nr x d) (b x n x d)T -> (b x nr x n)
     bilin = tf.matmul(
-      tf.reshape(lin, tf.stack([batch_size, inputs1_bucket_size * output_size, inputs2_size + add_bias2])),
+      tf.reshape(lin, tf.stack([batch_size1, inputs1_bucket_size * output_size, inputs2_size + add_bias2])),
       inputs2, adjoint_b=True)
     # (bn x r x n)
     bilin = tf.reshape(bilin, tf.stack([-1, output_size, inputs2_bucket_size]))

@@ -355,7 +355,7 @@ class Parser(BaseParser):
       # gather just the triggers
       # gathered_triggers: num_triggers_in_batch x 1 x self.trigger_mlp_size
       # role mlp: batch x seq_len x self.role_mlp_size
-      gathered_triggers = tf.expand_dims(tf.gather_nd(trigger_mlp, tf.where(tf.equal(trigger_predictions, 0))), 1)
+      gathered_triggers = tf.expand_dims(tf.gather_nd(trigger_mlp, tf.where(tf.equal(trigger_predictions, 1))), 1)
       # srl_logits = self.bilinear_classifier_nary(trigger_mlp, role_mlp, num_srl_classes)
       tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
       gathered_roles = tf.gather_nd(tiled_roles, tf.where(tf.equal(trigger_predictions, 1)))

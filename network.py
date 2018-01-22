@@ -279,7 +279,7 @@ class Network(Configurable):
               current_score = np.mean(correct[self.eval_criterion]) * 100
             else:
               current_score = correct[self.eval_criterion]
-            if self.save: #and current_score > current_best:
+            if self.save and current_score > current_best:
               current_best = current_score
               print("Writing model to %s" % (os.path.join(self.save_dir, self.name.lower() + '-trained')))
               saver.save(sess, os.path.join(self.save_dir, self.name.lower() + '-trained'),
@@ -307,38 +307,6 @@ class Network(Configurable):
     self.test(sess, validate=True)
     return
 
-  # todo need to split by '/'
-  # also need a bio version
-  # I-R-ARG0/L-ARG0
-  # L-ARG2/L-ARGM-MOD --> *))
-  # def convert_bilou(self, idx):
-  #   label_str = self._vocabs[3][idx]
-  #   label_parts = label_str.split('/')
-  #   combined_str = ''
-  #   for idx, label in enumerate(label_parts):
-  #     bilou = label[0]
-  #     label_type = label[2:]
-  #     props_str = ''  # '*'
-  #     if bilou == 'O' or bilou == 'I':
-  #       props_str = ''
-  #     elif bilou == 'U':
-  #       props_str = '(' + label_type + '*)' if idx == len(label_parts)-1 else ""
-  #     elif bilou == 'B':
-  #       props_str = '(' + label_type # + '*'
-  #     elif bilou == 'L':
-  #       props_str = ')'
-  #     combined_str += props_str
-  #   if not combined_str:
-  #     # print("string: %s" % bilou_str)
-  #     combined_str = '*'
-  #   elif combined_str[0] == "(" and combined_str[-1] != ")":
-  #     combined_str += '*'
-  #   elif combined_str[-1] == ")" and combined_str[0] != "(":
-  #     combined_str = '*' + combined_str
-  #   # if len(label_parts) > 1:
-  #   #   print(label_parts)
-  #   #   print(combined_str)
-  #   return combined_str
 
   def convert_bilou(self, indices):
     strings = map(lambda i: self._vocabs[3][i], indices)

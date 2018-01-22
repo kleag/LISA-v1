@@ -521,7 +521,6 @@ class Network(Configurable):
       f.write(s)
 
     if validate:
-
       print("Attention UAS: ")
       multitask_uas_str = ''
       for k in sorted(attn_correct_counts):

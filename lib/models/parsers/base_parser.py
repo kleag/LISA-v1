@@ -80,7 +80,9 @@ class BaseParser(NN):
         n_cycles = len_2_cycles = [-1] * len(mb_inputs)
 
     # for each batch element (sequence)
-    for inputs, targets, parse_probs, rel_probs, n_cycle, len_2_cycle, srl_pred, srl_logit, srl_trigger, srl_trigger_target in zip(mb_inputs, mb_targets, mb_parse_probs, mb_rel_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets):
+    # need to index into srl_preds, srl_logits
+    srl_pred_idx = 0
+    for inputs, targets, parse_probs, rel_probs, n_cycle, len_2_cycle, srl_trigger, srl_trigger_target in zip(mb_inputs, mb_targets, mb_parse_probs, mb_rel_probs, n_cycles, len_2_cycles, srl_triggers, srl_trigger_targets):
       tokens_to_keep = np.greater(inputs[:,0], Vocab.ROOT)
       length = np.sum(tokens_to_keep)
       parse_preds, rel_preds, argmax_time, roots_lt, roots_gt = self.prob_argmax(parse_probs, rel_probs, tokens_to_keep, n_cycle, len_2_cycle)
@@ -95,13 +97,15 @@ class BaseParser(NN):
       # targets has 3 non-srl things, then srls, variable length
       non_srl_targets_len = 3
       tokens = np.arange(length)
-      srl_pred = srl_pred[tokens]
       # print(srl_trigger)
       # print(srl_trigger_target)
       pred_trigger_indices = np.where(srl_trigger[tokens] == 1)[0]
       gold_trigger_indices = np.where(srl_trigger_target[tokens] == 1)[0]
       num_gold_srls = len(gold_trigger_indices)
       num_pred_srls = len(pred_trigger_indices)
+
+      srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
+
       # print("s_pred shape", srl_pred.shape)
       # print("num pred srls", num_pred_srls)
       # if num_pred_srls > 0:

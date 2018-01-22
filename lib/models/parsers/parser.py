@@ -294,8 +294,7 @@ class Parser(BaseParser):
 
     ######## do parse-specific stuff (rels) ########
     with tf.variable_scope('Rels', reuse=reuse):
-      rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, len(vocabs[2]),
-                                                                         predictions)
+      rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, len(vocabs[2]), predictions)
       rel_output = self.output(rel_logits, targets[:, :, 2])
       rel_output['probabilities'] = self.conditional_probabilities(rel_logits_cond)
 
@@ -341,19 +340,24 @@ class Parser(BaseParser):
       trigger_role_mlp = self.MLP(top_recur, self.trigger_mlp_size + self.role_mlp_size, n_splits=1)
       trigger_mlp, role_mlp = trigger_role_mlp[:,:,:self.trigger_mlp_size], trigger_role_mlp[:,:,self.trigger_mlp_size:]
 
+    # todo try classifying triggers at earlier layers
     with tf.variable_scope('SRL-Triggers', reuse=reuse):
       trigger_classifier_mlp = self.MLP(top_recur, self.trigger_pred_mlp_size, n_splits=1)
       with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
         trigger_classifier = self.MLP(trigger_classifier_mlp, 2, n_splits=1)
       trigger_output = self.output_trigger(trigger_classifier, targets, trigger_indices)
-
-    with tf.variable_scope('SRL-Arcs', reuse=reuse):
-      srl_logits = self.bilinear_classifier_nary(trigger_mlp, role_mlp, num_srl_classes)
       if moving_params is None or self.add_triggers_to_input:
         trigger_predictions = trigger_output['targets']
       else:
         trigger_predictions = trigger_output['predictions']
-      srl_output = self.output_srl(srl_logits, targets, trigger_indices, vocabs[3]["O"][0], transition_params if self.viterbi_train else None)
+
+    with tf.variable_scope('SRL-Arcs', reuse=reuse):
+      # gather just the triggers
+      gathered_triggers = tf.gather_nd(trigger_mlp, tf.where(tf.equal(trigger_predictions, 0)))
+      # srl_logits = self.bilinear_classifier_nary(trigger_mlp, role_mlp, num_srl_classes)
+      srl_logits = self.bilinear_classifier_nary(gathered_triggers, role_mlp, num_srl_classes)
+
+      srl_output = self.output_srl_gather(srl_logits, targets, trigger_predictions, vocabs[3]["O"][0], transition_params if self.viterbi_train else None)
 
     trigger_loss = self.trigger_loss_penalty * trigger_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

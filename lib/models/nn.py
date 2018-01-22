@@ -953,7 +953,7 @@ class NN(Configurable):
     inputs2 = tf.concat(axis=2, values=[inputs2, tf.ones(tf.stack([batch_size, bucket_size, 1]))])
     inputs2.set_shape(input_shape_to_set2)
 
-    bilin = linalg.bilinear(inputs1, inputs2,
+    bilin = linalg.bilinear_noreshape(inputs1, inputs2,
                             n_classes,
                             add_bias1=add_bias1,
                             add_bias2=add_bias2,
@@ -1135,6 +1135,166 @@ class NN(Configurable):
 
     return output
 
+  # =============================================================
+  def output_srl_gather(self, logits, targets, trigger_label_indices, outside_label_idx, transition_params):
+    """"""
+
+    # logits are triggers_in_batch x num_classes x seq_len
+    # targets are batch x seq_len x num_targets
+    # trigger_label_indices are batch x seq_len (1/0)
+
+    # transpose to triggers_in_batch x seq_len x num_classes
+    logits_transposed = tf.transpose(logits, [0, 2, 1])
+
+    # fix from here
+
+    original_shape = tf.shape(targets)
+    batch_size = original_shape[0]
+    bucket_size = original_shape[1]
+    # num_classes = original_shape[2]
+    # flat_shape = tf.stack([batch_size, bucket_size])
+    # original_shape = logits.get_shape().as_list()[2]
+    # batch_size = original_shape[0]
+    # bucket_size = original_shape[1]
+    num_classes = logits.get_shape().as_list()[1]
+
+    # flatten logits along last dimension: batch x seq_len x seq_len*num_classes
+    # logits_flattened = tf.reshape(logits_transposed, [batch_size, bucket_size, -1])
+
+    # need to turn targets into this 2d representation.
+    # have: labels for each token for each trigger (<= sentence len) and trigger_label_idx
+    # need: batch_size x seq_len x seq_len labels: the actual labels for each trigger, and all O otherwise
+    # todo don't hardcode 7
+
+    # now we have k sets of targets for the k frames
+    # (t1) f1 f2 f3
+    # (t2) f1 f2 f3
+    srl_targets = targets[:, :, 3:]
+
+    # get all the tags for each token (which is the trigger for a frame), structuring
+    # targets3D as follows (assuming t1 and t2 are triggers for f1 and f3, repsectively):
+    # (t1) f1 f1 f1
+    # (t2) f3 f3 f3
+
+    # batch*num_targets x seq_len
+    srl_targets_reshaped = tf.reshape(tf.transpose(srl_targets, [0, 2, 1]), [-1, bucket_size])
+    # actual_targets = tf.gather_nd(srl_targets_transposed, tf.where(tf.equal(trigger_label_indices, 0)))
+    #
+    # # get indices of trigger labels in srl_targets
+    # tile_multiples = tf.concat(
+    #   [tf.ones(tf.shape(tf.shape(srl_targets)), dtype=tf.int32), tf.shape(trigger_label_indices)], axis=0)
+    # targets_tile = tf.tile(tf.expand_dims(srl_targets, -1), tile_multiples)
+    # trigger_indices = tf.cast(tf.where(tf.reduce_any(tf.equal(targets_tile, trigger_label_indices), -1)), tf.int32)
+    # # srl_targets_tile = tf.tile(srl_targets, [1, 1, 1, num_trigger_labels])
+    # # trigger_indices = tf.cast(tf.where(tf.reduce_any(tf.equal(srl_targets_tile, trigger_label_indices), -1)), tf.int32)
+    # # trigger_indices = tf.cast(tf.where(tf.equal(srl_targets, trigger_label_idx)), tf.int32)
+    #
+    # # trigger_indices = tf.Print(trigger_indices, [trigger_indices], "trigger_indices", summarize=5000)
+    #
+    # # get all the tags for each token (which is the trigger for a frame), structuring
+    # # targets3D as follows (assuming t1 and t2 are triggers for f1 and f3, repsectively):
+    # # (t1) f1 f1 f1
+    # # (t2) f3 f3 f3
+    # actual_targets = tf.gather_nd(tf.transpose(srl_targets, [0, 2, 1]),
+    #                               tf.stack([trigger_indices[:, 0], trigger_indices[:, 2]], -1))
+    # i1 = tf.tile(tf.expand_dims(trigger_indices[:, 0], -1), [1, bucket_size])
+    # i2 = tf.tile(tf.expand_dims(trigger_indices[:, 1], -1), [1, bucket_size])
+    # i3 = tf.tile(tf.expand_dims(tf.range(bucket_size), 0), [tf.shape(trigger_indices)[0], 1])
+    # trigger_idx = tf.stack([i1, i2, i3], axis=-1)
+    # targets3D = tf.scatter_nd(trigger_idx, actual_targets, [batch_size, bucket_size, bucket_size])
+    #
+    # # batch x seq x seq: 0 where target, 1 otherwise
+    # not_targets3D = 1 - tf.reduce_max(
+    #   tf.scatter_nd(trigger_idx, tf.ones_like(actual_targets), [batch_size, bucket_size, bucket_size]), axis=-1)
+    # not_trigger_indices = tf.cast(tf.where(tf.equal(not_targets3D, 1)), tf.int32)
+    # num_not_triggers = tf.shape(not_trigger_indices)[0]
+    #
+    # # create a mask
+    # i1 = tf.tile(tf.expand_dims(not_trigger_indices[:, 0], -1), [1, bucket_size])
+    # i2 = tf.tile(tf.expand_dims(not_trigger_indices[:, 1], -1), [1, bucket_size])
+    # i3 = tf.tile(tf.expand_dims(tf.range(bucket_size), 0), [num_not_triggers, 1])
+    # not_trigger_idx = tf.stack([i1, i2, i3], axis=-1)
+    #
+    # # these are the ones we are going to MASK
+    # # subsample_trigger_rate = 0.0 -> mask nothing; subsample_trigger_rate = 1.0 -> mask everything
+    # num_to_sample = tf.cast(self.subsample_trigger_rate * tf.cast(num_not_triggers, tf.float32), tf.int32)
+    # sampled_indices = tf.random_shuffle(not_trigger_idx)[:num_to_sample]
+    #
+    # om = 1.0 - tf.scatter_nd(sampled_indices, tf.fill([num_to_sample, bucket_size], 1.0),
+    #                          [batch_size, bucket_size, bucket_size])
+    #
+    # targ_empty_indices = tf.cast(tf.where(tf.equal(targets3D, 0)), tf.int32)
+    # targets_mask3D = tf.scatter_nd(targ_empty_indices, tf.fill([tf.shape(targ_empty_indices)[0]], outside_label_idx),
+    #                                shape=tf.stack([batch_size, bucket_size, bucket_size]))
+    # targets3D_masked = targets3D + targets_mask3D
+    #
+    # overall_mask = om * self.tokens_to_keep3D * tf.transpose(self.tokens_to_keep3D, [0, 2, 1])
+    # non_masked_indices = tf.where(tf.not_equal(targets3D_masked * tf.cast(overall_mask, tf.int32), 0))
+    # non_masked_targets = tf.gather_nd(targets3D, non_masked_indices)
+
+    # need to repeat each of these once for each target in the sentence
+    mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]), tf.where(tf.equal(trigger_label_indices, 0)))
+
+    count = tf.cast(tf.count_nonzero(mask), tf.float32)
+    #
+    # # targets3D_masked = tf.Print(targets3D_masked, [targets3D_masked], "cross_entropy", summarize=5000)
+    #
+    # if transition_params is not None:
+    #   # need to flatten batch x seq_len x seq_len x logits to
+    #   # batch*seq_len x seq_len x logits,
+    #   flattened_scores = tf.reshape(logits_transposed, tf.stack([batch_size * bucket_size, bucket_size, num_classes]))
+    #   flattened_labels = tf.reshape(targets3D_masked, tf.stack([batch_size * bucket_size, bucket_size]))
+    #
+    #   # and also get flattened sequence lengths.
+    #   # this is batch x seq_len, need to tile rach seq_len seq_len times
+    #   seq_lens = tf.reduce_sum(self.tokens_to_keep3D, 1)
+    #   flat_seq_lens = tf.reshape(tf.tile(seq_lens, [1, bucket_size]), tf.stack([batch_size * bucket_size]))
+    #   log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(flattened_scores, flattened_labels,
+    #                                                                         flat_seq_lens,
+    #                                                                         transition_params=transition_params)
+    #   loss = tf.reduce_mean(-log_likelihood)
+    # else:
+
+    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed,
+                                                                   labels=srl_targets_reshaped)
+
+    cross_entropy *= mask
+    # cross_entropy = tf.Print(cross_entropy, [cross_entropy], "cross_entropy", summarize=5000)
+    loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
+
+    # training with predictions = batch x seq_len x seq_len
+    # where each row is set of srl tags for that trigger
+    # transposed, this gives us columns for each trigger; need to select out the columns
+    # which contain the trigger label
+    predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
+
+    # predictions = tf.Print(predictions, [predictions], "predictions", summarize=5000)
+
+    probabilities = tf.nn.softmax(logits_transposed)
+    # gold_trigger_predictions
+
+    count = tf.reduce_sum(tf.ones_like(predictions))
+    correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets_reshaped), tf.float32))
+
+    # count  = tf.Print(count, [targets3D_masked], "targets3D_masked", summarize=4000)
+    #
+    # count  = tf.Print(count, [overall_mask], "overall_mask", summarize=4000)
+    #
+    # count  = tf.Print(count, [cross_entropy], "cross entropy", summarize=4000)
+    # count = tf.Print(count, [count, correct, tf.reduce_sum(cross_entropy)])
+
+    output = {
+      'loss': loss,
+      'probabilities': probabilities,
+      'predictions': tf.transpose(predictions, [0, 2, 1]),
+      'logits': tf.transpose(logits_transposed, [0, 2, 1, 3]),
+      'transition_params': transition_params,
+      # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),
+      'count': count,
+      'correct': correct
+    }
+
+    return output
 
   def output_trigger(self, logits, targets, trigger_label_indices):
     """"""

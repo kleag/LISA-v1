@@ -1292,7 +1292,7 @@ class NN(Configurable):
       'loss': loss,
       'probabilities': probabilities,
       'predictions': tf.transpose(predictions, [0, 2, 1]),
-      'logits': tf.transpose(logits_transposed, [0, 2, 1, 3]),
+      'logits': logits_transposed,
       'transition_params': transition_params,
       # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),
       'count': count,

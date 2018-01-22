@@ -345,7 +345,6 @@ class Network(Configurable):
     converted = []
     started_types = []
     # print(strings)
-    parens_count = 0
     for i, s in enumerate(strings):
       label_parts = s.split('/')
       curr_len = len(label_parts)
@@ -355,12 +354,8 @@ class Network(Configurable):
       for idx, label in enumerate(label_parts):
         bilou = label[0]
         label_type = label[2:]
-        props_str = ''  # '*'
+        props_str = ''
         if bilou == 'I':
-          # if curr_len > len(started_types):
-          #   props_str = '(' + label_type
-          #   started_types.append(label_type)
-          # else:
           Itypes.append(label_type)
           props_str = ''
         elif bilou == 'O':
@@ -374,7 +369,6 @@ class Network(Configurable):
           props_str = '(' + label_type
           started_types.append(label_type)
           Btypes.append(label_type)
-          parens_count += 1
         elif bilou == 'L':
           props_str = ')'
           started_types.pop()
@@ -383,12 +377,10 @@ class Network(Configurable):
       while len(started_types) > curr_len:
         converted[-1] += ')'
         started_types.pop()
-        parens_count -= 1
       while len(started_types) < len(Itypes) + len(Btypes):
         combined_str = '(' + Itypes[-1] + combined_str
         started_types.append(Itypes[-1])
         Itypes.pop()
-        parens_count += 1
       if not combined_str:
         combined_str = '*'
       elif combined_str[0] == "(" and combined_str[-1] != ")":
@@ -396,18 +388,25 @@ class Network(Configurable):
       elif combined_str[-1] == ")" and combined_str[0] != "(":
         combined_str = '*' + combined_str
       converted.append(combined_str)
-    if parens_count < 0:
-      print("over-ended stuff", strings)
-      print(converted)
     while len(started_types) > 0:
       converted[-1] += ')'
       started_types.pop()
-      parens_count -= 1
-    if parens_count != 0:
-      print("unended stuff", strings)
-      print(converted)
     return converted
 
+  def parens_check(self, srl_preds_str):
+    for srl_preds in srl_preds_str:
+      parens_count = 0
+      for pred in srl_preds:
+        for c in pred:
+          if c == '(':
+            parens_count += 1
+          if c == ')':
+            parens_count -= 1
+            if parens_count < 0:
+              return False
+      if parens_count != 0:
+        return False
+    return True
     
   #=============================================================
   # TODO make this work if lines_per_buff isn't set to 0
@@ -529,16 +528,13 @@ class Network(Configurable):
         srl_preds = preds[:, 11+num_gold_srls+num_pred_srls:]
         trigger_indices = preds[:, 11:11+num_pred_srls]
         srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-        verb = False
         for i, (datum, word) in enumerate(zip(data, words)):
           pred = srl_preds_str[i] if srl_preds_str else []
           word_str = word if i in trigger_indices else '-'
-          if word_str == 'plunged':
-            verb = True
           fields = (word_str,) + tuple(pred)
           owpl_str = '\t'.join(fields)
           f.write(owpl_str + "\n")
-        if verb:
+        if not parens_check(np.transpose(srl_preds_str)):
           print(np.transpose(srl_preds_str))
           print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
         f.write('\n')

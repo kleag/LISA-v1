@@ -928,8 +928,8 @@ class NN(Configurable):
     batch_size1 = input_shape1[0]
     batch_size2 = input_shape2[0]
 
-    with tf.control_dependencies([tf.assert_equal(input_shape1[1], input_shape2[1])]):
-      bucket_size = input_shape1[1]
+    # with tf.control_dependencies([tf.assert_equal(input_shape1[1], input_shape2[1])]):
+    bucket_size = input_shape1[1]
     input_size1 = inputs1.get_shape().as_list()[-1]
     input_size2 = inputs2.get_shape().as_list()[-1]
 

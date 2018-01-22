@@ -534,7 +534,7 @@ class Network(Configurable):
           fields = (word_str,) + tuple(pred)
           owpl_str = '\t'.join(fields)
           f.write(owpl_str + "\n")
-        if not parens_check(np.transpose(srl_preds_str)):
+        if not self.parens_check(np.transpose(srl_preds_str)):
           print(np.transpose(srl_preds_str))
           print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
         f.write('\n')

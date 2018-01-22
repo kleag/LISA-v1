@@ -1261,6 +1261,10 @@ class NN(Configurable):
     #   loss = tf.reduce_mean(-log_likelihood)
     # else:
 
+    logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits trandposed")
+    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_reshaped)], "srl_targets_reshaped")
+
+
     cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed,
                                                                    labels=srl_targets_reshaped)
 

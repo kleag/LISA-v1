@@ -353,7 +353,7 @@ class Parser(BaseParser):
 
     with tf.variable_scope('SRL-Arcs', reuse=reuse):
       # gather just the triggers
-      gathered_triggers = tf.gather_nd(trigger_mlp, tf.where(tf.equal(trigger_predictions, 0)))
+      gathered_triggers = tf.expand_dims(tf.gather_nd(trigger_mlp, tf.where(tf.equal(trigger_predictions, 0))), 1)
       # srl_logits = self.bilinear_classifier_nary(trigger_mlp, role_mlp, num_srl_classes)
       srl_logits = self.bilinear_classifier_nary(gathered_triggers, role_mlp, num_srl_classes)
 

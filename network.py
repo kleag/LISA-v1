@@ -385,7 +385,7 @@ class Network(Configurable):
         started_types.pop()
         parens_count -= 1
       while len(started_types) < len(Itypes) + len(Btypes):
-        combined_str = '(' + Itypes[-1]
+        combined_str = '(' + Itypes[-1] + combined_str
         started_types.append(Itypes[-1])
         Itypes.pop()
         parens_count += 1

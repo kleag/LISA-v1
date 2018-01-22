@@ -220,14 +220,15 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
     else:
       tf.add_to_collection('Weights', weights)
 
+    # inputs1: num_triggers_in_batch x 1 x self.trigger_mlp_size
+    # inputs2: batch x seq_len x self.role_mlp_size
+
     # Do the multiplications
     # (bn x d) (d x rd) -> (bn x rd)
-    lin = tf.matmul(tf.reshape(inputs1, [-1, inputs1_size + add_bias1]),
-                    tf.reshape(weights, [inputs1_size + add_bias1, -1]))
+    lin = tf.matmul(tf.reshape(inputs1, [-1, inputs1_size + add_bias1]), tf.reshape(weights, [inputs1_size + add_bias1, -1]))
     # (b x nr x d) (b x n x d)T -> (b x nr x n)
-    bilin = tf.matmul(
-      tf.reshape(lin, tf.stack([batch_size1, inputs1_bucket_size * output_size, inputs2_size + add_bias2])),
-      inputs2, adjoint_b=True)
+    lin_reshape = tf.reshape(lin, tf.stack([batch_size1, inputs1_bucket_size * output_size, inputs2_size + add_bias2]))
+    bilin = tf.matmul(lin_reshape, inputs2, adjoint_b=True)
     # (bn x r x n)
     bilin = tf.reshape(bilin, tf.stack([-1, output_size, inputs2_bucket_size]))
     # (b x n x r x n)

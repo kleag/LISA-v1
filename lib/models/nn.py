@@ -928,7 +928,7 @@ class NN(Configurable):
     input_size1 = inputs1.get_shape().as_list()[-1]
     input_size2 = inputs2.get_shape().as_list()[-1]
 
-    input_shape_to_set1 = [tf.Dimension(None), tf.Dimension(None), input_size1 + 1]
+    input_shape_to_set1 = [tf.Dimension(None), input_size1 + 1]
     input_shape_to_set2 = [tf.Dimension(None), tf.Dimension(None), input_size2 + 1]
 
     # output_shape = tf.stack([batch_size, bucket_size, n_classes, bucket_size])
@@ -948,7 +948,7 @@ class NN(Configurable):
       inputs1 = tf.nn.dropout(inputs1, keep_prob, noise_shape=noise_shape1)
       inputs2 = tf.nn.dropout(inputs2, keep_prob, noise_shape=noise_shape2)
 
-    inputs1 = tf.concat(axis=2, values=[inputs1, tf.ones(tf.stack([batch_size, bucket_size, 1]))])
+    inputs1 = tf.concat(axis=2, values=[inputs1, tf.ones(tf.stack([batch_size, 1]))])
     inputs1.set_shape(input_shape_to_set1)
     inputs2 = tf.concat(axis=2, values=[inputs2, tf.ones(tf.stack([batch_size, bucket_size, 1]))])
     inputs2.set_shape(input_shape_to_set2)

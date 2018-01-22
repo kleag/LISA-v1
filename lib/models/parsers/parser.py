@@ -359,6 +359,11 @@ class Parser(BaseParser):
       # srl_logits = self.bilinear_classifier_nary(trigger_mlp, role_mlp, num_srl_classes)
       tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
       gathered_roles = tf.gather_nd(tiled_roles, tf.where(tf.equal(trigger_predictions, 1)))
+      gathered_roles = tf.Print(gathered_roles, [tf.shape(gathered_roles)], "gathered roles")
+      gathered_roles = tf.Print(gathered_roles, [tf.shape(gathered_triggers)], "gathered triggers")
+      gathered_roles = tf.Print(gathered_roles, [batch_size, bucket_size], "batch_size, bucket_size")
+
+
       srl_logits = self.bilinear_classifier_nary(gathered_triggers, gathered_roles, num_srl_classes)
       srl_output = self.output_srl_gather(srl_logits, targets, trigger_predictions, vocabs[3]["O"][0], transition_params if self.viterbi_train else None)
 

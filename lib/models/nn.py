@@ -929,7 +929,8 @@ class NN(Configurable):
     batch_size2 = input_shape2[0]
 
     # with tf.control_dependencies([tf.assert_equal(input_shape1[1], input_shape2[1])]):
-    bucket_size = input_shape1[1]
+    bucket_size1 = input_shape1[1]
+    bucket_size2 = input_shape2[1]
     input_size1 = inputs1.get_shape().as_list()[-1]
     input_size2 = inputs2.get_shape().as_list()[-1]
 
@@ -953,9 +954,9 @@ class NN(Configurable):
       inputs1 = tf.nn.dropout(inputs1, keep_prob, noise_shape=noise_shape1)
       inputs2 = tf.nn.dropout(inputs2, keep_prob, noise_shape=noise_shape2)
 
-    inputs1 = tf.concat(axis=2, values=[inputs1, tf.ones(tf.stack([batch_size1, bucket_size, 1]))])
+    inputs1 = tf.concat(axis=2, values=[inputs1, tf.ones(tf.stack([batch_size1, bucket_size1, 1]))])
     inputs1.set_shape(input_shape_to_set1)
-    inputs2 = tf.concat(axis=2, values=[inputs2, tf.ones(tf.stack([batch_size2, bucket_size, 1]))])
+    inputs2 = tf.concat(axis=2, values=[inputs2, tf.ones(tf.stack([batch_size2, bucket_size2, 1]))])
     inputs2.set_shape(input_shape_to_set2)
 
     bilin = linalg.bilinear_noreshape(inputs1, inputs2,

@@ -233,6 +233,7 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
     bilin = tf.reshape(bilin, tf.stack([-1, output_size, inputs2_bucket_size]))
     # (b x n x r x n)
     # bilin = tf.reshape(bilin, output_shape)
+    bilin = tf.Print(bilin, [batch_size1, inputs2_bucket_size, output_size, tf.shape(bilin)], "bilin shape")
 
     # Get the bias
     if add_bias:

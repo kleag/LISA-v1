@@ -1183,7 +1183,11 @@ class NN(Configurable):
     # (t2) f3 f3 f3
 
     # batch*num_targets x seq_len
-    srl_targets_reshaped = tf.reshape(tf.transpose(srl_targets, [0, 2, 1]), [-1, bucket_size])
+    srl_targets_transposed = tf.transpose(srl_targets, [0, 2, 1])
+    trigger_counts = tf.reduce_sum(srl_targets_transposed, -1)
+    srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
+    srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
+
     # actual_targets = tf.gather_nd(srl_targets_transposed, tf.where(tf.equal(trigger_label_indices, 0)))
     #
     # # get indices of trigger labels in srl_targets
@@ -1263,11 +1267,9 @@ class NN(Configurable):
 
     logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits transposed")
     logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")
-    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_reshaped)], "srl_targets_reshaped")
+    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_transposed)], "srl_targets_transposed")
 
-
-    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed,
-                                                                   labels=srl_targets_reshaped)
+    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
 
     cross_entropy *= mask
     # cross_entropy = tf.Print(cross_entropy, [cross_entropy], "cross_entropy", summarize=5000)

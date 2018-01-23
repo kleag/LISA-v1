@@ -156,16 +156,7 @@ class BaseParser(NN):
       # print("indices", np.where(srl_trigger[tokens] == 1)[0])
       # print("srl_pred", srl_pred)
       # print("srl_pred where", srl_pred[:,np.where(srl_trigger[tokens] == 1)[0]])
-      s_pred = srl_pred[:, pred_trigger_indices]
-      # if transition_params is not None and s_pred.any():
-      #   v_pred = []
-      #   s_log = srl_logit[:, np.where(srl_trigger == 1)[0]]
-      #   for s in s_log:
-      #     viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(s, transition_params)
-      #     v_pred.append(viterbi_sequence)
-      #   s_pred = np.array(v_pred)
-      #   # print("v_pred", v_pred)
-      #   # print("s_pred", s_pred)
+      s_pred = srl_pred[:, len(pred_trigger_indices)]
 
       if len(s_pred.shape) == 1:
         s_pred = np.expand_dims(s_pred, -1)

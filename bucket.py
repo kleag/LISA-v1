@@ -92,12 +92,12 @@ class Bucket(Configurable):
         print("data shape", shape)
         print("self._data", len(self._data), len(self._data[-1]), len(self._data[-1][-1]))
 
-        data[i, 0:len(datum)] = datum
+        data[i, :datum.shape[0], :datum.shape[1]] = datum
       self._data = data
       self._sents = np.array(self._sents)
     else:
-      self._data = np.zeros((0,1), dtype=np.float32)
-      self._sents = np.zeros((0,1), dtype=str)
+      self._data = np.zeros((0, 1), dtype=np.float32)
+      self._sents = np.zeros((0, 1), dtype=str)
     print('Bucket %s is %d x %d' % ((self._name,) + self._data.shape[0:2]))
     return
   

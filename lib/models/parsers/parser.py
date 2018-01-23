@@ -371,9 +371,9 @@ class Parser(BaseParser):
       srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
       dummy_srl_output = {
         'loss': tf.constant(0.),
-        'probabilities': tf.nn.softmax(srl_logits_transpose),
-        'predictions': tf.reduce_max(srl_logits_transpose, -1),
-        'logits': srl_logits_transpose,
+        'probabilities': tf.constant(0.),#tf.nn.softmax(srl_logits_transpose),
+        'predictions': tf.constant(0.),#tf.reduce_max(srl_logits_transpose, -1),
+        'logits': tf.constant(0.), #srl_logits_transpose,
         'transition_params': tf.constant(0.),
         'count': tf.constant(0.),
         'correct': tf.constant(0.)

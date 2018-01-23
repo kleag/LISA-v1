@@ -1186,6 +1186,12 @@ class NN(Configurable):
     srl_targets_transposed = tf.transpose(srl_targets, [0, 2, 1])
     trigger_counts = tf.reduce_sum(srl_targets_transposed, -1)
     srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
+
+    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")
+    logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits transposed")
+    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_transposed)], "srl_targets_transposed")
+    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_indices)], "srl_targets_indices")
+
     srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
 
     # actual_targets = tf.gather_nd(srl_targets_transposed, tf.where(tf.equal(trigger_label_indices, 0)))
@@ -1264,10 +1270,6 @@ class NN(Configurable):
     #                                                                         transition_params=transition_params)
     #   loss = tf.reduce_mean(-log_likelihood)
     # else:
-
-    logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits transposed")
-    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")
-    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_transposed)], "srl_targets_transposed")
 
     cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
 

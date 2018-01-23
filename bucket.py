@@ -85,6 +85,9 @@ class Bucket(Configurable):
         print("datum", datum)
         print("datum shape", datum.shape)
         print("datum len", len(datum))
+        print("data shape", shape)
+        print("self._data", len(self._data), len(self._data[-1]), len(self._data[-1][-1]))
+
         data[i, 0:len(datum)] = datum
       self._data = data
       self._sents = np.array(self._sents)

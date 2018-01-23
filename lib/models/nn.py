@@ -1209,7 +1209,7 @@ class NN(Configurable):
 
     loss, correct = tf.cond(tf.greater(tf.shape(targets)[2], 0),
                    lambda: compute_srl_loss(logits_transposed, srl_targets_transposed),
-                   lambda: tf.constant(0.))
+                   lambda: tf.constant(0.), tf.constant(0.))
 
     probabilities = tf.nn.softmax(logits_transposed)
 

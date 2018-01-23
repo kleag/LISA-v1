@@ -106,12 +106,14 @@ class Dataset(Configurable):
     """"""
     
     words, tags, rels, srls, trigs = self.vocabs
+    srl_start_field = srls.conll_idx[0]
     sents = 0
     toks = 0
     for i, sent in enumerate(buff):
       # if not self.conll2012 or (self.conll2012 and len(list(sent)) > 1):
       # print(sent, len(sent))
       sents += 1
+      sent_len = len(sent)
       for j, token in enumerate(sent):
         toks += 1
         if self.conll:
@@ -129,7 +131,7 @@ class Dataset(Configurable):
           else:
             head = int(head) - 1
           # for s in srls.conll_idx:
-          srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in srls.conll_idx]
+          srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in range(srl_start_field, srl_start_field + sent_len)]
           # if "B-ARGM-MOD/B-ARG1" in srl_fields:
           #   print("stuff:",  word, tag1, tag2, head, rel)
           #   print("srl_fields", [token[idx] for idx in range(len(token)-1)])

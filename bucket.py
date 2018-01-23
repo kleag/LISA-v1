@@ -78,7 +78,7 @@ class Bucket(Configurable):
       raise ValueError('You need to reset the Buckets before finalizing them')
     
     if len(self._data) > 0:
-      lens = map(lambda l: len(l), self._data[-1])
+      lens = map(len, [item for sublist in self._data for item in sublist])
       max_len = max(lens)
       print("lens", lens)
       print("max_len", max_len)

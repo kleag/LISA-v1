@@ -80,17 +80,18 @@ class Bucket(Configurable):
     if len(self._data) > 0:
       lens = map(len, [item for sublist in self._data for item in sublist])
       max_len = max(lens)
-      print("lens", lens)
-      print("max_len", max_len)
       shape = (len(self._data), self.size, max_len)
       data = np.zeros(shape, dtype=np.int32)
       for i, datum in enumerate(self._data):
         datum = np.array(datum)
-        print("datum", datum)
-        print("datum shape", datum.shape)
-        print("datum len", len(datum))
-        print("data shape", shape)
-        print("self._data", len(self._data), len(self._data[-1]), len(self._data[-1][-1]))
+        if len(self._data) == 416:
+          print("lens", lens)
+          print("max_len", max_len)
+          print("datum", datum)
+          print("datum shape", datum.shape)
+          print("datum len", len(datum))
+          print("data shape", shape)
+          print("self._data", len(self._data), len(self._data[-1]), len(self._data[-1][-1]))
 
         data[i, :datum.shape[0], :datum.shape[1]] = datum
       self._data = data

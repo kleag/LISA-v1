@@ -201,7 +201,7 @@ class Dataset(Configurable):
 
       feed_dict.update({
         self.inputs: data[:,:maxlen,input_idxs],
-        self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)]
+        self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
       })
       yield feed_dict, sents
   

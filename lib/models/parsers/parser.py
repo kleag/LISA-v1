@@ -284,7 +284,7 @@ class Parser(BaseParser):
         arc_logits = self.bilinear_classifier(dep_arc_mlp, head_arc_mlp)
 
         arc_logits = tf.cond(tf.equal(tf.shape(tf.shape(arc_logits))[0], 2), lambda: tf.expand_dims(arc_logits, 0), lambda: arc_logits)
-        # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.shape(tf.shape(arc_logits))])
+        arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.shape(tf.shape(arc_logits))])
 
         arc_output = self.output_svd(arc_logits, targets[:,:,1])
         if moving_params is None:
@@ -359,9 +359,9 @@ class Parser(BaseParser):
       # srl_logits = self.bilinear_classifier_nary(trigger_mlp, role_mlp, num_srl_classes)
       tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
       gathered_roles = tf.gather_nd(tiled_roles, tf.where(tf.equal(trigger_predictions, 1)))
-      gathered_roles = tf.Print(gathered_roles, [tf.shape(gathered_roles)], "gathered roles")
-      gathered_roles = tf.Print(gathered_roles, [tf.shape(gathered_triggers)], "gathered triggers")
-      gathered_roles = tf.Print(gathered_roles, [batch_size, bucket_size], "batch_size, bucket_size")
+      # gathered_roles = tf.Print(gathered_roles, [tf.shape(gathered_roles)], "gathered roles")
+      # gathered_roles = tf.Print(gathered_roles, [tf.shape(gathered_triggers)], "gathered triggers")
+      # gathered_roles = tf.Print(gathered_roles, [batch_size, bucket_size], "batch_size, bucket_size")
 
 
       srl_logits = self.bilinear_classifier_nary(gathered_triggers, gathered_roles, num_srl_classes)

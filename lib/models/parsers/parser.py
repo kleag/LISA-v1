@@ -368,7 +368,19 @@ class Parser(BaseParser):
       srl_targets = targets[:,:,3:]
       srl_logits = tf.Print(srl_logits, [tf.shape(srl_targets)], "srl_targets  shape")
 
-      srl_output = self.output_srl_gather(srl_logits, targets, trigger_predictions, vocabs[3]["O"][0], transition_params if self.viterbi_train else None)
+      srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
+      dummy_srl_output = {
+        'loss': tf.constant(0.),
+        'probabilities': tf.nn.softmax(srl_logits_transpose),
+        'predictions': tf.reduce_max(srl_logits_transpose, -1),
+        'logits': srl_logits_transpose,
+        'transition_params': transition_params,
+        'count': tf.constant(0.),
+        'correct': tf.constant(0.)
+      }
+      srl_output = tf.cond(tf.greater(tf.shape(srl_targets)[-1], 0),
+                           self.output_srl_gather(srl_logits_transpose, srl_targets, trigger_predictions, vocabs[3]["O"][0], transition_params if self.viterbi_train else None),
+                           dummy_srl_output)
 
     trigger_loss = self.trigger_loss_penalty * trigger_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

@@ -1142,7 +1142,7 @@ class NN(Configurable):
     return output
 
   # =============================================================
-  def output_srl_gather(self, logits, targets, trigger_label_indices, outside_label_idx, transition_params):
+  def output_srl_gather(self, logits_transposed, targets, trigger_label_indices, outside_label_idx, transition_params):
     """"""
 
     # logits are triggers_in_batch x num_classes x seq_len
@@ -1150,7 +1150,7 @@ class NN(Configurable):
     # trigger_label_indices are batch x seq_len (1/0)
 
     # transpose to triggers_in_batch x seq_len x num_classes
-    logits_transposed = tf.transpose(logits, [0, 2, 1])
+    # logits_transposed = tf.transpose(logits, [0, 2, 1])
 
     original_shape = tf.shape(targets)
     # batch_size = original_shape[0]
@@ -1159,19 +1159,19 @@ class NN(Configurable):
     # now we have k sets of targets for the k frames
     # (t1) f1 f2 f3
     # (t2) f1 f2 f3
-    srl_targets = targets[:, :, 3:]
+    # srl_targets = targets[:, :, 3:]
 
     # get all the tags for each token (which is the trigger for a frame), structuring
     # targets3D as follows (assuming t1 and t2 are triggers for f1 and f3, repsectively):
     # (t1) f1 f1 f1
     # (t2) f3 f3 f3
-    srl_targets_transposed = tf.transpose(srl_targets, [0, 2, 1])
+    srl_targets_transposed = tf.transpose(targets, [0, 2, 1])
 
     # batch*num_targets x seq_len
     trigger_counts = tf.reduce_sum(trigger_label_indices, -1)
     srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
 
-    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")
+    # logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")
     logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits transposed")
     logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_transposed)], "srl_targets_transposed")
     logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_indices)], "srl_targets_indices")

@@ -374,7 +374,7 @@ class Parser(BaseParser):
         'probabilities': tf.nn.softmax(srl_logits_transpose),
         'predictions': tf.reduce_max(srl_logits_transpose, -1),
         'logits': srl_logits_transpose,
-        'transition_params': transition_params,
+        'transition_params': tf.constant(0.),
         'count': tf.constant(0.),
         'correct': tf.constant(0.)
       }

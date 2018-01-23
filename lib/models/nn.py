@@ -1142,7 +1142,7 @@ class NN(Configurable):
     return output
 
   # =============================================================
-  def output_srl_gather(self, logits_transposed, targets, trigger_label_indices, outside_label_idx, transition_params):
+  def output_srl_gather(self, logits_transposed, targets, trigger_predictions, outside_label_idx, transition_params):
     """"""
 
     # logits are triggers_in_batch x num_classes x seq_len
@@ -1168,7 +1168,7 @@ class NN(Configurable):
 
     # need to repeat each of these once for each target in the sentence
     mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]),
-                        tf.where(tf.equal(trigger_label_indices, 1)))
+                        tf.where(tf.equal(trigger_predictions, 1)))
     count = tf.cast(tf.count_nonzero(mask), tf.float32)
 
     # now we have k sets of targets for the k frames
@@ -1186,9 +1186,8 @@ class NN(Configurable):
 
     def compute_srl_loss(logits_transposed, srl_targets_transposed):
 
-
       # batch*num_targets x seq_len
-      trigger_counts = tf.reduce_sum(trigger_label_indices, -1) - 1
+      trigger_counts = tf.reduce_sum(trigger_predictions, -1)
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
 
       # logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")

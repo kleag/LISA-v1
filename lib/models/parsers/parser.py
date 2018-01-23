@@ -363,8 +363,8 @@ class Parser(BaseParser):
       # gathered_roles = tf.Print(gathered_roles, [tf.shape(gathered_triggers)], "gathered triggers")
       # gathered_roles = tf.Print(gathered_roles, [batch_size, bucket_size], "batch_size, bucket_size")
 
-
       srl_logits = self.bilinear_classifier_nary(gathered_triggers, gathered_roles, num_srl_classes)
+      srl_logits = tf.Print(srl_logits, [tf.shape(srl_logits)], "srl logits shape")
       srl_output = self.output_srl_gather(srl_logits, targets, trigger_predictions, vocabs[3]["O"][0], transition_params if self.viterbi_train else None)
 
     trigger_loss = self.trigger_loss_penalty * trigger_output['loss']

@@ -1182,6 +1182,8 @@ class NN(Configurable):
     # (t2) f3 f3 f3
     srl_targets_transposed = tf.transpose(targets, [0, 2, 1])
 
+    predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
+
     def compute_srl_loss(logits_transposed, srl_targets_transposed):
 
 
@@ -1201,15 +1203,15 @@ class NN(Configurable):
       cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
       cross_entropy *= mask
       loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
-      return loss
+      correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
 
-    loss = tf.cond(tf.greater(tf.shape(targets)[2], 0),
+      return loss, correct
+
+    loss, correct = tf.cond(tf.greater(tf.shape(targets)[2], 0),
                    lambda: compute_srl_loss(logits_transposed, srl_targets_transposed),
                    lambda: tf.constant(0.))
 
-    predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
     probabilities = tf.nn.softmax(logits_transposed)
-    correct = tf.reduce_sum(tf.cast(tf.equal(predictions, targets), tf.float32))
 
     output = {
       'loss': loss,

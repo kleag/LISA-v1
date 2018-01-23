@@ -1152,44 +1152,62 @@ class NN(Configurable):
     # transpose to triggers_in_batch x seq_len x num_classes
     # logits_transposed = tf.transpose(logits, [0, 2, 1])
 
+    dummy_srl_output = {
+      'loss': tf.constant(0.),
+      'probabilities': tf.constant(0.),  # tf.nn.softmax(srl_logits_transpose),
+      'predictions': tf.constant(0.),  # tf.reduce_max(srl_logits_transpose, -1),
+      'logits': tf.constant(0.),  # srl_logits_transpose,
+      'transition_params': tf.constant(0.),
+      'count': tf.constant(0.),
+      'correct': tf.constant(0.)
+    }
+
     original_shape = tf.shape(targets)
     # batch_size = original_shape[0]
     bucket_size = original_shape[1]
 
-    # now we have k sets of targets for the k frames
-    # (t1) f1 f2 f3
-    # (t2) f1 f2 f3
-    # srl_targets = targets[:, :, 3:]
-
-    # get all the tags for each token (which is the trigger for a frame), structuring
-    # targets3D as follows (assuming t1 and t2 are triggers for f1 and f3, repsectively):
-    # (t1) f1 f1 f1
-    # (t2) f3 f3 f3
-    srl_targets_transposed = tf.transpose(targets, [0, 2, 1])
-
-    # batch*num_targets x seq_len
-    trigger_counts = tf.reduce_sum(trigger_label_indices, -1)
-    srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
-
-    # logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")
-    logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits transposed")
-    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_transposed)], "srl_targets_transposed")
-    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_indices)], "srl_targets_indices")
-    logits_transposed = tf.Print(logits_transposed, [tf.shape(trigger_counts), trigger_counts], "trigger_counts", summarize=500)
-
-    srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
-
     # need to repeat each of these once for each target in the sentence
-    mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]), tf.where(tf.equal(trigger_label_indices, 1)))
+    mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]),
+                        tf.where(tf.equal(trigger_label_indices, 1)))
     count = tf.cast(tf.count_nonzero(mask), tf.float32)
 
-    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
-    cross_entropy *= mask
-    loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
+    def compute_srl_loss(logits_transposed, targets):
+      # now we have k sets of targets for the k frames
+      # (t1) f1 f2 f3
+      # (t2) f1 f2 f3
+      # srl_targets = targets[:, :, 3:]
+
+      # get all the tags for each token (which is the trigger for a frame), structuring
+      # targets3D as follows (assuming t1 and t2 are triggers for f1 and f3, repsectively):
+      # (t1) f1 f1 f1
+      # (t2) f3 f3 f3
+      srl_targets_transposed = tf.transpose(targets, [0, 2, 1])
+
+      # batch*num_targets x seq_len
+      trigger_counts = tf.reduce_sum(trigger_label_indices, -1)
+      srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
+
+      # logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")
+      logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits transposed")
+      logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_transposed)], "srl_targets_transposed")
+      logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_indices)], "srl_targets_indices")
+      logits_transposed = tf.Print(logits_transposed, [tf.shape(trigger_counts), trigger_counts], "trigger_counts",
+                                   summarize=500)
+
+      srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
+
+      cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
+      cross_entropy *= mask
+      loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
+      return loss
+
+    loss = tf.cond(tf.greater(tf.shape(targets)[2], 0),
+                   lambda: compute_srl_loss(logits_transposed, targets),
+                   lambda: tf.constant(0.))
 
     predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
     probabilities = tf.nn.softmax(logits_transposed)
-    correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
+    correct = tf.reduce_sum(tf.cast(tf.equal(predictions, targets), tf.float32))
 
     output = {
       'loss': loss,

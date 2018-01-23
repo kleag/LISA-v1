@@ -378,9 +378,11 @@ class Parser(BaseParser):
         'count': tf.constant(0.),
         'correct': tf.constant(0.)
       }
-      srl_output = tf.cond(tf.greater(tf.shape(srl_targets)[2], 0),
-                           lambda: self.output_srl_gather(srl_logits_transpose, srl_targets, trigger_predictions, vocabs[3]["O"][0], transition_params if self.viterbi_train else None),
-                           lambda: dummy_srl_output)
+      # srl_output = tf.cond(tf.greater(tf.shape(srl_targets)[2], 0),
+      #                      lambda: self.output_srl_gather(srl_logits_transpose, srl_targets, trigger_predictions, vocabs[3]["O"][0], transition_params if self.viterbi_train else None),
+      #                      lambda: dummy_srl_output)
+      srl_output = self.output_srl_gather(srl_logits_transpose, srl_targets, trigger_predictions, vocabs[3]["O"][0],
+                                     transition_params if self.viterbi_train else None)
 
     trigger_loss = self.trigger_loss_penalty * trigger_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

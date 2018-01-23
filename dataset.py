@@ -199,6 +199,11 @@ class Dataset(Configurable):
       maxlen = np.max(np.sum(np.greater(data[:,:,0], 0), axis=1))
       np.set_printoptions(threshold=np.nan)
 
+      if maxlen+max(target_idxs)-1 < data.shape[2]:
+        print("maxlen", maxlen)
+        print("maxlen+max(target_idxs)", maxlen+max(target_idxs))
+        print("data.shape[2]", data.shape[2])
+
       feed_dict.update({
         self.inputs: data[:,:maxlen,input_idxs],
         self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)]

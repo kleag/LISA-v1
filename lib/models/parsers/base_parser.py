@@ -81,6 +81,9 @@ class BaseParser(NN):
 
     # for each batch element (sequence)
     # need to index into srl_preds, srl_logits
+
+    print("srl_preds", srl_preds.shape, srl_preds)
+    print("srl_trigger", srl_triggers.shape, srl_triggers)
     srl_pred_idx = 0
     for inputs, targets, parse_probs, rel_probs, n_cycle, len_2_cycle, srl_trigger, srl_trigger_target in zip(mb_inputs, mb_targets, mb_parse_probs, mb_rel_probs, n_cycles, len_2_cycles, srl_triggers, srl_trigger_targets):
       tokens_to_keep = np.greater(inputs[:,0], Vocab.ROOT)
@@ -159,9 +162,9 @@ class BaseParser(NN):
       # print("srl_pred", srl_pred)
       # print("srl_pred where", srl_pred[:,np.where(srl_trigger[tokens] == 1)[0]])
       s_pred = np.transpose(srl_pred)
-      print("srl_pred", srl_pred.shape, srl_pred)
-      print("pred_trigger_indices", pred_trigger_indices)
-      print("s_pred", s_pred.shape, s_pred)
+      # print("srl_pred", srl_pred.shape, srl_pred)
+      # print("pred_trigger_indices", pred_trigger_indices)
+      # print("s_pred", s_pred.shape, s_pred)
 
 
 

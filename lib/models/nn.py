@@ -1188,7 +1188,7 @@ class NN(Configurable):
 
 
       # batch*num_targets x seq_len
-      trigger_counts = tf.reduce_sum(trigger_label_indices, -1)
+      trigger_counts = tf.reduce_sum(trigger_label_indices, -1) - 1
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
 
       # logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")

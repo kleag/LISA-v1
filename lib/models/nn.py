@@ -1171,17 +1171,19 @@ class NN(Configurable):
                         tf.where(tf.equal(trigger_label_indices, 1)))
     count = tf.cast(tf.count_nonzero(mask), tf.float32)
 
-    def compute_srl_loss(logits_transposed, targets):
-      # now we have k sets of targets for the k frames
-      # (t1) f1 f2 f3
-      # (t2) f1 f2 f3
-      # srl_targets = targets[:, :, 3:]
+    # now we have k sets of targets for the k frames
+    # (t1) f1 f2 f3
+    # (t2) f1 f2 f3
+    # srl_targets = targets[:, :, 3:]
 
-      # get all the tags for each token (which is the trigger for a frame), structuring
-      # targets3D as follows (assuming t1 and t2 are triggers for f1 and f3, repsectively):
-      # (t1) f1 f1 f1
-      # (t2) f3 f3 f3
-      srl_targets_transposed = tf.transpose(targets, [0, 2, 1])
+    # get all the tags for each token (which is the trigger for a frame), structuring
+    # targets3D as follows (assuming t1 and t2 are triggers for f1 and f3, repsectively):
+    # (t1) f1 f1 f1
+    # (t2) f3 f3 f3
+    srl_targets_transposed = tf.transpose(targets, [0, 2, 1])
+
+    def compute_srl_loss(logits_transposed, srl_targets_transposed):
+
 
       # batch*num_targets x seq_len
       trigger_counts = tf.reduce_sum(trigger_label_indices, -1)
@@ -1202,7 +1204,7 @@ class NN(Configurable):
       return loss
 
     loss = tf.cond(tf.greater(tf.shape(targets)[2], 0),
-                   lambda: compute_srl_loss(logits_transposed, targets),
+                   lambda: compute_srl_loss(logits_transposed, srl_targets_transposed),
                    lambda: tf.constant(0.))
 
     predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)

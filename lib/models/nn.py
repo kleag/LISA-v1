@@ -1182,6 +1182,7 @@ class NN(Configurable):
     # (t2) f3 f3 f3
     srl_targets_transposed = tf.transpose(targets, [0, 2, 1])
 
+    # num_triggers_in_batch x seq_len
     predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
 
     def compute_srl_loss(logits_transposed, srl_targets_transposed):
@@ -1215,7 +1216,7 @@ class NN(Configurable):
     output = {
       'loss': loss,
       'probabilities': probabilities,
-      'predictions': tf.transpose(predictions, [1, 0]),
+      'predictions': predictions, #tf.transpose(predictions, [1, 0]),
       'logits': logits_transposed,
       'transition_params': transition_params,
       # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),

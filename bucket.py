@@ -83,11 +83,11 @@ class Bucket(Configurable):
       shape = (len(self._data), self.size, max_len)
       data = np.zeros(shape, dtype=np.int32)
 
-      if len(self._data) == 416:
-        print("lens", lens)
-        print("max_len", max_len)
-        print("data shape", shape)
-        print("self._data", len(self._data), len(self._data[-1]), len(self._data[-1][-1]))
+      # if len(self._data) == 416:
+      #   print("lens", lens)
+      #   print("max_len", max_len)
+      #   print("data shape", shape)
+      #   print("self._data", len(self._data), len(self._data[-1]), len(self._data[-1][-1]))
 
       for i, datum in enumerate(self._data):
         # if len(self._data) == 416:

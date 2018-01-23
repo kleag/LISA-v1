@@ -130,11 +130,7 @@ class Dataset(Configurable):
             head = j
           else:
             head = int(head) - 1
-          # for s in srls.conll_idx:
           srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in range(srl_start_field, srl_start_field + sent_len)]
-          # if "B-ARGM-MOD/B-ARG1" in srl_fields:
-          #   print("stuff:",  word, tag1, tag2, head, rel)
-          #   print("srl_fields", [token[idx] for idx in range(len(token)-1)])
           srl_tags = [srls[s][0] for s in srl_fields]
           is_trigger = np.any([s in self.trigger_indices for s in srl_tags])
           buff[i][j] = (word,) + words[word] + tags[tag1] + trigs[str(is_trigger)] + tags[tag2] + (head,) + rels[rel] + tuple(srl_tags)
@@ -204,13 +200,13 @@ class Dataset(Configurable):
       print("maxlen", maxlen)
       print("maxlen+max(target_idxs)", maxlen+max(target_idxs))
       print("data.shape[2]", data.shape[2])
-      targets = data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)]
+      targets = data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
       print("data shape", targets.shape)
       print("data[:,:,3:] shape", targets[:,:,3:].shape)
 
       feed_dict.update({
         self.inputs: data[:,:maxlen,input_idxs],
-        self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)]
+        self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
       })
       yield feed_dict, sents
   

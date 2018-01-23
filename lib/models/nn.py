@@ -1287,7 +1287,7 @@ class NN(Configurable):
     # gold_trigger_predictions
 
     count = tf.reduce_sum(tf.ones_like(predictions))
-    correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets_reshaped), tf.float32))
+    correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
 
     # count  = tf.Print(count, [targets3D_masked], "targets3D_masked", summarize=4000)
     #

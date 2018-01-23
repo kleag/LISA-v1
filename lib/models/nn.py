@@ -1261,7 +1261,8 @@ class NN(Configurable):
     #   loss = tf.reduce_mean(-log_likelihood)
     # else:
 
-    logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits trandposed")
+    logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits transposed")
+    logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")
     logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_reshaped)], "srl_targets_reshaped")
 
 

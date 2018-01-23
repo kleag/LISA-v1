@@ -365,11 +365,10 @@ class Parser(BaseParser):
       # gathered_roles = tf.Print(gathered_roles, [batch_size, bucket_size], "batch_size, bucket_size")
 
       srl_logits = self.bilinear_classifier_nary(gathered_triggers, gathered_roles, num_srl_classes)
-      srl_logits = tf.Print(srl_logits, [tf.shape(srl_logits)], "srl logits shape (batch, classes, seq_len)")
+      # srl_logits = tf.Print(srl_logits, [tf.shape(srl_logits)], "srl logits shape (batch, classes, seq_len)")
       srl_targets = targets[:,:,3:]
-      srl_logits = tf.Print(srl_logits, [tf.shape(srl_targets)], "srl_targets shape (batch, seq_len, targets)")
-
-      srl_logits = tf.Print(srl_logits, [tf.shape(tf.reduce_sum(trigger_predictions, -1)), tf.reduce_sum(trigger_predictions, -1)], "trigger_preds", summarize=5000)
+      # srl_logits = tf.Print(srl_logits, [tf.shape(srl_targets)], "srl_targets shape (batch, seq_len, targets)")
+      # srl_logits = tf.Print(srl_logits, [tf.shape(tf.reduce_sum(trigger_predictions, -1)), tf.reduce_sum(trigger_predictions, -1)], "trigger_preds", summarize=5000)
 
       srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
 

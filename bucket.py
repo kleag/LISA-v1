@@ -78,7 +78,11 @@ class Bucket(Configurable):
       raise ValueError('You need to reset the Buckets before finalizing them')
     
     if len(self._data) > 0:
-      shape = (len(self._data), self.size, len(self._data[-1][-1]))
+      lens = map(lambda l: len(l), self._data[-1])
+      max_len = max(lens)
+      print("lens", lens)
+      print("max_len", max_len)
+      shape = (len(self._data), self.size, max_len)
       data = np.zeros(shape, dtype=np.int32)
       for i, datum in enumerate(self._data):
         datum = np.array(datum)

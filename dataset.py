@@ -202,7 +202,9 @@ class Dataset(Configurable):
       print("maxlen", maxlen)
       print("maxlen+max(target_idxs)", maxlen+max(target_idxs))
       print("data.shape[2]", data.shape[2])
-      print("data shape", data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)].shape)
+      targets = data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)]
+      print("data shape", targets.shape)
+      print("data[:,:,3:] shape", targets[:,:,3:].shape)
 
       feed_dict.update({
         self.inputs: data[:,:maxlen,input_idxs],

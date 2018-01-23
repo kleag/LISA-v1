@@ -1191,11 +1191,11 @@ class NN(Configurable):
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
 
       # logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets)], "srl_targets")
-      logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits transposed")
-      logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_transposed)], "srl_targets_transposed")
-      logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_indices)], "srl_targets_indices")
-      logits_transposed = tf.Print(logits_transposed, [tf.shape(trigger_counts), trigger_counts], "trigger_counts",
-                                   summarize=500)
+      # logits_transposed = tf.Print(logits_transposed, [tf.shape(logits_transposed)], "logits transposed")
+      # logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_transposed)], "srl_targets_transposed")
+      # logits_transposed = tf.Print(logits_transposed, [tf.shape(srl_targets_indices)], "srl_targets_indices")
+      # logits_transposed = tf.Print(logits_transposed, [tf.shape(trigger_counts), trigger_counts], "trigger_counts",
+      #                              summarize=500)
 
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
 

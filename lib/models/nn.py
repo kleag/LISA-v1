@@ -1249,7 +1249,7 @@ class NN(Configurable):
     # non_masked_targets = tf.gather_nd(targets3D, non_masked_indices)
 
     # need to repeat each of these once for each target in the sentence
-    mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]), tf.where(tf.equal(trigger_label_indices, 0)))
+    mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]), tf.where(tf.equal(trigger_label_indices, 1)))
 
     count = tf.cast(tf.count_nonzero(mask), tf.float32)
     #

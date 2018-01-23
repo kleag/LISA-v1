@@ -1215,7 +1215,7 @@ class NN(Configurable):
     output = {
       'loss': loss,
       'probabilities': probabilities,
-      'predictions': predictions, #tf.transpose(predictions, [0, 2, 1]),
+      'predictions': tf.transpose(predictions, [1, 0]),
       'logits': logits_transposed,
       'transition_params': transition_params,
       # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),

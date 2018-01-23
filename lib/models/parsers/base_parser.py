@@ -104,7 +104,9 @@ class BaseParser(NN):
       num_gold_srls = len(gold_trigger_indices)
       num_pred_srls = len(pred_trigger_indices)
 
+      # num_triggers x seq_len
       srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
+      srl_pred_idx += num_pred_srls
 
       # print("s_pred shape", srl_pred.shape)
       # print("num pred srls", num_pred_srls)
@@ -156,7 +158,7 @@ class BaseParser(NN):
       # print("indices", np.where(srl_trigger[tokens] == 1)[0])
       # print("srl_pred", srl_pred)
       # print("srl_pred where", srl_pred[:,np.where(srl_trigger[tokens] == 1)[0]])
-      s_pred = srl_pred[:, len(pred_trigger_indices)]
+      s_pred = np.transpose(srl_pred)
       print("srl_pred", srl_pred.shape, srl_pred)
       print("pred_trigger_indices", pred_trigger_indices)
       print("s_pred", s_pred.shape, s_pred)

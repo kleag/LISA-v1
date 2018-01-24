@@ -290,9 +290,13 @@ class Parser(BaseParser):
           # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.shape(tf.shape(arc_logits))])
         return arc_logits, dep_rel_mlp, head_rel_mlp
 
+      def dummy_parse_logits():
+        dummy_rel_mlp = tf.zeros([batch_size, bucket_size, self.class_mlp_size])
+        return tf.constant(0.), dummy_rel_mlp, dummy_rel_mlp
+
       arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
                                                       lambda: get_parse_logits(),
-                                                      lambda: (tf.constant(0.), tf.zeros_like(top_recur), tf.zeros_like(top_recur)))
+                                                      lambda: dummy_parse_logits())
       arc_output = self.output_svd(arc_logits, targets[:,:,1])
       if moving_params is None:
         predictions = targets[:,:,1]

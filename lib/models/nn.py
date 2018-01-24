@@ -1304,7 +1304,7 @@ class NN(Configurable):
     def dummy_loss():
       # log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles, probabilities, predictions, correct
       return tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), \
-             tf.zeros(original_shape), tf.zeros(flat_shape), tf.constant(0.)
+             tf.zeros(original_shape), tf.zeros(flat_shape, dtype=tf.int32), tf.constant(0.)
 
     def compute_loss(logits3D, tokens_to_keep1D):
 

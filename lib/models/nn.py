@@ -981,8 +981,9 @@ class NN(Configurable):
     tokens_to_keep1D = tf.reshape(self.tokens_to_keep3D, [-1])
 
     def dummy_loss():
-      return tf.constant(0.), tf.constant(0.), tf.zeros(flat_shape), tf.zeros(original_shape), \
-             tf.zeros_like(tokens_to_keep1D), tf.constant(0.)
+      # loss, accuracy, tf.reshape(predictions1D, flat_shape), tf.reshape(probabilities2D, original_shape), correct1D, n_correct
+      return tf.constant(0.), tf.constant(0.), tf.zeros(flat_shape, dtype=tf.int32), tf.zeros(original_shape), \
+             tf.zeros_like(tokens_to_keep1D, dtype=tf.float32), tf.constant(0.)
 
     def compute_loss():
 

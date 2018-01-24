@@ -1301,15 +1301,10 @@ class NN(Configurable):
     tokens_to_keep1D = tf.reshape(self.tokens_to_keep3D, [-1])
     targets1D = tf.reshape(targets3D, [-1])
 
-    logits2D = tf.reshape(logits3D, tf.stack([batch_size * bucket_size, -1]))
-    predictions1D = tf.to_int32(tf.argmax(logits2D, 1))
-    probabilities2D = tf.nn.softmax(logits2D)
-    correct1D = tf.to_float(tf.equal(predictions1D, targets1D))
-    n_correct = tf.reduce_sum(correct1D * tokens_to_keep1D)
-    accuracy = n_correct / self.n_tokens
-
     def dummy_loss():
-      return tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.)
+      # log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles, probabilities, predictions, correct
+      return tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), \
+             tf.zeros(original_shape), tf.zeros(flat_shape), tf.constant(0.)
 
     def compute_loss(logits3D, tokens_to_keep1D):
 
@@ -1362,6 +1357,13 @@ class NN(Configurable):
       # n_correct = tf.reduce_sum(correct1D * tokens_to_keep1D)
       # accuracy = n_correct / self.n_tokens
 
+      logits2D = tf.reshape(logits3D, tf.stack([batch_size * bucket_size, -1]))
+      predictions1D = tf.to_int32(tf.argmax(logits2D, 1))
+      probabilities2D = tf.nn.softmax(logits2D)
+      correct1D = tf.to_float(tf.equal(predictions1D, targets1D))
+      # n_correct = tf.reduce_sum(correct1D * tokens_to_keep1D)
+      # accuracy = n_correct / self.n_tokens
+
       ########### svd loss ##########
       svd_loss = tf.cond(tf.equal(self.svd_penalty, tf.constant(0.0)),
                          lambda: tf.constant(0.0),
@@ -1374,20 +1376,24 @@ class NN(Configurable):
       else:
         n_cycles = len_2_cycles = tf.constant(-1.)
 
-      return log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles
+      return log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles, \
+             tf.reshape(probabilities2D, original_shape), tf.reshape(predictions1D, flat_shape), correct1D * tokens_to_keep1D,
 
-    log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles = tf.cond(
+    log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles, probabilities, predictions, correct = tf.cond(
       tf.greater(tf.rank(logits3D), 1),
       lambda: compute_loss(logits3D, tokens_to_keep1D),
       lambda: dummy_loss())
 
+    n_correct = tf.reduce_sum(correct * tokens_to_keep1D)
+    accuracy = n_correct / self.n_tokens
+
     loss = log_loss + roots_loss + pairs_log_loss + svd_loss
 
     output = {
-      'probabilities': tf.reshape(probabilities2D, original_shape),
-      'predictions': tf.reshape(predictions1D, flat_shape),
+      'probabilities': probabilities,
+      'predictions': predictions,
       'tokens': tokens_to_keep1D,
-      'correct': correct1D * tokens_to_keep1D,
+      'correct': correct,
       'n_correct': n_correct,
       'n_tokens': self.n_tokens,
       'accuracy': accuracy,

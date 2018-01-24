@@ -1294,7 +1294,7 @@ class NN(Configurable):
   # =============================================================
   def output_svd(self, logits3D, targets3D):
     """"""
-    original_shape = tf.shape(logits3D)
+    original_shape = tf.shape(targets3D)
     batch_size = original_shape[0]
     bucket_size = original_shape[1]
     flat_shape = tf.stack([batch_size, bucket_size])

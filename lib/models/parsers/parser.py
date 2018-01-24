@@ -297,10 +297,15 @@ class Parser(BaseParser):
         predictions = arc_output['predictions']
 
     ######## do parse-specific stuff (rels) ########
-    with tf.variable_scope('Rels', reuse=reuse):
-      rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, len(vocabs[2]), predictions)
-      rel_output = self.output(rel_logits, targets[:, :, 2])
-      rel_output['probabilities'] = self.conditional_probabilities(rel_logits_cond)
+
+    def get_parse_rel_logits():
+      with tf.variable_scope('Rels', reuse=reuse):
+        rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, len(vocabs[2]), predictions)
+      return rel_logits, rel_logits_cond
+
+    rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0), lambda: get_parse_rel_logits(), lambda: (tf.constant(0.), tf.constant(0.)))
+    rel_output = self.output(rel_logits, targets[:, :, 2])
+    rel_output['probabilities'] = self.conditional_probabilities(rel_logits_cond)
 
     # def compute_rels_output():
     #   with tf.variable_scope('Rels', reuse=reuse):

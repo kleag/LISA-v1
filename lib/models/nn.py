@@ -1669,11 +1669,13 @@ class NN(Configurable):
   #=============================================================
   def parse_argmax(self, parse_probs, tokens_to_keep, n_cycles=-1, len_2_cycles=-1):
     """"""
-    tokens_to_keep[0] = True
+    # tokens_to_keep[0] = True
     length = np.sum(tokens_to_keep)
     # tokens = np.arange(1, length)
     tokens = np.arange(length)
     parse_probs = parse_probs * tokens_to_keep
+    print("tokens to keep", tokens_to_keep.shape, tokens_to_keep)
+    print("parse probs, ", parse_probs.shape, parse_probs)
     parse_preds = np.argmax(parse_probs, axis=1)
     roots = [i for i, p in enumerate(parse_preds[:length]) if i == p]
     num_roots = len(roots)

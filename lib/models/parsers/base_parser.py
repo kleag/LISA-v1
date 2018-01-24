@@ -82,6 +82,9 @@ class BaseParser(NN):
     # for each batch element (sequence)
     # need to index into srl_preds, srl_logits
 
+    print("mb probs", mb_probs)
+    print("mb_parse_probs", mb_parse_probs)
+
     # print("srl_preds", srl_preds.shape, srl_preds)
     # print("srl_trigger", srl_triggers.shape, srl_triggers)
     srl_pred_idx = 0

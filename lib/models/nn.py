@@ -1296,8 +1296,7 @@ class NN(Configurable):
     accuracy = n_correct / self.n_tokens
 
     def dummy_loss():
-      return tf.constant(0), tf.constant(0), tf.constant(0), tf.constant(0), \
-             tf.constant(0), tf.constant(0), tf.constant(0), tf.constant(0)
+      return tf.constant(0), tf.constant(0), tf.constant(0), tf.constant(0), tf.constant(0), tf.constant(0)
 
     def compute_loss(logits3D, tokens_to_keep1D):
 
@@ -1366,7 +1365,7 @@ class NN(Configurable):
 
     log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles = tf.cond(
       tf.not_equal(tf.shape(tf.shape(logits3D)), 1),
-      lambda: compute_loss(),
+      lambda: compute_loss(logits3D, tokens_to_keep1D),
       lambda: dummy_loss())
 
     loss = log_loss + roots_loss + pairs_log_loss + svd_loss

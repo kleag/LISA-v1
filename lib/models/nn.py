@@ -1674,7 +1674,7 @@ class NN(Configurable):
     length = np.sum(tokens_to_keep)
     # tokens = np.arange(1, length)
     tokens = np.arange(length)
-    parse_probs = parse_probs * tokens_to_keep
+    parse_probs = parse_probs * np.expand_dims(tokens_to_keep, -1)
     parse_preds = np.argmax(parse_probs, axis=1)
     roots = [i for i, p in enumerate(parse_preds[:length]) if i == p]
     num_roots = len(roots)

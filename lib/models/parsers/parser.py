@@ -311,8 +311,8 @@ class Parser(BaseParser):
                                           lambda: (tf.constant(0.), tf.constant(0.)))
     rel_output = self.output(rel_logits, targets[:, :, 2])
     rel_output['probabilities'] = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
-                                          self.conditional_probabilities(rel_logits_cond),
-                                          rel_output['probabilities'])
+                                          lambda: self.conditional_probabilities(rel_logits_cond),
+                                          lambda: rel_output['probabilities'])
 
     # def compute_rels_output():
     #   with tf.variable_scope('Rels', reuse=reuse):

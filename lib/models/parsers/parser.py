@@ -353,39 +353,21 @@ class Parser(BaseParser):
 
     with tf.variable_scope('SRL-Arcs', reuse=reuse):
       # gather just the triggers
+      # trigger_predictions: batch x seq_len
       # gathered_triggers: num_triggers_in_batch x 1 x self.trigger_mlp_size
       # role mlp: batch x seq_len x self.role_mlp_size
+      # gathered roles: need a (bucket_size x self.role_mlp_size) role representation for each trigger,
+      # i.e. a (num_triggers_in_batch x bucket_size x self.role_mlp_size) tensor
       trigger_gather_indices = tf.where(tf.equal(trigger_predictions, 1))
       gathered_triggers = tf.expand_dims(tf.gather_nd(trigger_mlp, trigger_gather_indices), 1)
-      # srl_logits = self.bilinear_classifier_nary(trigger_mlp, role_mlp, num_srl_classes)
       tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
       gathered_roles = tf.gather_nd(tiled_roles, trigger_gather_indices)
-      # gathered_roles = tf.Print(gathered_roles, [tf.shape(gathered_roles)], "gathered roles")
-      # gathered_roles = tf.Print(gathered_roles, [tf.shape(gathered_triggers)], "gathered triggers")
-      # gathered_roles = tf.Print(gathered_roles, [batch_size, bucket_size], "batch_size, bucket_size")
 
+      # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
       srl_logits = self.bilinear_classifier_nary(gathered_triggers, gathered_roles, num_srl_classes)
-      # srl_logits = tf.Print(srl_logits, [tf.shape(srl_logits)], "srl logits shape (batch, classes, seq_len)")
       srl_targets = targets[:,:,3:]
-      # srl_logits = tf.Print(srl_logits, [tf.shape(srl_targets)], "srl_targets shape (batch, seq_len, targets)")
-      # srl_logits = tf.Print(srl_logits, [tf.shape(tf.reduce_sum(trigger_predictions, -1)), tf.reduce_sum(trigger_predictions, -1)], "trigger_preds", summarize=5000)
-
       srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
-
-      dummy_srl_output = {
-        'loss': tf.constant(0.),
-        'probabilities': tf.constant(0.),#tf.nn.softmax(srl_logits_transpose),
-        'predictions': tf.constant(0.),#tf.reduce_max(srl_logits_transpose, -1),
-        'logits': tf.constant(0.), #srl_logits_transpose,
-        'transition_params': tf.constant(0.),
-        'count': tf.constant(0.),
-        'correct': tf.constant(0.)
-      }
-      # srl_output = tf.cond(tf.greater(tf.shape(srl_targets)[2], 0),
-      #                      lambda: self.output_srl_gather(srl_logits_transpose, srl_targets, trigger_predictions, vocabs[3]["O"][0], transition_params if self.viterbi_train else None),
-      #                      lambda: dummy_srl_output)
-      srl_output = self.output_srl_gather(srl_logits_transpose, srl_targets, trigger_predictions, vocabs[3]["O"][0],
-                                     transition_params if self.viterbi_train else None)
+      srl_output = self.output_srl_gather(srl_logits_transpose, srl_targets, trigger_predictions)
 
     trigger_loss = self.trigger_loss_penalty * trigger_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

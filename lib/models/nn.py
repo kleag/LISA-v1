@@ -1296,7 +1296,7 @@ class NN(Configurable):
     accuracy = n_correct / self.n_tokens
 
     def dummy_loss():
-      return tf.constant(0), tf.constant(0), tf.constant(0), tf.constant(0), tf.constant(0), tf.constant(0)
+      return tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.)
 
     def compute_loss(logits3D, tokens_to_keep1D):
 

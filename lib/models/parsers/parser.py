@@ -73,6 +73,7 @@ class Parser(BaseParser):
 
     print("multitask penalties: ", self.multi_penalties)
     print("multitask layers: ", self.multi_layers)
+    print("parse update proportion: ", self.parse_update_proportion)
 
     trigger_indices = [i for s, i in vocabs[3].iteritems() if self.trigger_str in s]
 

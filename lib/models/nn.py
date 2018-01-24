@@ -1292,12 +1292,12 @@ class NN(Configurable):
     return output
 
   # =============================================================
-  def output_svd(self, logits3D, targets3D, num_classes):
+  def output_svd(self, logits3D, targets3D):
     """"""
     targets_shape = tf.shape(targets3D)
     batch_size = targets_shape[0]
     bucket_size = targets_shape[1]
-    original_shape = [batch_size, bucket_size, num_classes]
+    original_shape = [batch_size, bucket_size, bucket_size]
     flat_shape = tf.stack([batch_size, bucket_size])
     tokens_to_keep1D = tf.reshape(self.tokens_to_keep3D, [-1])
     targets1D = tf.reshape(targets3D, [-1])
@@ -1674,7 +1674,7 @@ class NN(Configurable):
     length = np.sum(tokens_to_keep)
     # tokens = np.arange(1, length)
     tokens = np.arange(length)
-    parse_probs = parse_probs * np.expand_dims(tokens_to_keep, -1)
+    parse_probs = parse_probs * tokens_to_keep
     parse_preds = np.argmax(parse_probs, axis=1)
     roots = [i for i, p in enumerate(parse_preds[:length]) if i == p]
     num_roots = len(roots)

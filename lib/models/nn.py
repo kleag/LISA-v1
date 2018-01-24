@@ -1000,6 +1000,8 @@ class NN(Configurable):
       loss = tf.reduce_sum(cross_entropy1D * tokens_to_keep1D) / self.n_tokens
       return loss, accuracy, tf.reshape(predictions1D, flat_shape), tf.reshape(probabilities2D, original_shape), correct1D, n_correct
 
+    logits3D = tf.Print(logits3D, [tf.rank(logits3D)], "rank")
+
     loss, accuracy, predictions, probabilities, correct, n_correct = tf.cond(tf.not_equal(tf.rank(logits3D), 1),
       lambda: compute_loss(),
       lambda: dummy_loss())

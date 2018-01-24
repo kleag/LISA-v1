@@ -1303,21 +1303,13 @@ class NN(Configurable):
 
     def dummy_loss():
       # log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles, probabilities, predictions, correct
-      return tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), \
+      return tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(0.), tf.constant(-1.), tf.constant(-1.), \
              tf.zeros(original_shape), tf.zeros(flat_shape, dtype=tf.int32), tf.constant(0.)
 
     def compute_loss(logits3D, tokens_to_keep1D):
 
-      # original_shape = tf.Print(original_shape, [original_shape], "original_shape", summarize=100)
-
-
       # flatten to [B*N, N]
       logits2D = tf.reshape(logits3D, tf.stack([batch_size * bucket_size, -1]))
-
-      # targets_mask = tf.cond(tf.logical_or(tf.not_equal(self.pairs_penalty, tf.constant(0.0)),
-      #                                      tf.not_equal(self.roots_penalty, tf.constant(0.0))),
-      #                      lambda: tf.constant(0.0),
-      #                      lambda: self.gen_targets_mask(logits3D, batch_size, bucket_size))
       targets_mask = self.gen_targets_mask(targets3D, batch_size, bucket_size)
 
       ######## pairs softmax thing #########
@@ -1348,21 +1340,11 @@ class NN(Configurable):
       logits3D_masked = logits3D + mask
       logits3D_masked = tf.transpose(mask, [0, 2, 1]) + logits3D_masked
       logits3D = logits3D_masked
-      # logits2D_masked = tf.reshape(logits3D_masked, [batch_size * bucket_size, -1])
-
-      # logits2D = tf.reshape(logits3D, tf.stack([batch_size * bucket_size, -1]))
-      # predictions1D = tf.to_int32(tf.argmax(logits2D, 1))
-      # probabilities2D = tf.nn.softmax(logits2D)
-      # correct1D = tf.to_float(tf.equal(predictions1D, targets1D))
-      # n_correct = tf.reduce_sum(correct1D * tokens_to_keep1D)
-      # accuracy = n_correct / self.n_tokens
 
       logits2D = tf.reshape(logits3D, tf.stack([batch_size * bucket_size, -1]))
       predictions1D = tf.to_int32(tf.argmax(logits2D, 1))
       probabilities2D = tf.nn.softmax(logits2D)
       correct1D = tf.to_float(tf.equal(predictions1D, targets1D))
-      # n_correct = tf.reduce_sum(correct1D * tokens_to_keep1D)
-      # accuracy = n_correct / self.n_tokens
 
       ########### svd loss ##########
       svd_loss = tf.cond(tf.equal(self.svd_penalty, tf.constant(0.0)),
@@ -1377,7 +1359,8 @@ class NN(Configurable):
         n_cycles = len_2_cycles = tf.constant(-1.)
 
       return log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles, \
-             tf.reshape(probabilities2D, original_shape), tf.reshape(predictions1D, flat_shape), correct1D * tokens_to_keep1D,
+             tf.reshape(probabilities2D, original_shape), tf.reshape(predictions1D, flat_shape), \
+             correct1D * tokens_to_keep1D,
 
     log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles, probabilities, predictions, correct = tf.cond(
       tf.greater(tf.rank(logits3D), 1),

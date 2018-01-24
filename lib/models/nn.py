@@ -1160,7 +1160,6 @@ class NN(Configurable):
     # mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]),
     #                     tf.where(tf.equal(trigger_predictions, 1)))
     mask_tiled = tf.reshape(tf.tile(tf.squeeze(self.tokens_to_keep3D, -1), [1, bucket_size]), [batch_size, bucket_size, bucket_size])
-    mask_tiled = tf.Print(mask_tiled, [mask_tiled], "mask tiled")
     mask = tf.gather_nd(mask_tiled, tf.where(tf.equal(trigger_predictions, 1)))
     count = tf.cast(tf.count_nonzero(mask), tf.float32)
 

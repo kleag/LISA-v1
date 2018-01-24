@@ -314,7 +314,7 @@ class Parser(BaseParser):
     rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
                                           lambda: get_parse_rel_logits(),
                                           lambda: (tf.constant(0.), tf.constant(0.)))
-    rel_output = self.output(rel_logits, targets[:, :, 2])
+    rel_output = self.output(rel_logits, targets[:, :, 2], num_rel_classes)
     rel_output['probabilities'] = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
                                           lambda: self.conditional_probabilities(rel_logits_cond),
                                           lambda: rel_output['probabilities'])

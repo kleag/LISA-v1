@@ -289,7 +289,9 @@ class Parser(BaseParser):
           # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.shape(tf.shape(arc_logits))])
         return arc_logits, dep_rel_mlp, head_rel_mlp
 
-      arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0), lambda: get_parse_logits(), lambda: (tf.constant(0.), tf.constant(0.), tf.constant(0.)))
+      arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
+                                                      lambda: get_parse_logits(),
+                                                      lambda: (tf.constant(0.), tf.constant(0.), tf.constant(0.)))
       arc_output = self.output_svd(arc_logits, targets[:,:,1])
       if moving_params is None:
         predictions = targets[:,:,1]
@@ -303,9 +305,13 @@ class Parser(BaseParser):
         rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, len(vocabs[2]), predictions)
       return rel_logits, rel_logits_cond
 
-    rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0), lambda: get_parse_rel_logits(), lambda: (tf.constant(0.), tf.constant(0.)))
+    rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
+                                          lambda: get_parse_rel_logits(),
+                                          lambda: (tf.constant(0.), tf.constant(0.)))
     rel_output = self.output(rel_logits, targets[:, :, 2])
-    rel_output['probabilities'] = self.conditional_probabilities(rel_logits_cond)
+    rel_output['probabilities'] = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
+                                          self.conditional_probabilities(rel_logits_cond),
+                                          rel_output['probabilities'])
 
     # def compute_rels_output():
     #   with tf.variable_scope('Rels', reuse=reuse):

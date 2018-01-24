@@ -135,6 +135,7 @@ class Network(Configurable):
   def train(self, sess, profile):
     """"""
     print("Training")
+    training_start_time = time.time()
     sys.stdout.flush()
     save_path = os.path.join(self.save_dir, self.name.lower() + '-pretrained')
     saver = tf.train.Saver(self.save_vars, max_to_keep=1)
@@ -269,6 +270,8 @@ class Network(Configurable):
             n_train_trigger_correct = 0
             n_train_trigger_count = 0
           if save_every and (total_train_iters % save_every == 0):
+            elapsed_time_str = time.strftime("%H:%M:%S", time.gmtime(time.time()-training_start_time))
+            print("Elapsed time: %s" % elapsed_time_str)
             with open(os.path.join(self.save_dir, 'history.pkl'), 'w') as f:
               pkl.dump(self.history, f)
             correct = self.test(sess, validate=True)

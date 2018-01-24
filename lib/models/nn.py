@@ -1292,11 +1292,12 @@ class NN(Configurable):
     return output
 
   # =============================================================
-  def output_svd(self, logits3D, targets3D):
+  def output_svd(self, logits3D, targets3D, num_classes):
     """"""
-    original_shape = tf.shape(targets3D)
-    batch_size = original_shape[0]
-    bucket_size = original_shape[1]
+    targets_shape = tf.shape(targets3D)
+    batch_size = targets_shape[0]
+    bucket_size = targets_shape[1]
+    original_shape = [batch_size, bucket_size, num_classes]
     flat_shape = tf.stack([batch_size, bucket_size])
     tokens_to_keep1D = tf.reshape(self.tokens_to_keep3D, [-1])
     targets1D = tf.reshape(targets3D, [-1])

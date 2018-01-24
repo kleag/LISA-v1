@@ -1364,7 +1364,7 @@ class NN(Configurable):
       return log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles
 
     log_loss, roots_loss, pairs_log_loss, svd_loss, n_cycles, len_2_cycles = tf.cond(
-      tf.not_equal(tf.shape(tf.shape(logits3D)), 1),
+      tf.not_equal(tf.rank(logits3D), 1),
       lambda: compute_loss(logits3D, tokens_to_keep1D),
       lambda: dummy_loss())
 

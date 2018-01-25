@@ -96,7 +96,7 @@ for lr in ${lrs[@]}; do
                                                                     --ensure_tree True \
                                                                     --save False \
                                                                     &> $OUT_LOG/train-$fname_append.log")
-                                                                    i+=1
+                                                                    i=$((i + 1))
                                                                 done
                                                             done
                                                         done

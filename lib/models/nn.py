@@ -1794,6 +1794,7 @@ class NN(Configurable):
     
     if self.ensure_tree:
       # tokens_to_keep[0] = True
+      print("rel probs", rel_probs)
       rel_probs[:,Vocab.PAD] = 0
       root = Vocab.ROOT
       length = np.sum(tokens_to_keep)

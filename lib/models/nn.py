@@ -976,7 +976,7 @@ class NN(Configurable):
     targets_shape = tf.shape(targets3D)
     batch_size = targets_shape[0]
     bucket_size = targets_shape[1]
-    original_shape = [batch_size, bucket_size, num_classes]
+    original_shape = [batch_size, bucket_size, bucket_size, num_classes]
     flat_shape = tf.stack([batch_size, bucket_size])
 
     tokens_to_keep1D = tf.reshape(self.tokens_to_keep3D, [-1])

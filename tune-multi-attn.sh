@@ -19,8 +19,8 @@ lrs="0.04" # 0.06"
 mus="0.9"
 nus="0.98"
 epsilons="1e-12"
-warmup_steps="8000"
-batch_sizes="1000"
+warmup_steps="4000"
+batch_sizes="3500"
 
 trans_layers="4" # 3
 cnn_dims="1024" # 768
@@ -30,7 +30,7 @@ relu_hidden_sizes="256"
 
 parents_penalties="0.1 1.0 0.01 0.0001"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:0 parents:1 parents:2 parents:3 parents:0,1,2,3"
+parents_layers="parents:0 parents:1 parents:2 parents:3 none"
 #grandparents_layers="grandparents:1 grandparents:3 grandparents:1,3"
 
 trigger_mlp_sizes="256"
@@ -45,6 +45,7 @@ reps="2"
 # array to hold all the commands we'll distribute
 declare -a commands
 
+i=1
 for lr in ${lrs[@]}; do
     for mu in ${mus[@]}; do
         for nu in ${nus[@]}; do
@@ -64,10 +65,13 @@ for lr in ${lrs[@]}; do
                                                                 for rep in `seq $reps`; do
                                                                     fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$trigger_mlp_size-$role_mlp_size-$add_pos"
                                                                     partition="titanx-long"
-                                                                    if [[ "$parents_layer" == "parents:0,1,2,3" ]]; then
+                                                                    if [[ $((i % 4)) == 0 ]]; then
                                                                         partition="m40-long"
                                                                     fi
-                                                                    commands+=("srun --gres=gpu:1 --partition=$partition --mem=16000 python network.py  \
+                                                                    if [[ "$parents_layer" == "none" ]]; then
+                                                                        parents_layer=""
+                                                                    fi
+                                                                    commands+=("srun --gres=gpu:1 --partition=$partition --mem=16000 --time=24:00:00 python network.py  \
                                                                     --config_file config/trans-conll12-bio-multi-attn.cfg \
                                                                     --save_dir $OUT_LOG/scores-$fname_append \
                                                                     --save_every 500 \
@@ -91,12 +95,9 @@ for lr in ${lrs[@]}; do
                                                                     --role_mlp_size $role_mlp_size \
                                                                     --add_pos_to_input $add_pos \
                                                                     --subsample_trigger_rate 1.0 \
-                                                                    --svd_tree False \
-                                                                    --mask_pairs True \
-                                                                    --mask_roots True \
-                                                                    --ensure_tree True \
                                                                     --save False \
                                                                     &> $OUT_LOG/train-$fname_append.log")
+                                                                    i=$((i + 1))
                                                                 done
                                                             done
                                                         done

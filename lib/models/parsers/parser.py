@@ -335,21 +335,20 @@ class Parser(BaseParser):
       # idx into attention heads
       attn_idx = 0
       if 'parents' in self.multi_layers.keys() and l in self.multi_layers['parents']:
-        outputs = self.output_svd(attn_weights[attn_idx], multitask_targets['parents']);
+        outputs = self.output(attn_weights[attn_idx], multitask_targets['parents'])
         attn_idx += 1
-        # outputs = tf.Print(outputs, [tf.shape(attn_weights[attn_idx]), tf.reduce_sum(attn_weights[attn_idx], axis=), attn_weights[attn_idx]], "attn_weights", summarize=1000)
         loss = self.multi_penalties['parents'] * outputs['loss']
         multitask_losses['parents%s' % l] = loss
         multitask_correct['parents%s' % l] = outputs['n_correct']
         multitask_loss_sum += loss
       if 'grandparents' in self.multi_layers.keys() and l in self.multi_layers['grandparents']:
-        outputs = self.output_svd(attn_weights[attn_idx], multitask_targets['grandparents']);
+        outputs = self.output(attn_weights[attn_idx], multitask_targets['grandparents'])
         attn_idx += 1
         loss = self.multi_penalties['grandparents'] * outputs['loss']
         multitask_losses['grandparents%s' % l] = loss
         multitask_loss_sum += loss
       if 'children' in self.multi_layers.keys() and l in self.multi_layers['children']:
-        outputs = self.output_multi(attn_weights[attn_idx], multitask_targets['children']);
+        outputs = self.output_multi(attn_weights[attn_idx], multitask_targets['children'])
         attn_idx += 1
         loss = self.multi_penalties['children'] * outputs['loss']
         multitask_losses['children%s' % l] = loss

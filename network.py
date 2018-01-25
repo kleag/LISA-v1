@@ -331,9 +331,9 @@ class Network(Configurable):
             word,
             self.tags[pred[3]] if pred[3] != -1 else self.tags[datum[2]],
             self.tags[pred[4]] if pred[4] != -1 else self.tags[datum[3]],
-            str(pred[5]) if pred[5] != -1 else str(datum[4]),
+            str(pred[5] if pred[5] != i else 0) if pred[5] != -1 else str(datum[4] if datum[4] != i else 0),
             self.rels[pred[6]] if pred[6] != -1 else self.rels[datum[5]],
-            str(pred[7]) if pred[7] != -1 else '_',
+            str(pred[7] if pred[7] != i else 0) if pred[7] != -1 else '_',
             self.rels[pred[8]] if pred[8] != -1 else '_',
           )
           f.write('%s\t%s\t_\t%s\t%s\t_\t%s\t%s\t%s\t%s\n' % tup)

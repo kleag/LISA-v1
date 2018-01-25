@@ -1794,7 +1794,6 @@ class NN(Configurable):
     
     if self.ensure_tree:
       # tokens_to_keep[0] = True
-      print("rel probs", rel_probs)
       rel_probs[:,Vocab.PAD] = 0
       root = Vocab.ROOT
       length = np.sum(tokens_to_keep)
@@ -1814,7 +1813,6 @@ class NN(Configurable):
         rel_preds[new_root] = root
       return rel_preds
     else:
-      print("rel probs", rel_probs)
       rel_probs[:,Vocab.PAD] = 0
       rel_preds = np.argmax(rel_probs, axis=1)
       return rel_preds

@@ -970,7 +970,7 @@ class NN(Configurable):
     return bilin
   
   #=============================================================
-  def output(self, logits3D, targets3D, num_classes):
+  def output(self, logits3D, targets3D, num_classes=1):
     """"""
 
     targets_shape = tf.shape(targets3D)

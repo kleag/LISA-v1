@@ -290,7 +290,7 @@ class Parser(BaseParser):
         l4 = w4 * attn_weights_by_layer[3][0]
         arc_logits_all = tf.concat([tf.expand_dims(l1, -1), tf.expand_dims(l2, -1), tf.expand_dims(l3, -1), tf.expand_dims(l4, -1)], -1)
 
-        arc_logits_all = tf.Print(arc_logits_all, [tf.reduce_mean(l1), tf.reduce_mean(l2), tf.reduce_mean(l3), tf.reduce_mean(l4)])
+        arc_logits_all = tf.Print(arc_logits_all, [tf.reduce_max(l1), tf.reduce_max(l2), tf.reduce_max(l3), tf.reduce_max(l4)])
 
         # arc_logits_all = tf.Print(arc_logits_all, [tf.shape(attn_weights_by_layer[0][0])], "arc logits", summarize=2000)
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)

@@ -280,27 +280,28 @@ class Parser(BaseParser):
         arc_logits = attn_weights_by_layer[self.n_recur-1][0]
 
 
-        arc_logits_all = tf.concat([tf.expand_dims(tf.nn.softmax(attn_weights_by_layer[0][0]), -1), tf.expand_dims(tf.nn.softmax(attn_weights_by_layer[1][0]), -1),
-                         tf.expand_dims(tf.nn.softmax(attn_weights_by_layer[2][0]), -1), tf.expand_dims(tf.nn.softmax(attn_weights_by_layer[3][0]), -1)], -1)
+        arc_logits_all = tf.concat([tf.expand_dims(attn_weights_by_layer[0][0], -1), tf.expand_dims(attn_weights_by_layer[1][0], -1),
+                         tf.expand_dims(attn_weights_by_layer[2][0], -1), tf.expand_dims(attn_weights_by_layer[3][0], -1)], -1)
 
-        # arc_logits_all = tf.Print(arc_logits_all, [arc_logits], "arc logits", summarize=2000)
+        arc_logits_all = tf.Print(arc_logits_all, [tf.shape(attn_weights_by_layer[0][0])], "arc logits", summarize=2000)
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)
-        # arc_logits = tf.reduce_prod(arc_logits_all, -1)
+        arc_logits = tf.reduce_max(arc_logits_all, -1)
         # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][0], attn_weights_by_layer[3][0])
-        first_correct = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), tf.ones([bucket_size, bucket_size]), tf.zeros([bucket_size, bucket_size]))
-        first_correct_vals = first_correct * attn_weights_by_layer[0][0]
 
-        second_correct = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), tf.ones([bucket_size, bucket_size]), tf.zeros([bucket_size, bucket_size]))
-        second_correct_vals = second_correct * attn_weights_by_layer[0][1]
-
-        third_correct = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), tf.ones([bucket_size, bucket_size]), tf.zeros([bucket_size, bucket_size]))
-        third_correct_vals = third_correct * attn_weights_by_layer[0][2]
-
-        # zeros where first, second or third, ones otherwise
-        rest = (1-first_correct) * (1-second_correct) * (1-third_correct)
-        rest_vals = rest * attn_weights_by_layer[0][3]
-
-        arc_logits = first_correct_vals + second_correct_vals + third_correct_vals + rest_vals
+        # first_correct = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), tf.ones([bucket_size, bucket_size]), tf.zeros([bucket_size, bucket_size]))
+        # first_correct_vals = first_correct * attn_weights_by_layer[0][0]
+        #
+        # second_correct = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), tf.ones([bucket_size, bucket_size]), tf.zeros([bucket_size, bucket_size]))
+        # second_correct_vals = second_correct * attn_weights_by_layer[0][1]
+        #
+        # third_correct = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), tf.ones([bucket_size, bucket_size]), tf.zeros([bucket_size, bucket_size]))
+        # third_correct_vals = third_correct * attn_weights_by_layer[0][2]
+        #
+        # # zeros where first, second or third, ones otherwise
+        # rest = (1-first_correct) * (1-second_correct) * (1-third_correct)
+        # rest_vals = rest * attn_weights_by_layer[0][3]
+        #
+        # arc_logits = first_correct_vals + second_correct_vals + third_correct_vals + rest_vals
 
         # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][2], arc_logits)
         # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][1], arc_logits)

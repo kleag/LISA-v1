@@ -309,7 +309,7 @@ class Parser(BaseParser):
         rest = (1-first_correct) * (1-second_correct) * (1-third_correct)
         rest_vals = rest * attn_weights_by_layer[0][3]
 
-        arc_logits = first_correct_vals + second_correct_vals + third_correct_vals + rest_vals
+        arc_logits = first_correct_vals + second_correct_vals + third_correct_vals + attn_weights_by_layer[0][3]
 
         arc_logits = tf.Print(arc_logits, [arc_logits], "arc logits all", summarize=2000)
 

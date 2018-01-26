@@ -135,6 +135,8 @@ class Parser(BaseParser):
     assert (self.cnn_layers != 0 and self.n_recur != 0) or self.num_blocks == 1, "num_blocks should be 1 if cnn_layers or n_recur is 0"
     assert self.dist_model == 'bilstm' or self.dist_model == 'transformer', 'Model must be either "transformer" or "bilstm"'
 
+    add_attn = tf.zeros([batch_size, bucket_size, bucket_size])
+
     for b in range(self.num_blocks):
       with tf.variable_scope("block%d" % b, reuse=reuse):  # to share parameters, change scope here
         # Project for CNN input
@@ -192,9 +194,12 @@ class Parser(BaseParser):
                 # else:
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            attn_dropout, relu_dropout, prepost_dropout,
-                                                           self.relu_hidden_size, self.info_func, reuse, manual_attn)
+                                                           self.relu_hidden_size, self.info_func, reuse, manual_attn, add_attn)
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
+
+                if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
+                  add_attn = attn_weights[0]
 
             # if normalization is done in layer_preprocess, then it should also be done
             # on the output, since the output can grow very large, being the sum of
@@ -278,63 +283,63 @@ class Parser(BaseParser):
         # todo don't hardcode to 0th head
         # todo right now this head is getting 2x loss
         arc_logits = attn_weights_by_layer[self.n_recur-1][0]
-
-
-        w1 = 1.0
-        w2 = 1.0
-        w3 = 1.0
-        w4 = 1.0
-        l1 = w1 * attn_weights_by_layer[0][0]
-        l2 = w2 * attn_weights_by_layer[1][0]
-        l3 = w3 * attn_weights_by_layer[2][0]
-        l4 = w4 * attn_weights_by_layer[3][0]
-        arc_logits_all = tf.concat([tf.expand_dims(l1, -1), tf.expand_dims(l2, -1), tf.expand_dims(l3, -1), tf.expand_dims(l4, -1)], -1)
-
-        arc_logits_all = tf.Print(arc_logits_all, [tf.reduce_max(l1), tf.reduce_max(l2), tf.reduce_max(l3), tf.reduce_max(l4)])
-
-        # arc_logits_all = tf.Print(arc_logits_all, [tf.shape(attn_weights_by_layer[0][0])], "arc logits", summarize=2000)
-        # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)
-        # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][0], attn_weights_by_layer[3][0])
-
-        first_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
-        first_correct_vals = first_correct * attn_weights_by_layer[0][0]
-
-        # first_correct = tf.Print(first_correct, [first_correct], "first_correct", summarize=2000)
-
-        # batch x seq_len
-        second_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[1][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
-        second_correct_vals = second_correct * attn_weights_by_layer[1][0]
-
-        # first_correct = tf.Print(first_correct, [second_correct], "second_correct", summarize=2000)
-
-
-        third_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[2][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
-        third_correct_vals = third_correct * attn_weights_by_layer[2][0]
-
-        fourth_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[3][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
-        fourth_correct_vals = third_correct * attn_weights_by_layer[3][0]
-
-        # first_correct = tf.Print(first_correct, [third_correct], "third_correct", summarize=2000)
-
-        arc_logits_all = tf.Print(arc_logits_all, [tf.reduce_sum(first_correct), tf.reduce_sum(second_correct),
-                                                   tf.reduce_sum(third_correct), tf.reduce_sum(fourth_correct)], "correct")
-
-        # zeros where first, second or third, ones otherwise
-        rest = (1-first_correct) * (1-second_correct) * (1-third_correct)
-        rest_vals = rest * attn_weights_by_layer[3][0]
-
-        arc_logits = tf.where(tf.not_equal(first_correct_vals, 0), first_correct_vals, attn_weights_by_layer[3][0])
-        arc_logits = tf.where(tf.not_equal(second_correct_vals, 0), second_correct_vals, arc_logits)
-        arc_logits = tf.where(tf.not_equal(third_correct_vals, 0), third_correct_vals, arc_logits)
-
         #
-        # arc_logits = tf.Print(arc_logits, [arc_logits], "arc logits all", summarize=2000)
-
-        arc_logits = tf.reduce_mean(arc_logits_all, -1)
-
-
-        # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][2], arc_logits)
-        # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][1], arc_logits)
+        #
+        # w1 = 1.0
+        # w2 = 1.0
+        # w3 = 1.0
+        # w4 = 1.0
+        # l1 = w1 * attn_weights_by_layer[0][0]
+        # l2 = w2 * attn_weights_by_layer[1][0]
+        # l3 = w3 * attn_weights_by_layer[2][0]
+        # l4 = w4 * attn_weights_by_layer[3][0]
+        # arc_logits_all = tf.concat([tf.expand_dims(l1, -1), tf.expand_dims(l2, -1), tf.expand_dims(l3, -1), tf.expand_dims(l4, -1)], -1)
+        #
+        # arc_logits_all = tf.Print(arc_logits_all, [tf.reduce_max(l1), tf.reduce_max(l2), tf.reduce_max(l3), tf.reduce_max(l4)])
+        #
+        # # arc_logits_all = tf.Print(arc_logits_all, [tf.shape(attn_weights_by_layer[0][0])], "arc logits", summarize=2000)
+        # # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)
+        # # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][0], attn_weights_by_layer[3][0])
+        #
+        # first_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
+        # first_correct_vals = first_correct * attn_weights_by_layer[0][0]
+        #
+        # # first_correct = tf.Print(first_correct, [first_correct], "first_correct", summarize=2000)
+        #
+        # # batch x seq_len
+        # second_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[1][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
+        # second_correct_vals = second_correct * attn_weights_by_layer[1][0]
+        #
+        # # first_correct = tf.Print(first_correct, [second_correct], "second_correct", summarize=2000)
+        #
+        #
+        # third_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[2][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
+        # third_correct_vals = third_correct * attn_weights_by_layer[2][0]
+        #
+        # fourth_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[3][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
+        # fourth_correct_vals = third_correct * attn_weights_by_layer[3][0]
+        #
+        # # first_correct = tf.Print(first_correct, [third_correct], "third_correct", summarize=2000)
+        #
+        # arc_logits_all = tf.Print(arc_logits_all, [tf.reduce_sum(first_correct), tf.reduce_sum(second_correct),
+        #                                            tf.reduce_sum(third_correct), tf.reduce_sum(fourth_correct)], "correct")
+        #
+        # # zeros where first, second or third, ones otherwise
+        # rest = (1-first_correct) * (1-second_correct) * (1-third_correct)
+        # rest_vals = rest * attn_weights_by_layer[3][0]
+        #
+        # arc_logits = tf.where(tf.not_equal(first_correct_vals, 0), first_correct_vals, attn_weights_by_layer[3][0])
+        # arc_logits = tf.where(tf.not_equal(second_correct_vals, 0), second_correct_vals, arc_logits)
+        # arc_logits = tf.where(tf.not_equal(third_correct_vals, 0), third_correct_vals, arc_logits)
+        #
+        # #
+        # # arc_logits = tf.Print(arc_logits, [arc_logits], "arc logits all", summarize=2000)
+        #
+        # arc_logits = tf.reduce_mean(arc_logits_all, -1)
+        #
+        #
+        # # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][2], arc_logits)
+        # # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][1], arc_logits)
 
       arc_output = self.output_svd(arc_logits, targets[:, :, 1])
       if moving_params is None:

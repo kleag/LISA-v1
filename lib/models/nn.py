@@ -237,6 +237,7 @@ def dot_product_attention(q, k, v,
                           bias,
                           dropout_rate=1.0,
                           manual_attn=None,
+                          add_attn=None,
                           name=None):
   """dot-product attention.
   Args:
@@ -252,6 +253,8 @@ def dot_product_attention(q, k, v,
   with tf.variable_scope(name, default_name="dot_product_attention", values=[q, k, v]):
     # [batch, num_heads, query_length, memory_length]
     logits = tf.matmul(q, k, transpose_b=True)
+    if add_attn is not None:
+      logits += add_attn
     if bias is not None:
       logits += bias
     weights = tf.nn.softmax(logits, name="attention_weights")
@@ -361,6 +364,7 @@ def multihead_attention(antecedent,
                         num_heads,
                         dropout_rate,
                         manual_attn=None,
+                        add_attn=None,
                         name=None
                         ):
   """Multihead scaled-dot-product attention with input/output transformations.
@@ -391,7 +395,7 @@ def multihead_attention(antecedent,
     v = split_heads(v, num_heads)
     key_depth_per_head = total_key_depth // num_heads
     q *= key_depth_per_head**-0.5
-    x, attn_weights = dot_product_attention(q, k, v, bias, dropout_rate, manual_attn)
+    x, attn_weights = dot_product_attention(q, k, v, bias, dropout_rate, manual_attn, add_attn)
     x = combine_heads(x)
     params = tf.get_variable("final_proj", [1, 1, total_key_depth, output_depth])
     x = tf.expand_dims(x, 1)
@@ -554,7 +558,7 @@ class NN(Configurable):
 
   # =============================================================
   def transformer(self, inputs, hidden_size, num_heads, attn_dropout, relu_dropout, prepost_dropout, relu_hidden_size,
-                  nonlinearity, reuse, manual_attn=None):
+                  nonlinearity, reuse, manual_attn=None, add_attn=None):
     """"""
     # input_size = inputs.get_shape().as_list()[-1]
     lengths = tf.reshape(tf.to_int64(self.sequence_lengths), [-1])
@@ -569,7 +573,7 @@ class NN(Configurable):
 
     with tf.variable_scope("self_attention"):
       x = layer_norm(inputs, reuse)
-      y, attn_weights = multihead_attention(x, mask, hidden_size, hidden_size, hidden_size, num_heads, attn_dropout, manual_attn)
+      y, attn_weights = multihead_attention(x, mask, hidden_size, hidden_size, hidden_size, num_heads, attn_dropout, manual_attn, add_attn)
       x = tf.add(x, tf.nn.dropout(y, prepost_dropout))
 
     with tf.variable_scope("ffnn"):

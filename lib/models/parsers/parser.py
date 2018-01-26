@@ -286,9 +286,9 @@ class Parser(BaseParser):
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits], "arc logits", summarize=2000)
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)
         # arc_logits = tf.reduce_prod(arc_logits_all, -1)
-        arc_logits = tf.where(tf.equal(tf.argmax(attn_weights_by_layer[0][0]), targets[:, :, 1]), attn_weights_by_layer[0][0], attn_weights_by_layer[3][0])
-        arc_logits = tf.where(tf.equal(tf.argmax(attn_weights_by_layer[0][1]), targets[:, :, 1]), attn_weights_by_layer[0][2], arc_logits)
-        arc_logits = tf.where(tf.equal(tf.argmax(attn_weights_by_layer[0][2]), targets[:, :, 1]), attn_weights_by_layer[0][1], arc_logits)
+        arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][0], attn_weights_by_layer[3][0])
+        arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][2], arc_logits)
+        arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][1], arc_logits)
 
       arc_output = self.output_svd(arc_logits, targets[:, :, 1])
       if moving_params is None:

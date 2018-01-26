@@ -285,7 +285,6 @@ class Parser(BaseParser):
 
         # arc_logits_all = tf.Print(arc_logits_all, [tf.shape(attn_weights_by_layer[0][0])], "arc logits", summarize=2000)
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)
-        # arc_logits = tf.reduce_max(arc_logits_all, -1)
         # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][0], attn_weights_by_layer[3][0])
 
         first_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
@@ -315,6 +314,8 @@ class Parser(BaseParser):
 
         #
         # arc_logits = tf.Print(arc_logits, [arc_logits], "arc logits all", summarize=2000)
+
+        arc_logits = tf.reduce_mean(arc_logits_all, -1)
 
 
         # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][2], arc_logits)

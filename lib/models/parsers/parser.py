@@ -287,8 +287,23 @@ class Parser(BaseParser):
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)
         # arc_logits = tf.reduce_prod(arc_logits_all, -1)
         arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][0], attn_weights_by_layer[3][0])
-        arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][2], arc_logits)
-        arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][1], arc_logits)
+        first_correct = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), tf.ones_like(attn_weights_by_layer[0][0]), tf.zeros_like(attn_weights_by_layer[0][0]))
+        first_correct_vals = first_correct * attn_weights_by_layer[0][0]
+
+        second_correct = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), tf.ones_like(attn_weights_by_layer[0][0]), tf.zeros_like(attn_weights_by_layer[0][0]))
+        second_correct_vals = second_correct * attn_weights_by_layer[0][1]
+
+        third_correct = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), tf.ones_like(attn_weights_by_layer[0][0]), tf.zeros_like(attn_weights_by_layer[0][0]))
+        third_correct_vals = third_correct * attn_weights_by_layer[0][2]
+
+        # zeros where first, second or third, ones otherwise
+        rest = (1-first_correct) * (1-second_correct) * (1-third_correct)
+        rest_vals = rest * attn_weights_by_layer[0][3]
+
+        arc_logits = first_correct_vals + second_correct_vals + third_correct_vals + rest_vals
+
+        # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][2], arc_logits)
+        # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][1], arc_logits)
 
       arc_output = self.output_svd(arc_logits, targets[:, :, 1])
       if moving_params is None:

@@ -199,7 +199,7 @@ class Parser(BaseParser):
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
 
                 if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
-                  add_attn = attn_weights[0]
+                  add_attn = attn_weights_by_layer[i]
 
             # if normalization is done in layer_preprocess, then it should also be done
             # on the output, since the output can grow very large, being the sum of

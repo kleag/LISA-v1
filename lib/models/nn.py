@@ -254,7 +254,11 @@ def dot_product_attention(q, k, v,
     # [batch, num_heads, query_length, memory_length]
     logits = tf.matmul(q, k, transpose_b=True)
     if add_attn is not None:
-      logits += add_attn
+      weights_transpose = tf.transpose(logits, [1, 0, 2, 3])
+      weights_rest = weights_transpose[1:]
+      weights_comb = tf.concat([tf.expand_dims(add_attn + weights_transpose[0], 0), weights_rest], axis=0)
+      logits = tf.transpose(weights_comb, [1, 0, 2, 3])
+
     if bias is not None:
       logits += bias
     weights = tf.nn.softmax(logits, name="attention_weights")

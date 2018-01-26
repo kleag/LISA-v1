@@ -279,6 +279,9 @@ class Parser(BaseParser):
       if self.use_bilinear:
         with tf.variable_scope('Arcs', reuse=reuse):
           arc_logits = self.bilinear_classifier(dep_arc_mlp, head_arc_mlp)
+          if 'parents' in self.multi_layers.keys() and self.n_recur-1 in self.multi_layers['parents']:
+            arc_logits += attn_weights_by_layer[self.n_recur-1][0]
+
       else:
         # todo don't hardcode to 0th head
         # todo right now this head is getting 2x loss

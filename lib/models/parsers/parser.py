@@ -280,8 +280,17 @@ class Parser(BaseParser):
         arc_logits = attn_weights_by_layer[self.n_recur-1][0]
 
 
-        arc_logits_all = tf.concat([tf.expand_dims(attn_weights_by_layer[0][0], -1), tf.expand_dims(attn_weights_by_layer[1][0], -1),
-                         tf.expand_dims(attn_weights_by_layer[2][0], -1), tf.expand_dims(attn_weights_by_layer[3][0], -1)], -1)
+        w1 = 1.0
+        w2 = 1.0
+        w3 = 1.0
+        w4 = 1.0
+        l1 = w1 * attn_weights_by_layer[0][0]
+        l2 = w2 * attn_weights_by_layer[1][0]
+        l3 = w3 * attn_weights_by_layer[2][0]
+        l4 = w4 * attn_weights_by_layer[3][0]
+        arc_logits_all = tf.concat([tf.expand_dims(l1, -1), tf.expand_dims(l2, -1), tf.expand_dims(l3, -1), tf.expand_dims(l4, -1)], -1)
+
+        arc_logits_all = tf.Print(arc_logits_all, [tf.reduce_mean(l1), tf.reduce_mean(l2), tf.reduce_mean(l3), tf.reduce_mean(l4)])
 
         # arc_logits_all = tf.Print(arc_logits_all, [tf.shape(attn_weights_by_layer[0][0])], "arc logits", summarize=2000)
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)

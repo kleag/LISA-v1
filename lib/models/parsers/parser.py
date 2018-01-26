@@ -311,7 +311,13 @@ class Parser(BaseParser):
         third_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[2][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
         third_correct_vals = third_correct * attn_weights_by_layer[2][0]
 
+        fourth_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[3][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
+        fourth_correct_vals = third_correct * attn_weights_by_layer[3][0]
+
         # first_correct = tf.Print(first_correct, [third_correct], "third_correct", summarize=2000)
+
+        arc_logits_all = tf.Print(arc_logits_all, [tf.reduce_sum(first_correct), tf.reduce_sum(second_correct),
+                                                   tf.reduce_sum(third_correct), tf.reduce_sum(fourth_correct)], "correct")
 
         # zeros where first, second or third, ones otherwise
         rest = (1-first_correct) * (1-second_correct) * (1-third_correct)

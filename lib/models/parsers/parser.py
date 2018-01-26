@@ -293,6 +293,7 @@ class Parser(BaseParser):
 
         first_correct = tf.Print(first_correct, [first_correct], "first_correct", summarize=2000)
 
+        # batch x seq_len
         second_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
         second_correct_vals = second_correct * attn_weights_by_layer[0][1]
 
@@ -309,6 +310,9 @@ class Parser(BaseParser):
         rest_vals = rest * attn_weights_by_layer[0][3]
 
         arc_logits = first_correct_vals + second_correct_vals + third_correct_vals + rest_vals
+
+        arc_logits = tf.Print(arc_logits, [arc_logits], "arc logits all", summarize=2000)
+
 
         # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][2], arc_logits)
         # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][1], arc_logits)

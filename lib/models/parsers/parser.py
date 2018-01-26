@@ -280,12 +280,12 @@ class Parser(BaseParser):
         arc_logits = attn_weights_by_layer[self.n_recur-1][0]
 
 
-        arc_logits_all = tf.concat([tf.expand_dims(attn_weights_by_layer[0][0], -1), tf.expand_dims(attn_weights_by_layer[1][0], -1),
-                         tf.expand_dims(attn_weights_by_layer[2][0], -1), tf.expand_dims(attn_weights_by_layer[3][0], -1)], -1)
+        arc_logits_all = tf.concat([tf.expand_dims(tf.nn.softmax(attn_weights_by_layer[0][0]), -1), tf.expand_dims(tf.nn.softmax(attn_weights_by_layer[1][0]), -1),
+                         tf.expand_dims(tf.nn.softmax(attn_weights_by_layer[2][0]), -1), tf.expand_dims(tf.nn.softmax(attn_weights_by_layer[3][0]), -1)], -1)
 
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits], "arc logits", summarize=2000)
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)
-        arc_logits = tf.reduce_max(arc_logits_all, -1)
+        arc_logits = tf.reduce_prod(arc_logits_all, -1)
 
       arc_output = self.output_svd(arc_logits, targets[:,:,1])
       if moving_params is None:

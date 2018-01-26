@@ -286,7 +286,7 @@ class Parser(BaseParser):
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits], "arc logits", summarize=2000)
         # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)
         # arc_logits = tf.reduce_prod(arc_logits_all, -1)
-        arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][0], attn_weights_by_layer[3][0])
+        # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][0], attn_weights_by_layer[3][0])
         first_correct = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), tf.ones_like(attn_weights_by_layer[0][0]), tf.zeros_like(attn_weights_by_layer[0][0]))
         first_correct_vals = first_correct * attn_weights_by_layer[0][0]
 

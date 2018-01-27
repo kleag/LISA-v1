@@ -76,7 +76,7 @@ class Parser(BaseParser):
     print("multitask layers: ", self.multi_layers)
     print("parse update proportion: ", self.parse_update_proportion)
 
-    trigger_indices = [i for s, i in vocabs[3].iteritems() if self.trigger_str in s]
+    # trigger_indices = [i for s, i in vocabs[3].iteritems() if self.trigger_str in s]
 
     # do parse update if the random ~ unif(0,1) <= proportion
     # otherwise, do srl update
@@ -102,7 +102,7 @@ class Parser(BaseParser):
     ###### stuff for multitask attention ######
     multitask_targets = {}
 
-    mask = self.tokens_to_keep3D * tf.transpose(self.tokens_to_keep3D, [0, 2, 1])
+    mask2d = self.tokens_to_keep3D * tf.transpose(self.tokens_to_keep3D, [0, 2, 1])
 
     # compute targets adj matrix
     shape = tf.shape(targets[:, :, 1])
@@ -111,7 +111,7 @@ class Parser(BaseParser):
     i1, i2 = tf.meshgrid(tf.range(batch_size), tf.range(bucket_size), indexing="ij")
     idx = tf.stack([i1, i2, targets[:, :, 1]], axis=-1)
     adj = tf.scatter_nd(idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])
-    adj = adj * mask
+    adj = adj * mask2d
 
     roots_mask = 1. - tf.expand_dims(tf.eye(bucket_size), 0)
 
@@ -129,7 +129,7 @@ class Parser(BaseParser):
     multitask_targets['grandparents'] = grandparents
     grand_idx = tf.stack([i1, i2, grandparents], axis=-1)
     grand_adj = tf.scatter_nd(grand_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])
-    grand_adj = grand_adj * mask
+    grand_adj = grand_adj * mask2d
 
     ###########################################
 
@@ -172,6 +172,7 @@ class Parser(BaseParser):
           if self.cnn_residual and self.n_recur > 0:
             top_recur = nn.layer_norm(top_recur, reuse)
 
+
         # Project for Tranformer / residual LSTM input
         if self.n_recur > 0:
           if self.dist_model == "transformer":
@@ -180,6 +181,10 @@ class Parser(BaseParser):
           if self.lstm_residual and self.dist_model == "bilstm":
             with tf.variable_scope('proj1', reuse=reuse):
               top_recur = self.MLP(top_recur, (2 if self.recur_bidir else 1) * self.recur_size, n_splits=1)
+
+        pos_pred_inputs = top_recur
+        aux_trigger_inputs = top_recur
+        trigger_inputs = top_recur
 
         ##### Transformer #######
         if self.dist_model == 'transformer':
@@ -206,11 +211,31 @@ class Parser(BaseParser):
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
 
+                if i == self.pos_layer:
+                  pos_pred_inputs = top_recur
+                if i == self.trigger_layer:
+                  trigger_inputs = top_recur
+                if i == self.aux_trigger_layer:
+                  aux_trigger_inputs = top_recur
+                if i == self.parse_layer:
+                  parse_pred_inputs = top_recur
+
+
             # if normalization is done in layer_preprocess, then it should also be done
             # on the output, since the output can grow very large, being the sum of
             # a whole stack of unnormalized layer outputs.
             if self.n_recur > 0:
               top_recur = nn.layer_norm(top_recur, reuse)
+
+            if self.pos_layer == self.n_recur-1:
+              pos_pred_inputs = top_recur
+            if self.trigger_layer == self.n_recur - 1:
+              trigger_inputs = top_recur
+            if self.aux_trigger_layer == self.n_recur-1:
+              aux_trigger_inputs = top_recur
+            if self.parse_layer == self.n_recur-1:
+              parse_pred_inputs = top_recur
+
 
         ##### BiLSTM #######
         if self.dist_model == 'bilstm':
@@ -276,11 +301,10 @@ class Parser(BaseParser):
           conditioned = tf.reshape(conditioned, [batch_size, bucket_size, self.cnn_dim_2d])
           dep_rel_mlp, head_rel_mlp = self.MLP(conditioned, self.class_mlp_size + self.attn_mlp_size, n_splits=2)
     else:
-
       def get_parse_logits():
         ######## do parse-specific stuff (arcs) ########
         with tf.variable_scope('MLP', reuse=reuse):
-          dep_mlp, head_mlp = self.MLP(top_recur, self.class_mlp_size+self.attn_mlp_size, n_splits=2)
+          dep_mlp, head_mlp = self.MLP(parse_pred_inputs, self.class_mlp_size+self.attn_mlp_size, n_splits=2)
           dep_arc_mlp, dep_rel_mlp = dep_mlp[:,:,:self.attn_mlp_size], dep_mlp[:,:,self.attn_mlp_size:]
           head_arc_mlp, head_rel_mlp = head_mlp[:,:,:self.attn_mlp_size], head_mlp[:,:,self.attn_mlp_size:]
 
@@ -354,22 +378,67 @@ class Parser(BaseParser):
         multitask_losses['children%s' % l] = loss
         multitask_loss_sum += loss
 
+    ######## POS tags ########
+    def compute_pos(pos_input, pos_target):
+        with tf.variable_scope('POS-Classifier', reuse=reuse):
+          pos_classifier = self.MLP(pos_input, 2, n_splits=1)
+        output = self.output(pos_classifier, pos_target)
+        return output
+
+    pos_target = targets[:,:,0]
+    pos_output = compute_pos(pos_inputs, pos_target)
+    pos_loss = pos_output['loss']
+    pos_correct = pos_output['correct']
+    pos_count = pos_output['count']
+
 
     ######## do SRL-specific stuff (rels) ########
     with tf.variable_scope('SRL-MLP', reuse=reuse):
       trigger_role_mlp = self.MLP(top_recur, self.trigger_mlp_size + self.role_mlp_size, n_splits=1)
       trigger_mlp, role_mlp = trigger_role_mlp[:,:,:self.trigger_mlp_size], trigger_role_mlp[:,:,self.trigger_mlp_size:]
 
+
     # todo try classifying triggers at earlier layers
-    with tf.variable_scope('SRL-Triggers', reuse=reuse):
-      trigger_classifier_mlp = self.MLP(top_recur, self.trigger_pred_mlp_size, n_splits=1)
-      with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
-        trigger_classifier = self.MLP(trigger_classifier_mlp, 2, n_splits=1)
-      trigger_output = self.output_trigger(trigger_classifier, targets, trigger_indices)
-      if moving_params is None or self.add_triggers_to_input:
-        trigger_predictions = trigger_output['targets']
-      else:
-        trigger_predictions = trigger_output['predictions']
+    predicate_idx = vocabs[4]["True"][0]
+    trigger_targets = tf.where(tf.equal(inputs[:, :, 3], predicate_idx), tf.ones([batch_size, bucket_size]),
+                               tf.zeros([batch_size, bucket_size]))
+
+    def compute_triggers(trigger_input, name, mlp):
+      with tf.variable_scope(name, reuse=reuse):
+        if mlp:
+          trigger_classifier_mlp = self.MLP(trigger_input, self.trigger_pred_mlp_size, n_splits=1)
+        else:
+          trigger_classifier_mlp = trigger_input
+        with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
+          trigger_classifier = self.MLP(trigger_classifier_mlp, 2, n_splits=1)
+        output = self.output_trigger(trigger_classifier, trigger_targets)
+        return output
+
+    aux_trigger_loss = tf.constant(0.)
+    if self.train_aux_trigger_layer:
+      aux_trigger_output = compute_triggers(aux_trigger_inputs, 'SRL-Triggers-Aux', False)
+      aux_trigger_loss = self.aux_trigger_penalty * aux_trigger_output['loss']
+
+      # with tf.variable_scope('SRL-Triggers-Aux', reuse=reuse):
+      #   trigger_classifier_mlp = self.MLP(top_recur, self.trigger_pred_mlp_size, n_splits=1)
+      #   with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
+      #     trigger_classifier = self.MLP(trigger_classifier_mlp, 2, n_splits=1)
+      #   predicate_idx = vocabs[4]["True"][0]
+      #   trigger_targets = tf.where(tf.equal(inputs[:,:,3], predicate_idx), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size]))
+      #   aux_trigger_output = self.output_trigger(trigger_classifier, trigger_targets)
+
+    # with tf.variable_scope('SRL-Triggers', reuse=reuse):
+    #   trigger_classifier_mlp = self.MLP(top_recur, self.trigger_pred_mlp_size, n_splits=1)
+    #   with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
+    #     trigger_classifier = self.MLP(trigger_classifier_mlp, 2, n_splits=1)
+    #   predicate_idx = vocabs[4]["True"][0]
+    #   trigger_targets = tf.where(tf.equal(inputs[:,:,3], predicate_idx), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size]))
+    #   trigger_output = self.output_trigger(trigger_classifier, trigger_targets)
+    trigger_output = compute_triggers(trigger_inputs, 'SRL-Triggers', True)
+    if moving_params is None or self.add_triggers_to_input:
+      trigger_predictions = trigger_targets
+    else:
+      trigger_predictions = trigger_output['predictions']
 
     with tf.variable_scope('SRL-Arcs', reuse=reuse):
       # gather just the triggers
@@ -399,7 +468,7 @@ class Parser(BaseParser):
 
     # if this is a parse update and the parse proportion is not one, then no srl update. otherwise,
     # srl update equal to sum of srl_loss, trigger_loss
-    actual_srl_loss = tf.cond(tf.logical_and(do_parse_update, tf.not_equal(self.parse_update_proportion, 1.0)), lambda: tf.constant(0.), lambda: tf.add(srl_loss, trigger_loss))
+    actual_srl_loss = tf.cond(tf.logical_and(do_parse_update, tf.not_equal(self.parse_update_proportion, 1.0)), lambda: tf.constant(0.), lambda: tf.add(srl_loss, trigger_loss, aux_trigger_loss))
 
     output = {}
 
@@ -415,7 +484,7 @@ class Parser(BaseParser):
     output['n_tokens'] = self.n_tokens
     output['accuracy'] = output['n_correct'] / output['n_tokens']
 
-    output['loss'] = actual_srl_loss + actual_parse_loss + multitask_loss_sum
+    output['loss'] = actual_srl_loss + actual_parse_loss + multitask_loss_sum + pos_loss
     # output['loss'] = srl_loss + trigger_loss + actual_parse_loss
     # output['loss'] = actual_srl_loss + arc_loss + rel_loss
 
@@ -447,10 +516,14 @@ class Parser(BaseParser):
     output['srl_count'] = srl_output['count']
     output['transition_params'] = transition_params if transition_params is not None else tf.constant(bilou_constraints)
     output['srl_trigger'] = trigger_predictions
-    output['srl_trigger_targets'] = trigger_output['targets']
+    output['srl_trigger_targets'] = trigger_targets
     output['trigger_loss'] = trigger_loss
     output['trigger_count'] = trigger_output['count']
     output['trigger_correct'] = trigger_output['correct']
+
+    output['pos_loss'] = pos_loss
+    output['pos_count'] = pos_count
+    output['pos_correct'] = pos_correct
 
     # transpose and softmax attn weights
     attn_weights_by_layer_softmaxed = {k: tf.transpose(tf.nn.softmax(v), [1, 0, 2, 3]) for k, v in

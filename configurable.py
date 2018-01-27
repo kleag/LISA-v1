@@ -566,3 +566,40 @@ class Configurable(object):
   def inject_manual_attn(self):
     return self._config.getboolean('Training', 'inject_manual_attn')
   argparser.add_argument('--inject_manual_attn')
+
+  @property
+  def train_pos(self):
+    return self._config.getboolean('Training', 'train_pos')
+  argparser.add_argument('--train_pos')
+  @property
+  def pos_layer(self):
+    return self._config.getint('Training', 'pos_layer')
+  argparser.add_argument('--pos_layer')
+
+  @property
+  def train_aux_trigger_layer(self):
+    return self._config.getboolean('Training', 'train_aux_trigger_layer')
+  argparser.add_argument('--train_aux_trigger_layer')
+  @property
+  def trigger_layer(self):
+    return self._config.getint('Training', 'trigger_layer')
+  argparser.add_argument('--trigger_layer')
+  @property
+  def aux_trigger_layer(self):
+    return self._config.getint('Training', 'aux_trigger_layer')
+  argparser.add_argument('--aux_trigger_layer')
+
+  @property
+  def aux_trigger_penalty(self):
+    return self._config.getfloat('Training', 'aux_trigger_penalty')
+  argparser.add_argument('--aux_trigger_penalty')
+
+  @property
+  def pos_penalty(self):
+    return self._config.getfloat('Training', 'pos_penalty')
+  argparser.add_argument('--pos_penalty')
+
+  @property
+  def parse_layer(self):
+    return self._config.getint('Training', 'parse_layer')
+  argparser.add_argument('--parse_layer')

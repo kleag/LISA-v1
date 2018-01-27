@@ -1220,7 +1220,7 @@ class NN(Configurable):
 
     return output
 
-  def output_trigger(self, logits, targets, trigger_label_indices):
+  def output_trigger(self, logits, predicate_targets):
     """"""
 
     # logits are batch x seq_len x 2
@@ -1234,26 +1234,26 @@ class NN(Configurable):
     # (t2) v0 f2 f3
     # (t3) f1 f2 f3
     # (t4) f1 v0 f3
-    srl_targets = targets[:,:,3:]
+    # srl_targets = targets[:,:,3:]
 
     # get indices of trigger labels in srl_targets
-    tile_multiples = tf.concat([tf.ones(tf.shape(tf.shape(srl_targets)), dtype=tf.int32), tf.shape(trigger_label_indices)], axis=0)
-    targets_tile = tf.tile(tf.expand_dims(srl_targets, -1), tile_multiples)
-    trigger_indices = tf.cast(tf.where(tf.reduce_any(tf.equal(targets_tile, trigger_label_indices), -1)), tf.int32)
-    # targets_tile = tf.tile(srl_targets, [1, 1, num_trigger_labels])
+    # tile_multiples = tf.concat([tf.ones(tf.shape(tf.shape(srl_targets)), dtype=tf.int32), tf.shape(trigger_label_indices)], axis=0)
+    # targets_tile = tf.tile(tf.expand_dims(srl_targets, -1), tile_multiples)
     # trigger_indices = tf.cast(tf.where(tf.reduce_any(tf.equal(targets_tile, trigger_label_indices), -1)), tf.int32)
-    # trigger_indices = tf.cast(tf.where(tf.equal(srl_targets, trigger_label_idx)), tf.int32)
-    idx = tf.stack([trigger_indices[:,0], trigger_indices[:,1]], -1)
-
-    # idx = tf.Print(idx, [trigger_indices], "trigger_indices", summarize=5000)
+    # # targets_tile = tf.tile(srl_targets, [1, 1, num_trigger_labels])
+    # # trigger_indices = tf.cast(tf.where(tf.reduce_any(tf.equal(targets_tile, trigger_label_indices), -1)), tf.int32)
+    # # trigger_indices = tf.cast(tf.where(tf.equal(srl_targets, trigger_label_idx)), tf.int32)
+    # idx = tf.stack([trigger_indices[:,0], trigger_indices[:,1]], -1)
     #
-    # idx = tf.Print(idx, [idx], "idx", summarize=5000)
-
-    targets = tf.scatter_nd(idx, tf.ones([tf.shape(idx)[0]], dtype=tf.int32), [batch_size, bucket_size])
+    # # idx = tf.Print(idx, [trigger_indices], "trigger_indices", summarize=5000)
+    # #
+    # # idx = tf.Print(idx, [idx], "idx", summarize=5000)
+    #
+    # targets = tf.scatter_nd(idx, tf.ones([tf.shape(idx)[0]], dtype=tf.int32), [batch_size, bucket_size])
 
     # targets = tf.Print(targets, [targets], "targets", summarize=5000)
 
-    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=targets)
+    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=predicate_targets)
 
     cross_entropy *= tf.squeeze(self.tokens_to_keep3D, -1)
     loss = tf.reduce_sum(cross_entropy) / self.n_tokens
@@ -1271,7 +1271,7 @@ class NN(Configurable):
     #
     # predictions= tf.Print(predictions, [tf.shape(cross_entropy), tf.shape(self.tokens_to_keep3D)], "shape", summarize=1000)
 
-    correct = tf.reduce_sum(tf.cast(tf.equal(predictions, targets), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
+    correct = tf.reduce_sum(tf.cast(tf.equal(predictions, predicate_targets), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
 
     # count  = tf.Print(count, [targets3D_masked], "targets3D_masked", summarize=4000)
     #
@@ -1287,7 +1287,7 @@ class NN(Configurable):
       # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),
       'count': self.n_tokens,
       'correct': correct,
-      'targets': targets,
+      'targets': predicate_targets,
     }
 
     return output

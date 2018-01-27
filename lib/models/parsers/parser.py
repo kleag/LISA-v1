@@ -398,8 +398,8 @@ class Parser(BaseParser):
 
     # todo try classifying triggers at earlier layers
     predicate_idx = vocabs[4]["True"][0]
-    trigger_targets = tf.where(tf.equal(inputs[:, :, 3], predicate_idx), tf.ones([batch_size, bucket_size]),
-                               tf.zeros([batch_size, bucket_size]))
+    trigger_targets = tf.where(tf.equal(inputs[:, :, 3], predicate_idx), tf.ones([batch_size, bucket_size], dtype=tf.int32),
+                               tf.zeros([batch_size, bucket_size], dtype=tf.int32))
 
     def compute_triggers(trigger_input, name, mlp):
       with tf.variable_scope(name, reuse=reuse):

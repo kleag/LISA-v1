@@ -31,6 +31,7 @@ class Parser(BaseParser):
 
     num_srl_classes = len(vocabs[3])
     num_rel_classes = len(vocabs[2])
+    num_pos_classes = len(vocabs[1])
 
     # need to add batch dim for batch size 1
     # inputs = tf.Print(inputs, [tf.shape(inputs), tf.shape(targets)], summarize=10)
@@ -381,7 +382,7 @@ class Parser(BaseParser):
     ######## POS tags ########
     def compute_pos(pos_input, pos_target):
         with tf.variable_scope('POS-Classifier', reuse=reuse):
-          pos_classifier = self.MLP(pos_input, 2, n_splits=1)
+          pos_classifier = self.MLP(pos_input, num_pos_classes, n_splits=1)
         output = self.output(pos_classifier, pos_target)
         return output
 

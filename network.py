@@ -549,7 +549,6 @@ class Network(Configurable):
     las = np.mean(correct["LAS"]) * 100
     uas = np.mean(correct["UAS"]) * 100
     print('UAS: %.2f    LAS: %.2f' % (uas, las))
-    print(pos_correct_total, n_tokens)
     print('POS: %.2f' % ((pos_correct_total/n_tokens)*100.0))
     print('SRL acc: %.2f' % ((srl_correct_total / srl_count_total)*100.0))
     print('SRL F1: %.2f' % (overall_f1))

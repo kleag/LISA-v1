@@ -386,7 +386,7 @@ class Parser(BaseParser):
         return output
 
     pos_target = targets[:,:,0]
-    pos_output = compute_pos(pos_inputs, pos_target)
+    pos_output = compute_pos(pos_pred_inputs, pos_target)
     pos_loss = pos_output['loss']
     pos_correct = pos_output['correct']
     pos_count = pos_output['count']

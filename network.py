@@ -157,6 +157,7 @@ class Network(Configurable):
       train_srl_loss = 0
       train_mul_loss = {}
       train_trigger_loss = 0
+      train_pos_loss = 0
       n_train_sents = 0
       n_train_correct = 0
       n_train_tokens = 0
@@ -180,7 +181,7 @@ class Network(Configurable):
             # Dump the profile to '/tmp/train_dir' after the step.
             pctx.dump_next_step()
 
-          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, multitask_losses, lr = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
+          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, pos_loss, pos_count, pos_correct, multitask_losses, lr = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
           train_time += time.time() - start_time
           train_loss += loss
           train_log_loss += log_loss
@@ -189,6 +190,7 @@ class Network(Configurable):
           train_svd_loss += svd_loss
           train_rel_loss += rel_loss
           train_srl_loss += srl_loss
+          train_pos_loss += pos_loss
           train_trigger_loss += trigger_loss
           n_train_trigger_count += trigger_count
           n_train_trigger_correct += trigger_correct
@@ -239,6 +241,7 @@ class Network(Configurable):
             train_rel_loss /= n_train_iters
             train_srl_loss /= n_train_iters
             train_trigger_loss /= n_train_iters
+            train_pos_loss /= n_train_iters
             train_accuracy = 100 * n_train_correct / n_train_tokens
             train_srl_accuracy = 100 * n_train_srl_correct / n_train_srl_count
             train_trigger_accuracy = 100 * n_train_trigger_correct / n_train_trigger_count
@@ -246,7 +249,7 @@ class Network(Configurable):
             print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f\n'
                   '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
                   (total_train_iters, train_loss, train_accuracy, train_time, lr, valid_loss, valid_accuracy, valid_time))
-            print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\troots loss: %f\t2cycle loss: %f\tsvd loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_trigger_loss, train_roots_loss, train_cycle2_loss, train_svd_loss))
+            print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\tpos loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_trigger_loss, train_pos_loss))
             multitask_losses_str = ''
             for n, l in train_mul_loss.iteritems():
               train_mul_loss[n] = l/n_train_iters
@@ -388,12 +391,12 @@ class Network(Configurable):
       filename = self.valid_file
       minibatches = self.valid_minibatches
       dataset = self._validset
-      op = self.ops['test_op'][:13]
+      op = self.ops['test_op'][:14]
     else:
       filename = self.test_file
       minibatches = self.test_minibatches
       dataset = self._testset
-      op = self.ops['test_op'][13:]
+      op = self.ops['test_op'][14:]
     
     all_predictions = [[]]
     all_sents = [[]]
@@ -410,11 +413,12 @@ class Network(Configurable):
     non_tree_preds_total = []
     attention_weights = {}
     attn_correct_counts = {}
+    pos_correct_total = 0.
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
       forward_start = time.time()
-      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_trigger, srl_trigger_targets, transition_params, attn_weights, attn_correct = sess.run(op, feed_dict=feed_dict)
+      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_trigger, srl_trigger_targets, transition_params, attn_weights, attn_correct, pos_correct = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
       preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_trigger, srl_trigger_targets, transition_params)
       for k, v in attn_weights.iteritems():
@@ -431,6 +435,7 @@ class Network(Configurable):
       not_tree_total += non_trees
       srl_correct_total += srl_correct
       srl_count_total += srl_count
+      pos_correct_total += pos_correct
       non_tree_preds_total.extend(non_tree_preds)
       all_predictions[-1].extend(preds)
       all_sents[-1].extend(sents)
@@ -544,6 +549,7 @@ class Network(Configurable):
     las = np.mean(correct["LAS"]) * 100
     uas = np.mean(correct["UAS"]) * 100
     print('UAS: %.2f    LAS: %.2f' % (uas, las))
+    print('POS: %.2f' % (pos_correct_total/n_tokens)*100)
     print('SRL acc: %.2f' % ((srl_correct_total / srl_count_total)*100))
     print('SRL F1: %.2f' % (overall_f1))
     return correct
@@ -622,6 +628,9 @@ class Network(Configurable):
                            train_output['trigger_loss'],
                            train_output['trigger_count'],
                            train_output['trigger_correct'],
+                           train_output['pos_loss'],
+                           train_output['pos_count'],
+                           train_output['pos_correct'],
                            train_output['multitask_losses'],
                            lr]
     ops['valid_op'] = [valid_output['loss'],
@@ -641,6 +650,7 @@ class Network(Configurable):
                       valid_output['transition_params'],
                       valid_output['attn_weights'],
                       valid_output['attn_correct'],
+                      valid_output['pos_correct'],
                       test_output['probabilities'],
                       test_output['n_cycles'],
                       test_output['len_2_cycles'],
@@ -654,6 +664,7 @@ class Network(Configurable):
                       test_output['transition_params'],
                       test_output['attn_weights'],
                       test_output['attn_correct'],
+                      test_output['pos_correct'],
                       ]
     ops['optimizer'] = optimizer
     

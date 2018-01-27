@@ -466,7 +466,8 @@ class Parser(BaseParser):
 
     # if this is a parse update and the parse proportion is not one, then no srl update. otherwise,
     # srl update equal to sum of srl_loss, trigger_loss
-    actual_srl_loss = tf.cond(tf.logical_and(do_parse_update, tf.not_equal(self.parse_update_proportion, 1.0)), lambda: tf.constant(0.), lambda: tf.add(srl_loss, trigger_loss, aux_trigger_loss))
+    srl_combined_loss = srl_loss + trigger_loss + aux_trigger_loss
+    actual_srl_loss = tf.cond(tf.logical_and(do_parse_update, tf.not_equal(self.parse_update_proportion, 1.0)), lambda: tf.constant(0.), lambda: srl_combined_loss)
 
     output = {}
 

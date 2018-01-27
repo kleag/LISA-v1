@@ -181,7 +181,7 @@ class Network(Configurable):
             # Dump the profile to '/tmp/train_dir' after the step.
             pctx.dump_next_step()
 
-          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, pos_loss, pos_count, pos_correct, multitask_losses, lr = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
+          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, pos_loss, pos_correct, multitask_losses, lr = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
           train_time += time.time() - start_time
           train_loss += loss
           train_log_loss += log_loss
@@ -629,7 +629,6 @@ class Network(Configurable):
                            train_output['trigger_count'],
                            train_output['trigger_correct'],
                            train_output['pos_loss'],
-                           train_output['pos_count'],
                            train_output['pos_correct'],
                            train_output['multitask_losses'],
                            lr]

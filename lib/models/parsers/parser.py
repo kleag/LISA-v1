@@ -388,8 +388,12 @@ class Parser(BaseParser):
 
     pos_target = targets[:,:,0]
     pos_output = compute_pos(pos_pred_inputs, pos_target)
-    pos_loss = self.pos_penalty * pos_output['loss']
-    pos_correct = pos_output['n_correct']
+    if self.train_pos:
+      pos_loss = self.pos_penalty * pos_output['loss']
+      pos_correct = pos_output['n_correct']
+    else:
+      pos_loss = tf.constant(0.)
+      pos_correct = tf.constant(0.)
 
     ######## do SRL-specific stuff (rels) ########
     with tf.variable_scope('SRL-MLP', reuse=reuse):

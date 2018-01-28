@@ -35,13 +35,14 @@ relu_hidden_sizes="256"
 trigger_mlp_sizes="256"
 trigger_pred_mlp_sizes="256"
 role_mlp_sizes="256"
-add_pos_tags="True False"
+add_pos_tags="False"
 pos_layers="-1 0 1 2 3"
 trigger_layers="-1 0 1 2 3"
+aux_trigger_layers="-1 0 1 2"
 
 reps="2"
 
-# 5*5*2*2 = 100
+# 5*5*4*2 = 200
 
 
 
@@ -65,51 +66,54 @@ for lr in ${lrs[@]}; do
                                                         for add_pos in ${add_pos_tags[@]}; do
                                                             for decay in ${decays[@]}; do
                                                                 for trigger_layer in ${trigger_layers[@]}; do
-                                                                    for pos_layer in ${pos_layers[@]}; do
-                                                                        for rep in `seq $reps`; do
-                                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$role_mlp_size-$trigger_mlp_size-$trigger_pred_mlp_size-$add_pos-$decay-$pos_layer-$trigger_layer"
-                                                                            partition="titanx-long"
-                                                                            if [[ $((i % 4)) == 0 ]]; then
-                                                                                partition="m40-long"
-                                                                            fi
+                                                                    for aux_trigger_layer in ${aux_trigger_layers[@]}; do
+                                                                        for pos_layer in ${pos_layers[@]}; do
+                                                                            for rep in `seq $reps`; do
+                                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$role_mlp_size-$trigger_mlp_size-$trigger_pred_mlp_size-$add_pos-$decay-$pos_layer-$trigger_layer"
+                                                                                partition="titanx-long"
+                                                                                if [[ $((i % 4)) == 0 ]]; then
+                                                                                    partition="m40-long"
+                                                                                fi
 
-                                                                            train_pos="True"
-                                                                            if [[ "$add_pos_tags" == "True" ]]; then
-                                                                                train_pos="False"
-                                                                            fi
+                                                                                train_pos="True"
+                                                                                if [[ "$add_pos_tags" == "True" ]]; then
+                                                                                    train_pos="False"
+                                                                                fi
 
-                                                                            commands+=("srun --gres=gpu:1 --partition=$partition --mem=16000 --time=24:00:00 python network.py \
-                                                                            --config_file config/trans-fast-conll12-bio.cfg \
-                                                                            --save_dir $OUT_LOG/scores-$fname_append \
-                                                                            --save_every 500 \
-                                                                            --train_iters 500000 \
-                                                                            --train_batch_size $batch_size \
-                                                                            --test_batch_size $batch_size \
-                                                                            --warmup_steps $warmup_steps \
-                                                                            --learning_rate $lr \
-                                                                            --cnn_dim $cnn_dim \
-                                                                            --n_recur $trans_layer \
-                                                                            --num_heads $num_head \
-                                                                            --head_size $head_size \
-                                                                            --relu_hidden_size $relu_hidden_size \
-                                                                            --mu $mu \
-                                                                            --nu $nu \
-                                                                            --epsilon $epsilon \
-                                                                            --decay $decay \
-                                                                            --trigger_mlp_size $trigger_mlp_size \
-                                                                            --trigger_pred_mlp_size $trigger_pred_mlp_size \
-                                                                            --role_mlp_size $role_mlp_size \
-                                                                            --add_pos_to_input $add_pos \
-                                                                            --pos_layer $pos_layer \
-                                                                            --train_pos $train_pos \
-                                                                            --trigger_layer $trigger_layer \
-                                                                            --svd_tree False \
-                                                                            --mask_pairs True \
-                                                                            --mask_roots True \
-                                                                            --ensure_tree True \
-                                                                            --save False \
-                                                                            &> $OUT_LOG/train-$fname_append.log")
-                                                                            i=$((i + 1))
+                                                                                commands+=("srun --gres=gpu:1 --partition=$partition --mem=16000 --time=24:00:00 python network.py \
+                                                                                --config_file config/trans-conll12-bio.cfg \
+                                                                                --save_dir $OUT_LOG/scores-$fname_append \
+                                                                                --save_every 500 \
+                                                                                --train_iters 500000 \
+                                                                                --train_batch_size $batch_size \
+                                                                                --test_batch_size $batch_size \
+                                                                                --warmup_steps $warmup_steps \
+                                                                                --learning_rate $lr \
+                                                                                --cnn_dim $cnn_dim \
+                                                                                --n_recur $trans_layer \
+                                                                                --num_heads $num_head \
+                                                                                --head_size $head_size \
+                                                                                --relu_hidden_size $relu_hidden_size \
+                                                                                --mu $mu \
+                                                                                --nu $nu \
+                                                                                --epsilon $epsilon \
+                                                                                --decay $decay \
+                                                                                --trigger_mlp_size $trigger_mlp_size \
+                                                                                --trigger_pred_mlp_size $trigger_pred_mlp_size \
+                                                                                --role_mlp_size $role_mlp_size \
+                                                                                --add_pos_to_input $add_pos \
+                                                                                --pos_layer $pos_layer \
+                                                                                --train_pos $train_pos \
+                                                                                --trigger_layer $trigger_layer \
+                                                                                --aux_trigger_layer $aux_trigger_layer \
+                                                                                --svd_tree False \
+                                                                                --mask_pairs True \
+                                                                                --mask_roots True \
+                                                                                --ensure_tree True \
+                                                                                --save False \
+                                                                                &> $OUT_LOG/train-$fname_append.log")
+                                                                                i=$((i + 1))
+                                                                            done
                                                                         done
                                                                     done
                                                                 done

@@ -40,11 +40,11 @@ role_mlp_sizes="256"
 #aux_trigger_layers="-1 0 1 2"
 # 5*5*4*2 = 200
 
-add_pos_tags="True"
+add_pos_tags="True False"
 pos_layers="0"
 trigger_layers="-1 0 1 2 3"
 aux_trigger_layers="-1 0 1 2 no"
-# 5*5*2 = 50
+# 5*5*2*2 = 100
 
 reps="2"
 
@@ -88,7 +88,7 @@ for lr in ${lrs[@]}; do
                                                                             if [[ "$aux_trigger_layer" == "no" ]]; then
                                                                                 train_aux_trigger_layer="False"
                                                                             fi
-                                                                            
+
                                                                             commands+=("srun --gres=gpu:1 --partition=$partition --mem=16000 --time=24:00:00 python network.py \
                                                                             --config_file config/trans-conll12-bio.cfg \
                                                                             --save_dir $OUT_LOG/scores-$fname_append \

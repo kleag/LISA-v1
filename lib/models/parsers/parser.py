@@ -394,7 +394,7 @@ class Parser(BaseParser):
     else:
       pos_loss = tf.constant(0.)
       if self.add_pos_to_input:
-        pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.int32) * self.tokens_to_keep3D)
+        pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.float32) * self.tokens_to_keep3D)
       else:
         pos_correct = tf.constant(0.)
 

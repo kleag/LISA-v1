@@ -80,12 +80,12 @@ for lr in ${lrs[@]}; do
                                                                                 train_pos="False"
                                                                             fi
 
-                                                                            train_aux_trigger_layer="True"
-                                                                            if [[ "$aux_trigger_layer" == "no" ]]; then
-                                                                                train_aux_trigger_layer="False"
-                                                                                old_aux_trigger_layer=$aux_trigger_layer
-                                                                                aux_trigger_layer=0
-                                                                            fi
+#                                                                            train_aux_trigger_layer="True"
+#                                                                            if [[ "$aux_trigger_layer" == "no" ]]; then
+#                                                                                train_aux_trigger_layer="False"
+#                                                                                old_aux_trigger_layer=$aux_trigger_layer
+#                                                                                aux_trigger_layer=0
+#                                                                            fi
 
                                                                             commands+=("srun --gres=gpu:1 --partition=titanx-short,m40-short --mem=12000 --time=04:00:00 python network.py \
                                                                             --config_file config/trans-conll05-bio.cfg \
@@ -116,7 +116,7 @@ for lr in ${lrs[@]}; do
                                                                             --save False \
                                                                             &> $OUT_LOG/train-$fname_append.log")
                                                                             i=$((i + 1))
-                                                                            aux_trigger_layer=$old_aux_trigger_layer
+#                                                                            aux_trigger_layer=$old_aux_trigger_layer
                                                                         done
                                                                     done
                                                                 done

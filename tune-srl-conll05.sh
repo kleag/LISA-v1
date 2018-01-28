@@ -112,7 +112,7 @@ for lr in ${lrs[@]}; do
                                                                             --train_pos $train_pos \
                                                                             --trigger_layer $trigger_layer \
                                                                             --aux_trigger_layer $aux_trigger_layer \
-                                                                            --train_aux_trigger_layer $train_aux_trigger_layer \
+                                                                            --train_aux_trigger_layer True \
                                                                             --save False \
                                                                             &> $OUT_LOG/train-$fname_append.log")
                                                                             i=$((i + 1))

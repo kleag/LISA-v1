@@ -393,7 +393,10 @@ class Parser(BaseParser):
       pos_correct = pos_output['n_correct']
     else:
       pos_loss = tf.constant(0.)
-      pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.int32) * self.tokens_to_keep3D)
+      if self.add_pos_to_input:
+        pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.int32) * self.tokens_to_keep3D)
+      else:
+        pos_correct = tf.constant(0.)
 
     ######## do SRL-specific stuff (rels) ########
     with tf.variable_scope('SRL-MLP', reuse=reuse):

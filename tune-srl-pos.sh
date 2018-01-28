@@ -34,14 +34,20 @@ relu_hidden_sizes="256"
 trigger_mlp_sizes="256"
 trigger_pred_mlp_sizes="256"
 role_mlp_sizes="256"
-add_pos_tags="False"
-pos_layers="-1 0 1 2 3"
+#add_pos_tags="False"
+#pos_layers="-1 0 1 2 3"
+#trigger_layers="-1 0 1 2 3"
+#aux_trigger_layers="-1 0 1 2"
+# 5*5*4*2 = 200
+
+add_pos_tags="True"
+pos_layers="0"
 trigger_layers="-1 0 1 2 3"
-aux_trigger_layers="-1 0 1 2"
+aux_trigger_layers="-1 0 1 2 no"
+# 5*5*2 = 50
 
 reps="2"
 
-# 5*5*4*2 = 200
 
 
 
@@ -78,6 +84,11 @@ for lr in ${lrs[@]}; do
                                                                                 train_pos="False"
                                                                             fi
 
+                                                                            train_aux_trigger_layer="True"
+                                                                            if [[ "$aux_trigger_layer" == "no" ]]; then
+                                                                                train_aux_trigger_layer="False"
+                                                                            fi
+                                                                            
                                                                             commands+=("srun --gres=gpu:1 --partition=$partition --mem=16000 --time=24:00:00 python network.py \
                                                                             --config_file config/trans-conll12-bio.cfg \
                                                                             --save_dir $OUT_LOG/scores-$fname_append \
@@ -104,6 +115,7 @@ for lr in ${lrs[@]}; do
                                                                             --train_pos $train_pos \
                                                                             --trigger_layer $trigger_layer \
                                                                             --aux_trigger_layer $aux_trigger_layer \
+                                                                            --train_aux_trigger_layer $train_aux_trigger_layer \
                                                                             --svd_tree False \
                                                                             --mask_pairs True \
                                                                             --mask_roots True \

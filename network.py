@@ -487,7 +487,7 @@ class Network(Configurable):
         srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
         for i, (datum, word) in enumerate(zip(data, words)):
           pred = srl_preds_str[i] if srl_preds_str else []
-          word_str = word if "(V*" in [p for p in pred] else '-'
+          word_str = word if np.any(["(V*" in p for p in pred]) else '-'
           fields = (word_str,) + tuple(pred)
           owpl_str = '\t'.join(fields)
           f.write(owpl_str + "\n")

@@ -540,8 +540,9 @@ class Network(Configurable):
         attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
         np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
 
-
+    pos_accuracy = (pos_correct_total/n_tokens)*100.0
     correct['F1'] = overall_f1
+    correct['POS'] = pos_accuracy
     # if validate:
     #   np.savez(os.path.join(self.save_dir, 'non_tree_preds.txt'), non_tree_preds_total)
     # print(non_tree_preds_total)
@@ -549,7 +550,7 @@ class Network(Configurable):
     las = np.mean(correct["LAS"]) * 100
     uas = np.mean(correct["UAS"]) * 100
     print('UAS: %.2f    LAS: %.2f' % (uas, las))
-    print('POS: %.2f' % ((pos_correct_total/n_tokens)*100.0))
+    print('POS: %.2f' % pos_accuracy)
     print('SRL acc: %.2f' % ((srl_correct_total / srl_count_total)*100.0))
     print('SRL F1: %.2f' % (overall_f1))
     return correct

@@ -40,7 +40,7 @@ role_mlp_sizes="256"
 #aux_trigger_layers="-1 0 1 2"
 # 5*5*4*2 = 200
 
-add_pos_tags="True False"
+add_pos_tags="False"
 pos_layers="0"
 trigger_layers="-1 0 1 2 3"
 aux_trigger_layers="-1 0 1 2 no"

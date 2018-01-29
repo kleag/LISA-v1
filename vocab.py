@@ -150,7 +150,7 @@ class Vocab(Configurable):
           elif self.conll2012: #and len(line) > 1:
             if hasattr(self.conll_idx, '__iter__'):
               for idx in self.conll_idx:
-                if idx < len(line) and (self.name != 'SRLs' or idx != len(line)-1):
+                if idx < len(line) and (self.name != 'SRLs' or (idx != len(line)-1 and (self.train_on_nested or '/' not in line[idx]))):
                   # print("adding ", line[idx])
                   self.add(counts, line[idx])
             else:
@@ -170,7 +170,7 @@ class Vocab(Configurable):
             if line:
               if hasattr(self.conll_idx, '__iter__'):
                 for idx in self.conll_idx:
-                  if idx < len(line)-1:
+                  if idx < len(line)-1 and (self.train_on_nested or '/' not in line[idx]):
                     # print("adding ", line[idx])
                     self.add(counts, line[idx])
         with open(self.test_file, 'r') as f:
@@ -179,7 +179,7 @@ class Vocab(Configurable):
             if line:
               if hasattr(self.conll_idx, '__iter__'):
                 for idx in self.conll_idx:
-                  if idx < len(line)-1:
+                  if idx < len(line)-1 and (self.train_on_nested or '/' not in line[idx]):
                     # print("adding ", line[idx])
                     self.add(counts, line[idx])
 

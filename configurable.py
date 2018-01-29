@@ -133,6 +133,16 @@ class Configurable(object):
   def save(self):
     return self._config.getboolean('OS', 'save')
   argparser.add_argument('--save')
+
+  @property
+  def gold_dev_props_file(self):
+    return self._config.get('OS', 'gold_dev_props_file')
+  argparser.add_argument('--gold_dev_props_file')
+
+  @property
+  def gold_test_props_file(self):
+    return self._config.get('OS', 'gold_test_props_file')
+  argparser.add_argument('--gold_test_props_file')
   
   #=============================================================
   # [Dataset]
@@ -182,6 +192,11 @@ class Configurable(object):
   def conll2012(self):
     return self._config.getboolean('Dataset', 'conll2012')
   argparser.add_argument('--conll2012')
+
+  @property
+  def train_on_nested(self):
+    return self._config.getboolean('Training', 'train_on_nested')
+  argparser.add_argument('--train_on_nested')
   
   #=============================================================
   # [Layers]

@@ -195,7 +195,7 @@ class Configurable(object):
 
   @property
   def train_on_nested(self):
-    return self._config.getboolean('Training', 'train_on_nested')
+    return self._config.getboolean('Dataset', 'train_on_nested')
   argparser.add_argument('--train_on_nested')
   
   #=============================================================

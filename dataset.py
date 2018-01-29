@@ -115,7 +115,7 @@ class Dataset(Configurable):
       sents += 1
       sent_len = len(sent)
       num_fields = len(sent[0])
-      srl_take_indices = [idx for idx in range(srl_start_field, srl_start_field + sent_len) if idx < num_fields - 1 and (self.train_on_nested or ['/' not in sent[j][idx] for j in range(sent_len)])]
+      # srl_take_indices = [idx for idx in range(srl_start_field, srl_start_field + sent_len) if idx < num_fields - 1 and (self.train_on_nested or ['/' not in sent[j][idx] for j in range(sent_len)])]
       for j, token in enumerate(sent):
         toks += 1
         if self.conll:
@@ -132,8 +132,8 @@ class Dataset(Configurable):
             head = j
           else:
             head = int(head) - 1
-          # srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in range(srl_start_field, srl_start_field + sent_len)]
-          srl_fields = [token[idx] for idx in srl_take_indices] # todo can we use fancy indexing here?
+          srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in range(srl_start_field, srl_start_field + sent_len)]
+          # srl_fields = [token[idx] for idx in srl_take_indices] # todo can we use fancy indexing here?
           srl_tags = [srls[s][0] for s in srl_fields]
           is_trigger = token[trigs.conll_idx] != '-' #np.any([s in self.trigger_indices for s in srl_tags])
           buff[i][j] = (word,) + words[word] + tags[tag1] + trigs[str(is_trigger)] + tags[tag2] + (head,) + rels[rel] + tuple(srl_tags)

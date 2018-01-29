@@ -708,6 +708,7 @@ if __name__ == '__main__':
   argparser.add_argument('--model', default='Parser')
   argparser.add_argument('--matrix', action='store_true')
   argparser.add_argument('--profile', action='store_true')
+  argparser.add_argument('--test_eval', action='store_true')
   
   args, extra_args = argparser.parse_known_args()
   cargs = {k: v for (k, v) in vars(Configurable.argparser.parse_args(extra_args)).iteritems() if v is not None}
@@ -774,6 +775,9 @@ if __name__ == '__main__':
         print("Loading model: ", network.load_dir)
         saver.restore(sess, tf.train.latest_checkpoint(network.load_dir, latest_filename=network.name.lower()))
         network.test(sess, validate=True)
-        start_time = time.time()
-        network.test(sess, validate=False)
-        print('Parsing took %f seconds' % (time.time() - start_time))
+
+        # Actually evaluate on test data
+        if args.test_eval:
+          start_time = time.time()
+          network.test(sess, validate=False)
+          print('Parsing took %f seconds' % (time.time() - start_time))

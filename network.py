@@ -469,26 +469,29 @@ class Network(Configurable):
           f.write('%s\t%s\t_\t%s\t%s\t_\t%s\t%s\t%s\t%s\n' % tup)
         f.write('\n')
 
-    # save SRL output
-    srl_gold_fname = self.gold_dev_props_file if validate else  self.gold_test_props_file
-    # with open(srl_gold_fname, 'w') as f:
-    #   for bkt_idx, idx in dataset._metabucket.data:
-    #     # for each word, if trigger print word, otherwise -
-    #     # then all the SRL labels
-    #     data = dataset._metabucket[bkt_idx].data[idx]
-    #     preds = all_predictions[bkt_idx][idx]
-    #     words = all_sents[bkt_idx][idx]
-    #     num_gold_srls = preds[0, 9]
-    #     num_pred_srls = preds[0, 10]
-    #     srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
-    #     srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-    #     for i, (datum, word) in enumerate(zip(data, words)):
-    #       pred = srl_preds_str[i] if srl_preds_str else []
-    #       word_str = word if "(V*)" in [p for p in pred] else '-'
-    #       fields = (word_str,) + tuple(pred)
-    #       owpl_str = '\t'.join(fields)
-    #       f.write(owpl_str + "\n")
-    #     f.write('\n')
+    # load the real gold preds file
+    srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
+
+    # save SRL gold output for debugging purposes
+    srl_gold_write_fname = os.path.join(self.save_dir, 'srl_golds.tsv')
+    with open(srl_gold_write_fname, 'w') as f:
+      for bkt_idx, idx in dataset._metabucket.data:
+        # for each word, if trigger print word, otherwise -
+        # then all the SRL labels
+        data = dataset._metabucket[bkt_idx].data[idx]
+        preds = all_predictions[bkt_idx][idx]
+        words = all_sents[bkt_idx][idx]
+        num_gold_srls = preds[0, 9]
+        num_pred_srls = preds[0, 10]
+        srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
+        srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+        for i, (datum, word) in enumerate(zip(data, words)):
+          pred = srl_preds_str[i] if srl_preds_str else []
+          word_str = word if "(V*)" in [p for p in pred] else '-'
+          fields = (word_str,) + tuple(pred)
+          owpl_str = '\t'.join(fields)
+          f.write(owpl_str + "\n")
+        f.write('\n')
 
     # save SRL output
     srl_preds_fname = os.path.join(self.save_dir, 'srl_preds.tsv')

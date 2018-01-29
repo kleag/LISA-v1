@@ -387,8 +387,8 @@ class Parser(BaseParser):
         return output
 
     pos_target = targets[:,:,0]
-    pos_output = compute_pos(pos_pred_inputs, pos_target)
     if self.train_pos:
+      pos_output = compute_pos(pos_pred_inputs, pos_target)
       pos_loss = self.pos_penalty * pos_output['loss']
       pos_correct = pos_output['n_correct']
     else:

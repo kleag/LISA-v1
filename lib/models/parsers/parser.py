@@ -29,6 +29,7 @@ class Parser(BaseParser):
     inputs = dataset.inputs
     targets = dataset.targets
 
+    num_pred_classes = len(vocabs[4])
     num_srl_classes = len(vocabs[3])
     num_rel_classes = len(vocabs[2])
     num_pos_classes = len(vocabs[1])
@@ -86,6 +87,14 @@ class Parser(BaseParser):
     # do_arc_update = tf.not_equal(self.arc_loss_penalty, 0.)
     # do_rel_update = tf.not_equal(self.rel_loss_penalty, 0.)
     # do_parse_update = tf.logical_and(do_arc_update, do_rel_update)
+
+    # maps joint predicate/pos indices to pos indices
+    if self.joint_pos_predicates:
+      preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=tf.int32)
+      for pred_label, pred_idx in vocabs[3].iteritems():
+        pred, pos = pred_label.split('/')
+        pos_idx = vocabs[1][pos]
+        preds_to_pos_map[pred_idx] = pos_idx
 
     # todo these are actually wrong because of nesting
     bilou_constraints = np.zeros((num_srl_classes, num_srl_classes))
@@ -379,36 +388,11 @@ class Parser(BaseParser):
         multitask_losses['children%s' % l] = loss
         multitask_loss_sum += loss
 
-    ######## POS tags ########
-    def compute_pos(pos_input, pos_target):
-        with tf.variable_scope('POS-Classifier', reuse=reuse):
-          pos_classifier = self.MLP(pos_input, num_pos_classes, n_splits=1)
-        output = self.output(pos_classifier, pos_target)
-        return output
 
-    pos_target = targets[:,:,0]
-    if self.train_pos:
-      pos_output = compute_pos(pos_pred_inputs, pos_target)
-      pos_loss = self.pos_penalty * pos_output['loss']
-      pos_correct = pos_output['n_correct']
-    else:
-      pos_loss = tf.constant(0.)
-      if self.add_pos_to_input:
-        pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
-      else:
-        pos_correct = tf.constant(0.)
-
-    ######## do SRL-specific stuff (rels) ########
-    with tf.variable_scope('SRL-MLP', reuse=reuse):
-      trigger_role_mlp = self.MLP(top_recur, self.trigger_mlp_size + self.role_mlp_size, n_splits=1)
-      trigger_mlp, role_mlp = trigger_role_mlp[:,:,:self.trigger_mlp_size], trigger_role_mlp[:,:,self.trigger_mlp_size:]
-
-
-    # todo try classifying triggers at earlier layers
-    predicate_idx = vocabs[4]["True"][0]
-    trigger_targets = tf.where(tf.equal(inputs[:, :, 3], predicate_idx), tf.ones([batch_size, bucket_size], dtype=tf.int32),
-                               tf.zeros([batch_size, bucket_size], dtype=tf.int32))
-
+    ######## Predicate detection ########
+    # trigger_targets = tf.where(tf.greater(targets[:, :, 3], self.predicate_true_start_idx), tf.ones([batch_size, bucket_size], dtype=tf.int32),
+    #                            tf.zeros([batch_size, bucket_size], dtype=tf.int32))
+    trigger_targets = inputs[:, :, 3]
     def compute_triggers(trigger_input, name, mlp):
       with tf.variable_scope(name, reuse=reuse):
         if mlp:
@@ -416,7 +400,7 @@ class Parser(BaseParser):
         else:
           trigger_classifier_mlp = trigger_input
         with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
-          trigger_classifier = self.MLP(trigger_classifier_mlp, 2, n_splits=1)
+          trigger_classifier = self.MLP(trigger_classifier_mlp, num_pred_classes, n_splits=1)
         output = self.output_trigger(trigger_classifier, trigger_targets)
         return output
 
@@ -425,26 +409,36 @@ class Parser(BaseParser):
       aux_trigger_output = compute_triggers(aux_trigger_inputs, 'SRL-Triggers-Aux', False)
       aux_trigger_loss = self.aux_trigger_penalty * aux_trigger_output['loss']
 
-      # with tf.variable_scope('SRL-Triggers-Aux', reuse=reuse):
-      #   trigger_classifier_mlp = self.MLP(top_recur, self.trigger_pred_mlp_size, n_splits=1)
-      #   with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
-      #     trigger_classifier = self.MLP(trigger_classifier_mlp, 2, n_splits=1)
-      #   predicate_idx = vocabs[4]["True"][0]
-      #   trigger_targets = tf.where(tf.equal(inputs[:,:,3], predicate_idx), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size]))
-      #   aux_trigger_output = self.output_trigger(trigger_classifier, trigger_targets)
-
-    # with tf.variable_scope('SRL-Triggers', reuse=reuse):
-    #   trigger_classifier_mlp = self.MLP(top_recur, self.trigger_pred_mlp_size, n_splits=1)
-    #   with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
-    #     trigger_classifier = self.MLP(trigger_classifier_mlp, 2, n_splits=1)
-    #   predicate_idx = vocabs[4]["True"][0]
-    #   trigger_targets = tf.where(tf.equal(inputs[:,:,3], predicate_idx), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size]))
-    #   trigger_output = self.output_trigger(trigger_classifier, trigger_targets)
     trigger_output = compute_triggers(trigger_inputs, 'SRL-Triggers', True)
     if moving_params is None or self.add_triggers_to_input:
       trigger_predictions = trigger_targets
     else:
-      trigger_predictions = trigger_output['predictions']
+      trigger_predictions = trigger_output['trigger_predictions']
+
+    ######## POS tags ########
+    def compute_pos(pos_input, pos_target):
+        with tf.variable_scope('POS-Classifier', reuse=reuse):
+          pos_classifier = self.MLP(pos_input, num_pos_classes, n_splits=1)
+        output = self.output(pos_classifier, pos_target)
+        return output
+
+    pos_target = targets[:,:,0]
+    pos_loss = tf.constant(0.)
+    pos_correct = tf.constant(0.)
+    if self.train_pos:
+      pos_output = compute_pos(pos_pred_inputs, pos_target)
+      pos_loss = self.pos_penalty * pos_output['loss']
+      pos_correct = pos_output['n_correct']
+    elif self.joint_pos_predicates:
+      pos_preds = tf.nn.embedding_lookup(preds_to_pos_map, trigger_output['predictions'])
+      pos_correct = tf.reduce_sum(tf.cast(tf.equal(pos_preds, pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
+    elif self.add_pos_to_input:
+        pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
+
+    ######## do SRL-specific stuff (rels) ########
+    with tf.variable_scope('SRL-MLP', reuse=reuse):
+      trigger_role_mlp = self.MLP(top_recur, self.trigger_mlp_size + self.role_mlp_size, n_splits=1)
+      trigger_mlp, role_mlp = trigger_role_mlp[:,:,:self.trigger_mlp_size], trigger_role_mlp[:,:,self.trigger_mlp_size:]
 
     with tf.variable_scope('SRL-Arcs', reuse=reuse):
       # gather just the triggers
@@ -527,6 +521,8 @@ class Parser(BaseParser):
     output['trigger_loss'] = trigger_loss
     output['trigger_count'] = trigger_output['count']
     output['trigger_correct'] = trigger_output['correct']
+    output['trigger_preds'] = trigger_output['predictions']
+
 
     output['pos_loss'] = pos_loss
     output['pos_correct'] = pos_correct

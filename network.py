@@ -64,6 +64,7 @@ class Network(Configurable):
     self._model = model(self._config, global_step=self.global_step)
     
     self._vocabs = []
+
     if self.conll:
       vocab_files = [(self.word_file, 1, 'Words'),
                      (self.tag_file, [3, 4], 'Tags'),
@@ -73,7 +74,7 @@ class Network(Configurable):
                      (self.tag_file, [5, 4], 'Tags'), # auto, gold
                      (self.rel_file, 7, 'Rels'),
                      (self.srl_file, range(14, 50), 'SRLs'),
-                     (self.trig_file, 10, 'Trigs')]
+                     (self.trig_file, [10, 4] if self.joint_pos_predicates else [10], 'Trigs')]
 
     print("Loading vocabs")
     sys.stdout.flush()
@@ -84,8 +85,6 @@ class Network(Configurable):
                     use_pretrained=(not i),
                     global_step=self.global_step)
       self._vocabs.append(vocab)
-
-    self.trigger_idx = self._vocabs[3][self.trigger_str]
 
     print("Loading data")
     sys.stdout.flush()

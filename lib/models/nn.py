@@ -1225,9 +1225,9 @@ class NN(Configurable):
 
     # logits are batch x seq_len x 2
 
-    original_shape = tf.shape(logits)
-    batch_size = original_shape[0]
-    bucket_size = original_shape[1]
+    # original_shape = tf.shape(logits)
+    # batch_size = original_shape[0]
+    # bucket_size = original_shape[1]
 
     # now we have k sets of targets for the k frames
     # (t1) f1 f2 v0
@@ -1240,48 +1240,27 @@ class NN(Configurable):
     # tile_multiples = tf.concat([tf.ones(tf.shape(tf.shape(srl_targets)), dtype=tf.int32), tf.shape(trigger_label_indices)], axis=0)
     # targets_tile = tf.tile(tf.expand_dims(srl_targets, -1), tile_multiples)
     # trigger_indices = tf.cast(tf.where(tf.reduce_any(tf.equal(targets_tile, trigger_label_indices), -1)), tf.int32)
-    # # targets_tile = tf.tile(srl_targets, [1, 1, num_trigger_labels])
-    # # trigger_indices = tf.cast(tf.where(tf.reduce_any(tf.equal(targets_tile, trigger_label_indices), -1)), tf.int32)
-    # # trigger_indices = tf.cast(tf.where(tf.equal(srl_targets, trigger_label_idx)), tf.int32)
     # idx = tf.stack([trigger_indices[:,0], trigger_indices[:,1]], -1)
-    #
-    # # idx = tf.Print(idx, [trigger_indices], "trigger_indices", summarize=5000)
-    # #
-    # # idx = tf.Print(idx, [idx], "idx", summarize=5000)
-    #
     # targets = tf.scatter_nd(idx, tf.ones([tf.shape(idx)[0]], dtype=tf.int32), [batch_size, bucket_size])
-
-    # targets = tf.Print(targets, [targets], "targets", summarize=5000)
 
     cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=predicate_targets)
 
     cross_entropy *= tf.squeeze(self.tokens_to_keep3D, -1)
     loss = tf.reduce_sum(cross_entropy) / self.n_tokens
 
-    # training with predictions = batch x seq_len x seq_len
-    # where each row is set of srl tags for that trigger
-    # transposed, this gives us columns for each trigger; need to select out the columns
-    # which contain the trigger label
+    squeezed_mask = tf.squeeze(self.tokens_to_keep3D, -1)
+    int_mask = tf.cast(squeezed_mask, tf.int32)
+
     predictions = tf.cast(tf.argmax(logits, axis=-1), tf.int32)
-    # probabilities = tf.nn.softmax(logits)
-    # gold_trigger_predictions
+    correct = tf.reduce_sum(tf.cast(tf.equal(predictions, predicate_targets), tf.float32) * squeezed_mask)
+    predictions *= int_mask
 
-    # predictions = tf.Print(predictions, [targets], "targets", summarize=1000)
-    # predictions = tf.Print(predictions, [predictions], "predictions", summarize=1000)
-    #
-    # predictions= tf.Print(predictions, [tf.shape(cross_entropy), tf.shape(self.tokens_to_keep3D)], "shape", summarize=1000)
-
-    correct = tf.reduce_sum(tf.cast(tf.equal(predictions, predicate_targets), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
-
-    # count  = tf.Print(count, [targets3D_masked], "targets3D_masked", summarize=4000)
-    #
-    # count  = tf.Print(count, [overall_mask], "overall_mask", summarize=4000)
-    #
-    # count  = tf.Print(count, [cross_entropy], "cross entropy", summarize=4000)
-    # count = tf.Print(count, [count, correct, tf.reduce_sum(cross_entropy)])
+    trigger_predictions = tf.where(tf.greater(predictions, self.predicate_true_start_idx), tf.ones_like(predictions), tf.zeros_like(predictions))
+    trigger_predictions *= int_mask
 
     output = {
       'loss': loss,
+      'trigger_predictions': trigger_predictions,
       'predictions': predictions * tf.cast(tf.squeeze(self.tokens_to_keep3D, -1), tf.int32),
       'logits': logits,
       # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),

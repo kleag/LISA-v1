@@ -197,6 +197,11 @@ class Configurable(object):
   def train_on_nested(self):
     return self._config.getboolean('Dataset', 'train_on_nested')
   argparser.add_argument('--train_on_nested')
+
+  @property
+  def joint_pos_predicates(self):
+    return self._config.getboolean('Dataset', 'joint_pos_predicates')
+  argparser.add_argument('--joint_pos_predicates')
   
   #=============================================================
   # [Layers]

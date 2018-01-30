@@ -149,10 +149,15 @@ class Vocab(Configurable):
               self.add(counts, line[self.conll_idx])
           elif self.conll2012: #and len(line) > 1:
             if hasattr(self.conll_idx, '__iter__'):
-              for idx in self.conll_idx:
-                if idx < len(line) and (self.name != 'SRLs' or (idx != len(line)-1 and (self.train_on_nested or '/' not in line[idx]))):
-                  # print("adding ", line[idx])
-                  self.add(counts, line[idx])
+              if self.name == "Trigs":
+                actual = "False" if line[self.conll_idx[0]] == '-' else "True"
+                actual = actual + "/" + line[self.conll_idx[1]]
+                self.add(counts, actual)
+              else:
+                for idx in self.conll_idx:
+                  if idx < len(line) and (self.name != 'SRLs' or (idx != len(line)-1 and (self.train_on_nested or '/' not in line[idx]))):
+                    # print("adding ", line[idx])
+                    self.add(counts, line[idx])
             else:
               if self.name == "Trigs":
                 actual = "False" if line[self.conll_idx] == '-' else "True"

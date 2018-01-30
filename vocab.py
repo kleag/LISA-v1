@@ -150,8 +150,6 @@ class Vocab(Configurable):
           elif self.conll2012: #and len(line) > 1:
             if hasattr(self.conll_idx, '__iter__'):
               if self.name == "Trigs":
-                print(self.joint_pos_predicates)
-                print("conll idx:", self.conll_idx)
                 actual = "False" if line[self.conll_idx[0]] == '-' else "True"
                 actual = actual + "/" + line[self.conll_idx[1]]
                 self.add(counts, actual)

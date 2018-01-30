@@ -111,6 +111,28 @@ class Vocab(Configurable):
         idx2str[cur_idx] = word
         cur_idx += 1
     return str2idx, idx2str
+
+  # =============================================================
+  def index_vocab_joint(self, counts):
+    """"""
+
+    str2idx = self.init_str2idx()
+    idx2str = self.init_idx2str()
+    cur_idx = Vocab.START_IDX
+    add_to_end = []
+    for word, count in self.sorted_vocab(counts):
+      if (count >= self.min_occur_count or self.name == 'SRLs') and word not in str2idx:
+        if word.split('/')[0] == "True":
+          add_to_end.append(word)
+        else:
+          str2idx[word] = cur_idx
+          idx2str[cur_idx] = word
+          cur_idx += 1
+    for word in add_to_end:
+      str2idx[word] = cur_idx
+      idx2str[cur_idx] = word
+      cur_idx += 1
+    return str2idx, idx2str
   
   #=============================================================
   @staticmethod
@@ -190,7 +212,7 @@ class Vocab(Configurable):
 
 
     self._counts = counts
-    self._str2idx, self._idx2str = self.index_vocab(counts)
+    self._str2idx, self._idx2str = self.index_vocab_joint(counts) if self.joint_pos_predicates and self.name == "Trigs" else self.index_vocab(counts)
     return
 
   #=============================================================

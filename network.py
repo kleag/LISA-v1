@@ -36,6 +36,7 @@ from vocab import Vocab
 from dataset import Dataset
 import contextlib
 from subprocess import check_output, CalledProcessError
+import operator
 
 @contextlib.contextmanager
 def dummy_context_mgr():
@@ -87,7 +88,7 @@ class Network(Configurable):
       self._vocabs.append(vocab)
 
     print("Predicates vocab: ")
-    for l, i in sorted(self._vocabs[4].iteritems()):
+    for l, i in sorted(self._vocabs[4].iteritems(), key=operator.itemgetter(1)):
       print("%s: %d" % (l, i))
 
     print("Loading data")

@@ -180,6 +180,7 @@ class Vocab(Configurable):
               if self.name == "Trigs":
                 actual = "False" if line[self.conll_idx[0]] == '-' else "True"
                 actual = actual + "/" + line[self.conll_idx[1]]
+                print("adding", actual)
                 self.add(counts, actual)
               else:
                 for idx in self.conll_idx:

@@ -92,6 +92,7 @@ class Parser(BaseParser):
     if self.joint_pos_predicates:
       preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=int)
       for pred_label, pred_idx in vocabs[4].iteritems():
+        print(pred_label)
         pred, pos = pred_label.split('/')
         pos_idx = vocabs[1][pos]
         preds_to_pos_map[pred_idx] = pos_idx

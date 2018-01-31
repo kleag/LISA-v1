@@ -89,8 +89,8 @@ class Parser(BaseParser):
     # do_parse_update = tf.logical_and(do_arc_update, do_rel_update)
 
     # maps joint predicate/pos indices to pos indices
+    preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=np.int32)
     if self.joint_pos_predicates:
-      preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=int)
       for pred_label, pred_idx in vocabs[4].iteritems():
         print(pred_label, pred_idx)
         if pred_label in vocabs[4].SPECIAL_TOKENS:

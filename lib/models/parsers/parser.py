@@ -94,10 +94,10 @@ class Parser(BaseParser):
       for pred_label, pred_idx in vocabs[4].iteritems():
         print(pred_label, pred_idx)
         if pred_label == "UNK":
-          pos = "UNK"
+          postag = "UNK"
         else:
-          pred, pos = pred_label.split('/')
-        pos_idx = vocabs[1][pos]
+          _, postag = pred_label.split('/')
+        pos_idx = vocabs[1][postag]
         preds_to_pos_map[pred_idx] = pos_idx
 
     # todo these are actually wrong because of nesting

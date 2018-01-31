@@ -111,6 +111,7 @@ class Vocab(Configurable):
     str2idx = self.init_str2idx()
     idx2str = self.init_idx2str()
     cur_idx = Vocab.START_IDX
+    self.predicate_true_start_idx = cur_idx
     for word, count in self.sorted_vocab(counts):
       if (count >= self.min_occur_count or self.name == 'SRLs') and word not in str2idx:
         str2idx[word] = cur_idx

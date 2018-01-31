@@ -475,3 +475,8 @@ class Configurable(object):
   def margin(self):
     return self._config.getfloat('Training', 'margin')
   argparser.add_argument('--margin')
+
+  @property
+  def num_capsule_heads(self):
+    return self._config.getint('Training', 'num_capsule_heads')
+  argparser.add_argument('--num_capsule_heads')

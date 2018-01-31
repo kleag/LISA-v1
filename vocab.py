@@ -61,6 +61,8 @@ class Vocab(Configurable):
       self.SPECIAL_TOKENS = ('PAD')
     elif self.name == 'SRLs':
       self.SPECIAL_TOKENS = ('PAD')
+
+    self.predicate_true_start_idx = len(self.SPECIAL_TOKENS)
     
     self._counts = Counter()
     self._str2idx = {}
@@ -129,12 +131,11 @@ class Vocab(Configurable):
         if word.split('/')[0] == "True":
           add_to_end.append(word)
         else:
-          print("adding ", word)
           str2idx[word] = cur_idx
           idx2str[cur_idx] = word
           cur_idx += 1
+    self.predicate_true_start_idx = cur_idx
     for word in add_to_end:
-      print("adding ", word)
       str2idx[word] = cur_idx
       idx2str[cur_idx] = word
       cur_idx += 1

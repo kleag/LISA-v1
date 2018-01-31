@@ -135,7 +135,7 @@ class Vocab(Configurable):
           str2idx[word] = cur_idx
           idx2str[cur_idx] = word
           cur_idx += 1
-    self.predicate_true_start_idx = cur_idx
+    self.predicate_true_start_idx = cur_idx - 1
     for word in add_to_end:
       str2idx[word] = cur_idx
       idx2str[cur_idx] = word

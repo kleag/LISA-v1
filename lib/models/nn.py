@@ -1220,7 +1220,7 @@ class NN(Configurable):
 
     return output
 
-  def output_trigger(self, logits, predicate_targets):
+  def output_trigger(self, logits, predicate_targets, predicate_true_start_idx):
     """"""
 
     # logits are batch x seq_len x 2
@@ -1255,7 +1255,7 @@ class NN(Configurable):
     correct = tf.reduce_sum(tf.cast(tf.equal(predictions, predicate_targets), tf.float32) * squeezed_mask)
     predictions *= int_mask
 
-    trigger_predictions = tf.where(tf.greater(predictions, self.predicate_true_start_idx), tf.ones_like(predictions), tf.zeros_like(predictions))
+    trigger_predictions = tf.where(tf.greater(predictions, predicate_true_start_idx), tf.ones_like(predictions), tf.zeros_like(predictions))
     trigger_predictions *= int_mask
 
     output = {

@@ -92,7 +92,7 @@ class Parser(BaseParser):
     if self.joint_pos_predicates:
       preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=int)
       for pred_label, pred_idx in vocabs[4].iteritems():
-        print(pred_label)
+        print(pred_label, pred_idx)
         if pred_label == "UNK":
           pos = "UNK"
         else:
@@ -405,7 +405,7 @@ class Parser(BaseParser):
           trigger_classifier_mlp = trigger_input
         with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
           trigger_classifier = self.MLP(trigger_classifier_mlp, num_pred_classes, n_splits=1)
-        output = self.output_trigger(trigger_classifier, trigger_targets)
+        output = self.output_trigger(trigger_classifier, trigger_targets, vocabs[4].predicate_true_start_idx)
         return output
 
     aux_trigger_loss = tf.constant(0.)

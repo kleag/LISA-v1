@@ -415,7 +415,8 @@ class Parser(BaseParser):
 
     trigger_output = compute_triggers(trigger_inputs, 'SRL-Triggers', True)
     if moving_params is None or self.add_triggers_to_input:
-      trigger_predictions = trigger_targets
+      trigger_predictions = tf.where(tf.greater(trigger_targets, vocabs[4].predicate_true_start_idx),
+                                     tf.ones_like(trigger_targets), tf.zeros_like(trigger_targets))
     else:
       trigger_predictions = trigger_output['trigger_predictions']
 

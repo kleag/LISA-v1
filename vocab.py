@@ -280,7 +280,7 @@ class Vocab(Configurable):
           else:
             raise ValueError('The vocab file is misformatted at line %d' % (line_num+1))
     self._counts = counts
-    self._str2idx, self._idx2str = self.index_vocab(counts)
+    self._str2idx, self._idx2str = self.index_vocab_joint(counts) if self.joint_pos_predicates and self.name == "Trigs" else self.index_vocab(counts)
     return
   
   #=============================================================

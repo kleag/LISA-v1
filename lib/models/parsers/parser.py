@@ -93,8 +93,8 @@ class Parser(BaseParser):
       preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=int)
       for pred_label, pred_idx in vocabs[4].iteritems():
         print(pred_label, pred_idx)
-        if pred_label == "UNK":
-          postag = "UNK"
+        if pred_label == "PAD":
+          postag = "PAD"
         else:
           _, postag = pred_label.split('/')
         pos_idx = vocabs[1][postag]

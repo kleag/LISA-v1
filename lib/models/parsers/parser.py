@@ -415,10 +415,16 @@ class Parser(BaseParser):
 
     trigger_output = compute_triggers(trigger_inputs, 'SRL-Triggers', True)
     if moving_params is None or self.add_triggers_to_input:
+      # gold
       trigger_predictions = tf.where(tf.greater(trigger_targets, vocabs[4].predicate_true_start_idx),
                                      tf.ones_like(trigger_targets), tf.zeros_like(trigger_targets))
     else:
+      # predicted
       trigger_predictions = trigger_output['trigger_predictions']
+
+    trigger_predictions = tf.Print(trigger_predictions, [trigger_targets], "trigger_targets")
+    trigger_predictions = tf.Print(trigger_predictions, [trigger_predictions], "trigger_predictions")
+
 
     ######## POS tags ########
     def compute_pos(pos_input, pos_target):
@@ -438,7 +444,7 @@ class Parser(BaseParser):
       pos_preds = tf.nn.embedding_lookup(preds_to_pos_map, trigger_output['predictions'])
       pos_correct = tf.reduce_sum(tf.cast(tf.equal(pos_preds, tf.expand_dims(pos_target, -1)), tf.float32) * self.tokens_to_keep3D)
     elif self.add_pos_to_input:
-        pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
+      pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
 
     ######## do SRL-specific stuff (rels) ########
     with tf.variable_scope('SRL-MLP', reuse=reuse):

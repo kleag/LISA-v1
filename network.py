@@ -484,6 +484,7 @@ class Network(Configurable):
         num_pred_srls = preds[0, 10]
         srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
         srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+        print(srl_preds_str)
         for i, (datum, word) in enumerate(zip(data, words)):
           pred = srl_preds_str[i] if srl_preds_str else []
           word_str = word if np.any(["(V*" in p for p in pred]) else '-'

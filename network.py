@@ -87,7 +87,7 @@ class Network(Configurable):
       self._vocabs.append(vocab)
 
     print("Predicates vocab: ")
-    for l, i in self._vocabs[4].iteritems():
+    for l, i in sorted(self._vocabs[4].iteritems()):
       print("%s: %d" % (l, i))
 
     print("Loading data")

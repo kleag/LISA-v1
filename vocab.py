@@ -57,6 +57,10 @@ class Vocab(Configurable):
       self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
     elif self.name == 'Rels':
       self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
+    elif self.name == 'Trigs':
+      self.SPECIAL_TOKENS = ('PAD')
+    elif self.name == 'SRLs':
+      self.SPECIAL_TOKENS = ('PAD')
     
     self._counts = Counter()
     self._str2idx = {}

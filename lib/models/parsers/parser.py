@@ -414,10 +414,11 @@ class Parser(BaseParser):
       aux_trigger_loss = self.aux_trigger_penalty * aux_trigger_output['loss']
 
     trigger_output = compute_triggers(trigger_inputs, 'SRL-Triggers', True)
+    trigger_targets_binary = tf.where(tf.greater(trigger_targets, vocabs[4].predicate_true_start_idx),
+                                     tf.ones_like(trigger_targets), tf.zeros_like(trigger_targets))
     if moving_params is None or self.add_triggers_to_input:
       # gold
-      trigger_predictions = tf.where(tf.greater(trigger_targets, vocabs[4].predicate_true_start_idx),
-                                     tf.ones_like(trigger_targets), tf.zeros_like(trigger_targets))
+      trigger_predictions = trigger_targets_binary
     else:
       # predicted
       trigger_predictions = trigger_output['trigger_predictions']
@@ -528,7 +529,7 @@ class Parser(BaseParser):
     output['srl_count'] = srl_output['count']
     output['transition_params'] = transition_params if transition_params is not None else tf.constant(bilou_constraints)
     output['srl_trigger'] = trigger_predictions
-    output['srl_trigger_targets'] = trigger_targets
+    output['srl_trigger_targets'] = trigger_targets_binary
     output['trigger_loss'] = trigger_loss
     output['trigger_count'] = trigger_output['count']
     output['trigger_correct'] = trigger_output['correct']

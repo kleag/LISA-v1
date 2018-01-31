@@ -86,6 +86,10 @@ class Network(Configurable):
                     global_step=self.global_step)
       self._vocabs.append(vocab)
 
+    print("Predicates vocab: ")
+    for l, i in self._vocabs[4].iteritems():
+      print("%s: %d" % (l, i))
+
     print("Loading data")
     sys.stdout.flush()
     self._trainset = Dataset(self.train_file, self._vocabs, model, self._config, name='Trainset')

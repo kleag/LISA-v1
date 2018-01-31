@@ -58,9 +58,9 @@ class Vocab(Configurable):
     elif self.name == 'Rels':
       self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
     elif self.name == 'Trigs':
-      self.SPECIAL_TOKENS = ('PAD',)
+      self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
     elif self.name == 'SRLs':
-      self.SPECIAL_TOKENS = ('PAD',)
+      self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
 
     self.predicate_true_start_idx = len(self.SPECIAL_TOKENS)
     

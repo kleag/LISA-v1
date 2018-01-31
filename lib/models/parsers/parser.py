@@ -422,8 +422,8 @@ class Parser(BaseParser):
       # predicted
       trigger_predictions = trigger_output['trigger_predictions']
 
-    trigger_predictions = tf.Print(trigger_predictions, [trigger_targets], "trigger_targets")
-    trigger_predictions = tf.Print(trigger_predictions, [trigger_predictions], "trigger_predictions")
+    trigger_predictions = tf.Print(trigger_predictions, [trigger_targets], "trigger_targets", summarize=50)
+    trigger_predictions = tf.Print(trigger_predictions, [trigger_predictions], "trigger_predictions", summarize=50)
 
 
     ######## POS tags ########

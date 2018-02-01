@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=90
-num_gpus=24
+num_gpus=27
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -33,7 +33,7 @@ use_bilinears="True"
 
 reps="3"
 
-# 8*3 = 24
+# 8*3 = 27
 
 #--multitask_layers \"$parents_layer;$grandparents_layer\" \
 #--multitask_penalties \"parents:$parents_penalty;grandparents:$grandparents_penalty\"

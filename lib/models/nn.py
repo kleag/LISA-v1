@@ -264,8 +264,8 @@ def dot_product_attention(q, k, v,
     if bias is not None:
       logits += bias
     # first half regular, second half capsuled
-    weights1 = tf.nn.softmax(logits[:, :num_capsule_heads, :, :], axis=3)
-    weights2 = tf.nn.softmax(logits[:, num_capsule_heads:, :, :], axis=2)
+    weights1 = tf.nn.softmax(logits[:, :num_capsule_heads, :, :], axis=2)
+    weights2 = tf.nn.softmax(logits[:, num_capsule_heads:, :, :], axis=3)
     weights = tf.concat([weights1, weights2], axis=1, name="attention_weights")
     # weights is batch x heads x seq_len x seq_len
     if manual_attn is not None:

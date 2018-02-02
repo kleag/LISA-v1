@@ -191,6 +191,8 @@ class Parser(BaseParser):
                 if 'children' in self.multi_layers.keys() and i in self.multi_layers['children'] and self.multi_penalties['children'] != 0.:
                   this_layer_capsule_heads = 1
 
+                print("Layer %d capsule heads: %d" % (i, this_layer_capsule_heads))
+
                 # else:
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            attn_dropout, relu_dropout, prepost_dropout,

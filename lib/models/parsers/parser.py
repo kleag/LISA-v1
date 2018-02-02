@@ -147,15 +147,6 @@ class Parser(BaseParser):
 
     ###########################################
 
-    attn_dropout = 0.67
-    prepost_dropout = 0.67
-    relu_dropout = 0.67
-    # if moving_params is not None:
-    #   attn_dropout = 1.0
-    #   prepost_dropout = 1.0
-    #   relu_dropout = 1.0
-    #   self.recur_keep_prob = 1.0
-
     with tf.variable_scope("crf", reuse=reuse):  # to share parameters, change scope here
       if self.viterbi_train:
         transition_params = tf.get_variable("transitions", [num_srl_classes, num_srl_classes], initializer=tf.constant_initializer(bilou_constraints))
@@ -209,18 +200,18 @@ class Parser(BaseParser):
                 if self.inject_manual_attn and moving_params is None and 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                   manual_attn = adj
                   top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                                                             attn_dropout, relu_dropout, prepost_dropout,
+                                                             self.attn_dropout, self.relu_dropout, self.prepost_dropout,
                                                              self.relu_hidden_size,
                                                              self.info_func, reuse, manual_attn)
                 elif self.inject_manual_attn and moving_params is None and 'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:
                   manual_attn = grand_adj
                   top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                                                             attn_dropout, relu_dropout, prepost_dropout,
+                                                             self.attn_dropout, self.relu_dropout, self.prepost_dropout,
                                                              self.relu_hidden_size,
                                                              self.info_func, reuse, manual_attn)
                 else:
                   top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                                                             attn_dropout, relu_dropout, prepost_dropout,
+                                                             self.attn_dropout, self.relu_dropout, self.prepost_dropout,
                                                              self.relu_hidden_size, self.info_func, reuse)
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])

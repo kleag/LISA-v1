@@ -54,9 +54,6 @@ relu_dropouts="0.67 0.34"
 
 reps="2"
 
-
-
-
 # array to hold all the commands we'll distribute
 declare -a commands
 i=1

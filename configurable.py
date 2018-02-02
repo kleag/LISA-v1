@@ -347,6 +347,19 @@ class Configurable(object):
   def info_keep_prob(self):
     return self._config.getfloat('Dropout', 'info_keep_prob')
   argparser.add_argument('--info_keep_prob')
+
+  @property
+  def attn_dropout(self):
+    return self._config.getfloat('Dropout', 'attn_dropout')
+  argparser.add_argument('--attn_dropout')
+  @property
+  def prepost_dropout(self):
+    return self._config.getfloat('Dropout', 'prepost_dropout')
+  argparser.add_argument('--prepost_dropout')
+  @property
+  def relu_dropout(self):
+    return self._config.getfloat('Dropout', 'relu_dropout')
+  argparser.add_argument('--relu_dropout')
   
   #=============================================================
   # [Learning rate]

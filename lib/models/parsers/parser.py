@@ -111,7 +111,7 @@ class Parser(BaseParser):
     inner_sibs_adj = inner_sibs_adj * mask
 
     # create children targets
-    multitask_targets['children'] = tf.transpose(adj, [0, 2, 1]) * roots_mask
+    multitask_targets['children'] = parents #tf.transpose(adj, [0, 2, 1]) # * roots_mask
 
     # create grandparents targets
     i1, i2 = tf.meshgrid(tf.range(batch_size), tf.range(bucket_size), indexing="ij")
@@ -135,7 +135,7 @@ class Parser(BaseParser):
     assert (self.cnn_layers != 0 and self.n_recur != 0) or self.num_blocks == 1, "num_blocks should be 1 if cnn_layers or n_recur is 0"
     assert self.dist_model == 'bilstm' or self.dist_model == 'transformer', 'Model must be either "transformer" or "bilstm"'
 
-    add_attn = tf.zeros([batch_size, bucket_size, bucket_size])
+    # add_attn = tf.zeros([batch_size, bucket_size, bucket_size])
 
     for b in range(self.num_blocks):
       with tf.variable_scope("block%d" % b, reuse=reuse):  # to share parameters, change scope here
@@ -176,30 +176,30 @@ class Parser(BaseParser):
                 if self.inject_manual_attn and moving_params is None:
                   if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                     manual_attn = adj
-                  # top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                  #                              attn_dropout, relu_dropout, prepost_dropout, self.relu_hidden_size,
-                  #                              self.info_func, reuse, manual_attn)
                   elif 'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:
                     manual_attn = grand_adj
-                  # top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                  #                                            attn_dropout, relu_dropout, prepost_dropout,
-                  #                                            self.relu_hidden_size,
-                  #                                            self.info_func, reuse, manual_attn)
                   elif 'inner_sibs' in self.multi_layers.keys() and i in self.multi_layers['inner_siblings']:
                     manual_attn = inner_sibs_adj
                   elif 'left_inner_sibs' in self.multi_layers.keys() and i in self.multi_layers['left_inner_sibs']:
                     manual_attn = left_inner_sibs_adj
                   elif 'right_inner_sibs' in self.multi_layers.keys() and i in self.multi_layers['right_inner_sibs']:
                     manual_attn = right_inner_sibs_adj
+                  elif 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
+                    manual_attn = tf.transpose(adj, [0, 2, 1])
+
+                this_layer_capsule_heads = 0
+                if 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
+                  this_layer_capsule_heads = 1
+                  
                 # else:
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            attn_dropout, relu_dropout, prepost_dropout,
-                                                           self.relu_hidden_size, self.info_func, reuse, self.num_capsule_heads, manual_attn, add_attn)
+                                                           self.relu_hidden_size, self.info_func, reuse, this_layer_capsule_heads, manual_attn, add_attn)
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
 
-                if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
-                  add_attn = attn_weights_by_layer[i][0]
+                # if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
+                #   add_attn = attn_weights_by_layer[i][0]
 
             # if normalization is done in layer_preprocess, then it should also be done
             # on the output, since the output can grow very large, being the sum of
@@ -286,63 +286,6 @@ class Parser(BaseParser):
         # todo don't hardcode to 0th head
         # todo right now this head is getting 2x loss
         arc_logits = attn_weights_by_layer[self.n_recur-1][0]
-        #
-        #
-        # w1 = 1.0
-        # w2 = 1.0
-        # w3 = 1.0
-        # w4 = 1.0
-        # l1 = w1 * attn_weights_by_layer[0][0]
-        # l2 = w2 * attn_weights_by_layer[1][0]
-        # l3 = w3 * attn_weights_by_layer[2][0]
-        # l4 = w4 * attn_weights_by_layer[3][0]
-        # arc_logits_all = tf.concat([tf.expand_dims(l1, -1), tf.expand_dims(l2, -1), tf.expand_dims(l3, -1), tf.expand_dims(l4, -1)], -1)
-        #
-        # arc_logits_all = tf.Print(arc_logits_all, [tf.reduce_max(l1), tf.reduce_max(l2), tf.reduce_max(l3), tf.reduce_max(l4)])
-        #
-        # # arc_logits_all = tf.Print(arc_logits_all, [tf.shape(attn_weights_by_layer[0][0])], "arc logits", summarize=2000)
-        # # arc_logits_all = tf.Print(arc_logits_all, [arc_logits_all], "arc logits all", summarize=2000)
-        # # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][0], attn_weights_by_layer[3][0])
-        #
-        # first_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
-        # first_correct_vals = first_correct * attn_weights_by_layer[0][0]
-        #
-        # # first_correct = tf.Print(first_correct, [first_correct], "first_correct", summarize=2000)
-        #
-        # # batch x seq_len
-        # second_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[1][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
-        # second_correct_vals = second_correct * attn_weights_by_layer[1][0]
-        #
-        # # first_correct = tf.Print(first_correct, [second_correct], "second_correct", summarize=2000)
-        #
-        #
-        # third_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[2][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
-        # third_correct_vals = third_correct * attn_weights_by_layer[2][0]
-        #
-        # fourth_correct = tf.expand_dims(tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[3][0], -1), tf.int32), targets[:, :, 1]), tf.ones([batch_size, bucket_size]), tf.zeros([batch_size, bucket_size])), -1)
-        # fourth_correct_vals = third_correct * attn_weights_by_layer[3][0]
-        #
-        # # first_correct = tf.Print(first_correct, [third_correct], "third_correct", summarize=2000)
-        #
-        # arc_logits_all = tf.Print(arc_logits_all, [tf.reduce_sum(first_correct), tf.reduce_sum(second_correct),
-        #                                            tf.reduce_sum(third_correct), tf.reduce_sum(fourth_correct)], "correct")
-        #
-        # # zeros where first, second or third, ones otherwise
-        # rest = (1-first_correct) * (1-second_correct) * (1-third_correct)
-        # rest_vals = rest * attn_weights_by_layer[3][0]
-        #
-        # arc_logits = tf.where(tf.not_equal(first_correct_vals, 0), first_correct_vals, attn_weights_by_layer[3][0])
-        # arc_logits = tf.where(tf.not_equal(second_correct_vals, 0), second_correct_vals, arc_logits)
-        # arc_logits = tf.where(tf.not_equal(third_correct_vals, 0), third_correct_vals, arc_logits)
-        #
-        # #
-        # # arc_logits = tf.Print(arc_logits, [arc_logits], "arc logits all", summarize=2000)
-        #
-        # arc_logits = tf.reduce_mean(arc_logits_all, -1)
-        #
-        #
-        # # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][1]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][2], arc_logits)
-        # # arc_logits = tf.where(tf.equal(tf.cast(tf.argmax(attn_weights_by_layer[0][2]), tf.int32), targets[:, :, 1]), attn_weights_by_layer[0][1], arc_logits)
 
       arc_output = self.output_svd(arc_logits, targets[:, :, 1])
       if moving_params is None:
@@ -363,7 +306,8 @@ class Parser(BaseParser):
       attn_weights = attn_weights_by_layer[l]
       # attn_weights is: head x batch x seq_len x seq_len
       # idx into attention heads
-      attn_idx = 0
+      attn_idx = self.num_capsule_heads
+      cap_attn_idx = 0
       if 'parents' in self.multi_layers.keys() and l in self.multi_layers['parents']:
         outputs = self.output(attn_weights[attn_idx], multitask_targets['parents'])
         attn_idx += 1
@@ -396,8 +340,8 @@ class Parser(BaseParser):
         multitask_losses['right_inner_sibs%s' % l] = loss
         multitask_loss_sum += loss
       if 'children' in self.multi_layers.keys() and l in self.multi_layers['children']:
-        outputs = self.output_multi(attn_weights[attn_idx], multitask_targets['children'])
-        attn_idx += 1
+        outputs = self.output_transpose(attn_weights[cap_attn_idx], multitask_targets['children'])
+        cap_attn_idx += 1
         loss = self.multi_penalties['children'] * outputs['loss']
         multitask_losses['children%s' % l] = loss
         multitask_loss_sum += loss
@@ -457,70 +401,6 @@ class Parser(BaseParser):
 
     # output['cycles'] = arc_output['n_cycles'] + arc_output['len_2_cycles']
 
-    #### OLD: TRANSFORMER ####
-    # top_recur = nn.add_timing_signal_1d(top_recur)
-    #
-    # for i in xrange(self.n_recur):
-    #   # RNN:
-    #   # with tf.variable_scope('RNN%d' % i, reuse=reuse):
-    #   #   top_recur, _ = self.RNN(top_recur)
-    #
-    #   # Transformer:
-    #   with tf.variable_scope('Transformer%d' % i, reuse=reuse):
-    #     top_recur = self.transformer(top_recur, hidden_size, self.num_heads,
-    #                                  attn_dropout, relu_dropout, prepost_dropout, self.relu_hidden_size,
-    #                                  self.info_func, reuse)
-    # # if normalization is done in layer_preprocess, then it shuold also be done
-    # # on the output, since the output can grow very large, being the sum of
-    # # a whole stack of unnormalized layer outputs.
-    # top_recur = nn.layer_norm(top_recur, reuse)
-    #
-    # with tf.variable_scope('MLP', reuse=reuse):
-    #   dep_mlp, head_mlp = self.MLP(top_recur, self.class_mlp_size+self.attn_mlp_size, n_splits=2)
-    #   dep_arc_mlp, dep_rel_mlp = dep_mlp[:,:,:self.attn_mlp_size], dep_mlp[:,:,self.attn_mlp_size:]
-    #   head_arc_mlp, head_rel_mlp = head_mlp[:,:,:self.attn_mlp_size], head_mlp[:,:,self.attn_mlp_size:]
-    #
-    # with tf.variable_scope('Arcs', reuse=reuse):
-    #   arc_logits = self.bilinear_classifier(dep_arc_mlp, head_arc_mlp)
-    #   # arc_output = self.output(arc_logits, targets[:,:,1])
-    #   arc_output = self.output_svd(arc_logits, targets[:,:,1])
-    #   if moving_params is None:
-    #     predictions = targets[:,:,1]
-    #   else:
-    #     predictions = arc_output['predictions']
-    # with tf.variable_scope('Rels', reuse=reuse):
-    #   rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, len(vocabs[2]), predictions)
-    #   rel_output = self.output(rel_logits, targets[:,:,2])
-    #   rel_output['probabilities'] = self.conditional_probabilities(rel_logits_cond)
-    #
-    # output = {}
-    # output['probabilities'] = tf.tuple([arc_output['probabilities'],
-    #                                     rel_output['probabilities']])
-    # output['predictions'] = tf.stack([arc_output['predictions'],
-    #                                  rel_output['predictions']])
-    # output['correct'] = arc_output['correct'] * rel_output['correct']
-    # output['tokens'] = arc_output['tokens']
-    # output['n_correct'] = tf.reduce_sum(output['correct'])
-    # output['n_tokens'] = self.n_tokens
-    # output['accuracy'] = output['n_correct'] / output['n_tokens']
-    # output['loss'] = arc_output['loss'] + rel_output['loss']
-    # if self.word_l2_reg > 0:
-    #   output['loss'] += word_loss
-    #
-    # output['embed'] = embed_inputs
-    # output['recur'] = top_recur
-    # output['dep_arc'] = dep_arc_mlp
-    # output['head_dep'] = head_arc_mlp
-    # output['dep_rel'] = dep_rel_mlp
-    # output['head_rel'] = head_rel_mlp
-    # output['arc_logits'] = arc_logits
-    # output['rel_logits'] = rel_logits
-    #
-    # output['rel_loss'] = rel_output['loss']
-    # output['log_loss'] = arc_output['log_loss']
-    # output['2cycle_loss'] = arc_output['2cycle_loss']
-    # output['roots_loss'] = arc_output['roots_loss']
-    # output['svd_loss'] = arc_output['svd_loss']
     return output
   
   #=============================================================

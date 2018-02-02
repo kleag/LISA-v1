@@ -194,7 +194,7 @@ class Parser(BaseParser):
                 # else:
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            attn_dropout, relu_dropout, prepost_dropout,
-                                                           self.relu_hidden_size, self.info_func, reuse, this_layer_capsule_heads, manual_attn, add_attn)
+                                                           self.relu_hidden_size, self.info_func, reuse, this_layer_capsule_heads, manual_attn)
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
 

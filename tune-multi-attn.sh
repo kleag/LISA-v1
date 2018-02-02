@@ -28,13 +28,15 @@ num_heads="8" #4 8"
 head_sizes="64"
 relu_hidden_sizes="256"
 
-parents_penalties="0.0 0.1 0.01"
-parents_layers="parents:0;grandparents:3;inner_sibs:3 parents:1;grandparents:3;inner_sibs:3 parents:2;grandparents:3;inner_sibs:3 parents:3;grandparents:3;inner_sibs:3 parents:1;grandparents:3;inner_sibs:1 parents:1;grandparents:3;inner_sibs:2"
+parents_penalties="0.1 0.01"
+children_penalties="0.0 0.1 0.01"
+#parents_layers="parents:0;grandparents:3;inner_sibs:3 parents:1;grandparents:3;inner_sibs:3 parents:2;grandparents:3;inner_sibs:3 parents:3;grandparents:3;inner_sibs:3 parents:1;grandparents:3;inner_sibs:1 parents:1;grandparents:3;inner_sibs:2"
+parents_layers="parents:0;children:1 parents:0;children:2 parents:0;children:3 parents:1;children:1 parents:1;children:2 parents:1;children:3 parents:2;children:1 parents:2;children:2 parents:2;children:3 parents:3;children:1 parents:3;children:2 parents:3;children:3"
 use_bilinears="True"
 
 reps="2"
 
-# 3*6*2 = 72
+# 12*3*2*2 = 144
 
 #--multitask_layers \"$parents_layer;$grandparents_layer\" \
 #--multitask_penalties \"parents:$parents_penalty;grandparents:$grandparents_penalty\"
@@ -55,44 +57,46 @@ for lr in ${lrs[@]}; do
                                     for relu_hidden_size in ${relu_hidden_sizes[@]}; do
                                         for batch_size in ${batch_sizes[@]}; do
                                             for parents_penalty in ${parents_penalties[@]}; do
-                                                for parents_layer in ${parents_layers[@]}; do
-                                                    for use_bilinear in ${use_bilinears[@]}; do
-                                                        for rep in `seq $reps`; do
-                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$use_bilinear"
+                                                for children_penalty in ${children_penalties[@]}; do
+                                                    for parents_layer in ${parents_layers[@]}; do
+                                                        for use_bilinear in ${use_bilinears[@]}; do
+                                                            for rep in `seq $reps`; do
+                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$children_penalty-$parents_layer-$use_bilinear"
 
-                                                            # create parents attn at every layer
-#                                                            parents_str="parents:"
-#                                                            for i in `seq $trans_layer`; do
-#                                                                parents_str="$parents_str$((i-1)),"
-#                                                            done
-#                                                            parents_str=${parents_str%?}
-#                                                            echo $parents_layer
+                                                                # create parents attn at every layer
+    #                                                            parents_str="parents:"
+    #                                                            for i in `seq $trans_layer`; do
+    #                                                                parents_str="$parents_str$((i-1)),"
+    #                                                            done
+    #                                                            parents_str=${parents_str%?}
+    #                                                            echo $parents_layer
 
-                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12:00:00 python network.py \
-                                                            --config_file config/trans-only-attn.cfg \
-                                                            --save_dir \"$OUT_LOG/scores-$fname_append\" \
-                                                            --save_every 500 \
-                                                            --train_iters 100000 \
-                                                            --train_batch_size $batch_size \
-                                                            --warmup_steps $warmup_steps \
-                                                            --learning_rate $lr \
-                                                            --cnn_dim $cnn_dim \
-                                                            --n_recur $trans_layer \
-                                                            --num_heads $num_head \
-                                                            --head_size $head_size \
-                                                            --relu_hidden_size $relu_hidden_size \
-                                                            --mu $mu \
-                                                            --nu $nu \
-                                                            --epsilon $epsilon \
-                                                            --multitask_layers \"$parents_layer\" \
-                                                            --multitask_penalties \"parents:$parents_penalty;grandparents:$parents_penalty;inner_sibs:$parents_penalty\"
-                                                            --use_bilinear $use_bilinear \
-                                                            --svd_tree False \
-                                                            --mask_pairs True \
-                                                            --mask_roots True \
-                                                            --ensure_tree False \
-                                                            --save False \
-                                                            &> \"$OUT_LOG/train-$fname_append.log\"")
+                                                                commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=14:00:00 python network.py \
+                                                                --config_file config/trans-only-attn.cfg \
+                                                                --save_dir \"$OUT_LOG/scores-$fname_append\" \
+                                                                --save_every 500 \
+                                                                --train_iters 100000 \
+                                                                --train_batch_size $batch_size \
+                                                                --warmup_steps $warmup_steps \
+                                                                --learning_rate $lr \
+                                                                --cnn_dim $cnn_dim \
+                                                                --n_recur $trans_layer \
+                                                                --num_heads $num_head \
+                                                                --head_size $head_size \
+                                                                --relu_hidden_size $relu_hidden_size \
+                                                                --mu $mu \
+                                                                --nu $nu \
+                                                                --epsilon $epsilon \
+                                                                --multitask_layers \"$parents_layer\" \
+                                                                --multitask_penalties \"parents:$parents_penalty;children:$children_penalty\"
+                                                                --use_bilinear $use_bilinear \
+                                                                --svd_tree False \
+                                                                --mask_pairs True \
+                                                                --mask_roots True \
+                                                                --ensure_tree False \
+                                                                --save False \
+                                                                &> \"$OUT_LOG/train-$fname_append.log\"")
+                                                            done
                                                         done
                                                     done
                                                 done

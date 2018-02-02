@@ -52,6 +52,8 @@ class Vocab(Configurable):
 
     self._embed_size = self.embed_size if self.name != 'Trigs' else self.trig_embed_size
 
+    self.SPECIAL_TOKENS = ('<PAD>', '<ROOT>', '<UNK>')
+
     if cased is None:
       self._cased = super(Vocab, self).cased
     else:

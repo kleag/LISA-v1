@@ -187,7 +187,7 @@ class Parser(BaseParser):
                   elif 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
                     manual_attn = tf.transpose(adj, [0, 2, 1])
 
-                this_layer_capsule_heads = 0
+                this_layer_capsule_heads = self.num_capsule_heads if i > 0 else 0
                 if 'children' in self.multi_layers.keys() and i in self.multi_layers['children'] and self.multi_penalties['children'] != 0.:
                   this_layer_capsule_heads = 1
 

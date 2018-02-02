@@ -59,17 +59,15 @@ class Vocab(Configurable):
     else:
       self._cased = cased
     if self.name == 'Tags':
-      # self.SPECIAL_TOKENS = ('PAD', 'ROOT')
-      self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
-
+      self.SPECIAL_TOKENS = ('PAD', 'ROOT')
+      # self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
     elif self.name == 'Rels':
-      # self.SPECIAL_TOKENS = ('pad', self.root_label)
-      self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
-
-    # elif self.name == 'Trigs':
-    #   self.SPECIAL_TOKENS = ()
-    # elif self.name == 'SRLs':
-      # self.SPECIAL_TOKENS = ()
+      self.SPECIAL_TOKENS = ('pad', self.root_label)
+      # self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
+    elif self.name == 'Trigs':
+      self.SPECIAL_TOKENS = ()
+    elif self.name == 'SRLs':
+      self.SPECIAL_TOKENS = ()
 
     self.START_IDX = len(self.SPECIAL_TOKENS)
 

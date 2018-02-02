@@ -32,9 +32,12 @@ from configurable import Configurable
 class Vocab(Configurable):
   """"""
   
-  SPECIAL_TOKENS = ('<PAD>', '<ROOT>', '<UNK>')
-  START_IDX = len(SPECIAL_TOKENS)
-  PAD, ROOT, UNK = range(START_IDX)
+  # SPECIAL_TOKENS = ('<PAD>', '<ROOT>', '<UNK>')
+  # START_IDX = len(SPECIAL_TOKENS)
+  # PAD, ROOT, UNK = range(START_IDX)
+  PAD = 0
+  ROOT = 1
+  UNK = 2
   
   #=============================================================
   def __init__(self, vocab_file, conll_idx, *args, **kwargs):
@@ -54,15 +57,17 @@ class Vocab(Configurable):
     else:
       self._cased = cased
     if self.name == 'Tags':
-      self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
+      self.SPECIAL_TOKENS = ('PAD', 'ROOT')
     elif self.name == 'Rels':
-      self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
+      self.SPECIAL_TOKENS = ('pad', self.root_label)
     elif self.name == 'Trigs':
-      self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
+      self.SPECIAL_TOKENS = ()
     elif self.name == 'SRLs':
-      self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
+      self.SPECIAL_TOKENS = ()
 
-    self.predicate_true_start_idx = len(self.SPECIAL_TOKENS)
+    self.START_IDX = len(self.SPECIAL_TOKENS)
+
+    self.predicate_true_start_idx = self.START_IDX
     
     self._counts = Counter()
     self._str2idx = {}
@@ -100,9 +105,9 @@ class Vocab(Configurable):
   
   #=============================================================
   def init_str2idx(self):
-    return dict(zip(self.SPECIAL_TOKENS, range(Vocab.START_IDX)))
+    return dict(zip(self.SPECIAL_TOKENS, range(self.START_IDX)))
   def init_idx2str(self):
-    return dict(zip(range(Vocab.START_IDX), self.SPECIAL_TOKENS))
+    return dict(zip(range(self.START_IDX), self.SPECIAL_TOKENS))
   
   #=============================================================
   def index_vocab(self, counts):
@@ -110,7 +115,7 @@ class Vocab(Configurable):
     
     str2idx = self.init_str2idx()
     idx2str = self.init_idx2str()
-    cur_idx = Vocab.START_IDX
+    cur_idx = self.START_IDX
     self.predicate_true_start_idx = cur_idx
     for word, count in self.sorted_vocab(counts):
       if (count >= self.min_occur_count or self.name == 'SRLs') and word not in str2idx:
@@ -125,7 +130,7 @@ class Vocab(Configurable):
 
     str2idx = self.init_str2idx()
     idx2str = self.init_idx2str()
-    cur_idx = Vocab.START_IDX
+    cur_idx = self.START_IDX
     add_to_end = []
     for word, count in self.sorted_vocab(counts):
       if (count >= self.min_occur_count or self.name == 'SRLs') and word not in str2idx:
@@ -231,7 +236,7 @@ class Vocab(Configurable):
     self._embed2str = self.init_idx2str()
     embeds = []
     with open(self.embed_file, 'r') as f:
-      cur_idx = Vocab.START_IDX
+      cur_idx = self.START_IDX
       for line_num, line in enumerate(f):
         line = line.strip().split()
         if line:
@@ -248,11 +253,11 @@ class Vocab(Configurable):
       with open(self.embed_aux_file, 'r') as f:
         for line in f:
           line = line.strip().split()
-          if line[0] == self.SPECIAL_TOKENS[0]:
+          if self.START_IDX > 0 and line[0] == self.SPECIAL_TOKENS[0]:
             self.pretrained_embeddings[0] = np.array(line[1:], dtype=np.float32)
-          elif line[0] == self.SPECIAL_TOKENS[1]:
+          elif self.START_IDX > 1 and line[0] == self.SPECIAL_TOKENS[1]:
             self.pretrained_embeddings[1] = np.array(line[1:], dtype=np.float32)
-          elif line[0] == self.SPECIAL_TOKENS[2]:
+          elif self.START_IDX > 2 and line[0] == self.SPECIAL_TOKENS[2]:
             self.pretrained_embeddings[2] = np.array(line[1:], dtype=np.float32)
     return
   

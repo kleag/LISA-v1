@@ -395,7 +395,8 @@ class Parser(BaseParser):
         else:
           trigger_classifier_mlp = trigger_input
         with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
-          trigger_classifier = self.MLP(trigger_classifier_mlp, num_pred_classes, n_splits=1)
+          # trigger_classifier = self.MLP(trigger_classifier_mlp, num_pred_classes, n_splits=1)
+          trigger_classifier = self.MLP(trigger_classifier_mlp, 2, n_splits=1)
         output = self.output_trigger(trigger_classifier, trigger_targets, vocabs[4].predicate_true_start_idx)
         return output
 

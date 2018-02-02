@@ -188,7 +188,7 @@ class Parser(BaseParser):
                     manual_attn = tf.transpose(adj, [0, 2, 1])
 
                 this_layer_capsule_heads = 0
-                if 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
+                if 'children' in self.multi_layers.keys() and i in self.multi_layers['children'] and self.multitask_penalties['children'] != 0.:
                   this_layer_capsule_heads = 1
 
                 # else:

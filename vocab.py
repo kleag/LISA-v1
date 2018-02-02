@@ -66,8 +66,8 @@ class Vocab(Configurable):
       # self.SPECIAL_TOKENS = ('pad', self.root_label)
       self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
 
-    elif self.name == 'Trigs':
-      self.SPECIAL_TOKENS = ()
+    # elif self.name == 'Trigs':
+    #   self.SPECIAL_TOKENS = ()
     # elif self.name == 'SRLs':
       # self.SPECIAL_TOKENS = ()
 

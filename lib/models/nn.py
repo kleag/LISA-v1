@@ -977,7 +977,7 @@ class NN(Configurable):
     bucket_size = original_shape[1]
     flat_shape = tf.stack([batch_size, bucket_size])
 
-    logits3D = tf.transpose(logits3D, [0, 2, 1, 3])
+    logits3D = tf.transpose(logits3D, [0, 2, 1])
 
     logits2D = tf.reshape(logits3D, tf.stack([batch_size*bucket_size, -1]))
     targets1D = tf.reshape(targets3D, [-1])

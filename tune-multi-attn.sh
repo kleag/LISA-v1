@@ -28,7 +28,7 @@ num_heads="8" #4 8"
 head_sizes="64"
 relu_hidden_sizes="256"
 
-parents_penalties="0.1 0.01"
+parents_penalties="0.0 0.1 0.01"
 children_penalties="0.0 0.1 0.01"
 #parents_layers="parents:0;grandparents:3;inner_sibs:3 parents:1;grandparents:3;inner_sibs:3 parents:2;grandparents:3;inner_sibs:3 parents:3;grandparents:3;inner_sibs:3 parents:1;grandparents:3;inner_sibs:1 parents:1;grandparents:3;inner_sibs:2"
 parents_layers="parents:0;children:1 parents:0;children:2 parents:0;children:3 parents:1;children:1 parents:1;children:2 parents:1;children:3 parents:2;children:1 parents:2;children:2 parents:2;children:3 parents:3;children:1 parents:3;children:2 parents:3;children:3"
@@ -36,7 +36,7 @@ use_bilinears="True"
 
 reps="2"
 
-# 12*3*2*2 = 144
+# 12*3*3*2 = 216
 
 #--multitask_layers \"$parents_layer;$grandparents_layer\" \
 #--multitask_penalties \"parents:$parents_penalty;grandparents:$grandparents_penalty\"
@@ -71,7 +71,7 @@ for lr in ${lrs[@]}; do
     #                                                            parents_str=${parents_str%?}
     #                                                            echo $parents_layer
 
-                                                                commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=14:00:00 python network.py \
+                                                                commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --time=12:00:00 python network.py \
                                                                 --config_file config/trans-only-attn.cfg \
                                                                 --save_dir \"$OUT_LOG/scores-$fname_append\" \
                                                                 --save_every 500 \

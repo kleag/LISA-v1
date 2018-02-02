@@ -65,7 +65,7 @@ class Vocab(Configurable):
     elif self.name == 'Trigs':
       self.SPECIAL_TOKENS = ()
     elif self.name == 'SRLs':
-      self.SPECIAL_TOKENS = ()
+      # self.SPECIAL_TOKENS = ()
 
     self.START_IDX = len(self.SPECIAL_TOKENS)
 

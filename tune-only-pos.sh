@@ -75,8 +75,8 @@ for lr in ${lrs[@]}; do
 #                                                                                partition="m40-long"
 #                                                                            fi
 
-                                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --mem=16000 --time=24:00:00 python network.py \
-                                                                            --config_file config/trans-conll12-bio.cfg \
+                                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --mem=16000 --time=12:00:00 python network.py \
+                                                                            --config_file config/trans-conll12-bio-justpos.cfg \
                                                                             --save_dir $OUT_LOG/scores-$fname_append \
                                                                             --save_every 500 \
                                                                             --train_iters 500000 \

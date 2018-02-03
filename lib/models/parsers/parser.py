@@ -462,7 +462,7 @@ class Parser(BaseParser):
         srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, trigger_predictions)
         return srl_output
     if self.role_loss_penalty == 0:
-      num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(trigger_predictions, 1)), tf.int32))
+      num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(trigger_targets_binary, 1)), tf.int32))
       srl_output = {
         'loss': tf.constant(0.),
         'probabilities':  tf.zeros([num_triggers, bucket_size, num_srl_classes]),

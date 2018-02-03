@@ -61,7 +61,7 @@ class BaseParser(NN):
     return
   
   #=============================================================
-  def validate(self, mb_inputs, mb_targets, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, transition_params=None):
+  def validate(self, mb_inputs, mb_targets, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, transition_params=None):
     """"""
     
     sents = []
@@ -88,7 +88,7 @@ class BaseParser(NN):
     # print("srl_preds", srl_preds.shape, srl_preds)
     # print("srl_trigger", srl_triggers.shape, srl_triggers)
     srl_pred_idx = 0
-    for inputs, targets, parse_probs, rel_probs, n_cycle, len_2_cycle, srl_trigger, srl_trigger_target in zip(mb_inputs, mb_targets, mb_parse_probs, mb_rel_probs, n_cycles, len_2_cycles, srl_triggers, srl_trigger_targets):
+    for inputs, targets, parse_probs, rel_probs, n_cycle, len_2_cycle, srl_trigger, srl_trigger_target, pos_pred in zip(mb_inputs, mb_targets, mb_parse_probs, mb_rel_probs, n_cycles, len_2_cycles, srl_triggers, srl_trigger_targets, pos_preds):
       tokens_to_keep = np.greater(inputs[:,0], Vocab.ROOT)
       length = np.sum(tokens_to_keep)
       parse_preds, rel_preds, argmax_time, roots_lt, roots_gt = self.prob_argmax(parse_probs, rel_probs, tokens_to_keep, n_cycle, len_2_cycle)
@@ -148,18 +148,19 @@ class BaseParser(NN):
       # print("targets shape", targets.shape)
       # print("targets", targets)
       # print("tokens", tokens)
-      sent[:,0] = tokens # 1
-      sent[:,1:4] = inputs[tokens,:-1] # 2,3,4
-      sent[:,4] = targets[tokens, 0] # 5
-      sent[:,5] = parse_preds[tokens] # 6
-      sent[:,6] = rel_preds[tokens] # 7
-      sent[:,7] = targets[tokens, 1] # 8
-      sent[:,8] = targets[tokens, 2] # 9
-      sent[:,9] = num_gold_srls # 10
-      sent[:,10] = num_pred_srls  # 11
-      sent[:,11:11+num_pred_srls] = pred_trigger_indices
+      sent[:,0] = tokens # 1 = index
+      sent[:,1:4] = inputs[tokens,:-1] # 2,3,4 inputs[1, 2, 3] = word, word, auto_tag
+      sent[:,4] = targets[tokens, 0] # 5 targets[0] = gold_tag
+      sent[:,5] = parse_preds[tokens] # 6 = pred parse head
+      sent[:,6] = rel_preds[tokens] # 7 = pred parse label
+      sent[:,7] = targets[tokens, 1] # 8 = gold parse head
+      sent[:,8] = targets[tokens, 2] # 9 = gold parse label
+      sent[:,9] = pos_pred[tokens, 0] # 10 = predicted pos label
+      sent[:,10] = num_gold_srls # 11 = num gold predicates in sent
+      sent[:,11] = num_pred_srls  # 12 = num predicted predicates in sent
+      sent[:,12:12+num_pred_srls] = pred_trigger_indices # indices of predicted predicates
       # save trigger indices
-      sent[:,11+num_pred_srls:11+num_gold_srls+num_pred_srls] = targets[tokens, non_srl_targets_len:num_gold_srls+non_srl_targets_len] # num_srls
+      sent[:,12+num_pred_srls:12+num_gold_srls+num_pred_srls] = targets[tokens, non_srl_targets_len:num_gold_srls+non_srl_targets_len] # gold srl tags
       # print("trigger tokens", srl_trigger[tokens])
       # print("indices", np.where(srl_trigger[tokens] == 1)[0])
       # print("srl_pred", srl_pred)

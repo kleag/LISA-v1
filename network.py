@@ -396,12 +396,12 @@ class Network(Configurable):
       filename = self.valid_file
       minibatches = self.valid_minibatches
       dataset = self._validset
-      op = self.ops['test_op'][:14]
+      op = self.ops['test_op'][:15]
     else:
       filename = self.test_file
       minibatches = self.test_minibatches
       dataset = self._testset
-      op = self.ops['test_op'][14:]
+      op = self.ops['test_op'][15:]
     
     all_predictions = [[]]
     all_sents = [[]]
@@ -423,9 +423,9 @@ class Network(Configurable):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
       forward_start = time.time()
-      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_trigger, srl_trigger_targets, transition_params, attn_weights, attn_correct, pos_correct = sess.run(op, feed_dict=feed_dict)
+      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_trigger, srl_trigger_targets, transition_params, attn_weights, attn_correct, pos_correct, pos_preds = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
-      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_trigger, srl_trigger_targets, transition_params)
+      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_trigger, srl_trigger_targets, pos_preds, transition_params)
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
       for k, v in attn_correct.iteritems():
@@ -501,6 +501,32 @@ class Network(Configurable):
             pred = srl_preds_str[i] if srl_preds_str else []
             word_str = word if np.any(["(V*" in p for p in pred]) else '-'
             fields = (word_str,) + tuple(pred)
+            owpl_str = '\t'.join(fields)
+            f.write(owpl_str + "\n")
+          f.write('\n')
+
+      # save SRL gold output for debugging purposes
+      srl_sanity_fname = os.path.join(self.save_dir, 'srl_sanity.tsv')
+      with open(srl_sanity_fname, 'w') as f:
+        for bkt_idx, idx in dataset._metabucket.data:
+          # for each word, if trigger print word, otherwise -
+          # then all the SRL labels
+          data = dataset._metabucket[bkt_idx].data[idx]
+          preds = all_predictions[bkt_idx][idx]
+          words = all_sents[bkt_idx][idx]
+          num_gold_srls = preds[0, 9]
+          num_pred_srls = preds[0, 10]
+          srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
+          srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+          # print(srl_preds_str)
+          for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+            pred = srl_preds_str[i] if srl_preds_str else []
+            bio_pred = srl_preds[i] if srl_preds else []
+            word_str = word
+            tag0_str = self.tags[pred[4]], # gold tag
+            tag1_str = self.tags[pred[3]], # auto tag
+            tag2_str = self.tags[pred[9]], # predicted tag
+            fields = (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + +tuple(bio_pred) + tuple(pred)
             owpl_str = '\t'.join(fields)
             f.write(owpl_str + "\n")
           f.write('\n')
@@ -666,6 +692,7 @@ class Network(Configurable):
                       valid_output['attn_weights'],
                       valid_output['attn_correct'],
                       valid_output['pos_correct'],
+                      valid_output['pos_preds'],
                       test_output['probabilities'],
                       test_output['n_cycles'],
                       test_output['len_2_cycles'],
@@ -680,6 +707,7 @@ class Network(Configurable):
                       test_output['attn_weights'],
                       test_output['attn_correct'],
                       test_output['pos_correct'],
+                      test_output['pos_preds'],
                       ]
     ops['optimizer'] = optimizer
     

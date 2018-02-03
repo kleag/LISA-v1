@@ -428,15 +428,18 @@ class Parser(BaseParser):
     pos_target = targets[:,:,0]
     pos_loss = tf.constant(0.)
     pos_correct = tf.constant(0.)
+    pos_preds = targets[:,:,0]
     if self.train_pos:
       pos_output = compute_pos(pos_pred_inputs, pos_target)
       pos_loss = self.pos_penalty * pos_output['loss']
       pos_correct = pos_output['n_correct']
+      pos_preds = pos_output['predictions']
     elif self.joint_pos_predicates:
       pos_preds = tf.nn.embedding_lookup(preds_to_pos_map, trigger_output['predictions'])
       pos_correct = tf.reduce_sum(tf.cast(tf.equal(pos_preds, tf.expand_dims(pos_target, -1)), tf.float32) * self.tokens_to_keep3D)
     elif self.add_pos_to_input:
       pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
+      pos_preds = inputs[:,:,2]
 
     ######## do SRL-specific stuff (rels) ########
     def compute_srl(srl_target):
@@ -543,6 +546,7 @@ class Parser(BaseParser):
 
     output['pos_loss'] = pos_loss
     output['pos_correct'] = pos_correct
+    output['pos_preds'] = pos_preds
 
     # transpose and softmax attn weights
     attn_weights_by_layer_softmaxed = {k: tf.transpose(tf.nn.softmax(v), [1, 0, 2, 3]) for k, v in

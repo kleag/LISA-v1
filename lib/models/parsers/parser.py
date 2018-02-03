@@ -439,27 +439,40 @@ class Parser(BaseParser):
       pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
 
     ######## do SRL-specific stuff (rels) ########
-    with tf.variable_scope('SRL-MLP', reuse=reuse):
-      trigger_role_mlp = self.MLP(top_recur, self.trigger_mlp_size + self.role_mlp_size, n_splits=1)
-      trigger_mlp, role_mlp = trigger_role_mlp[:,:,:self.trigger_mlp_size], trigger_role_mlp[:,:,self.trigger_mlp_size:]
+    def compute_srl(srl_target):
+      with tf.variable_scope('SRL-MLP', reuse=reuse):
+        trigger_role_mlp = self.MLP(top_recur, self.trigger_mlp_size + self.role_mlp_size, n_splits=1)
+        trigger_mlp, role_mlp = trigger_role_mlp[:,:,:self.trigger_mlp_size], trigger_role_mlp[:,:,self.trigger_mlp_size:]
 
-    with tf.variable_scope('SRL-Arcs', reuse=reuse):
-      # gather just the triggers
-      # trigger_predictions: batch x seq_len
-      # gathered_triggers: num_triggers_in_batch x 1 x self.trigger_mlp_size
-      # role mlp: batch x seq_len x self.role_mlp_size
-      # gathered roles: need a (bucket_size x self.role_mlp_size) role representation for each trigger,
-      # i.e. a (num_triggers_in_batch x bucket_size x self.role_mlp_size) tensor
-      trigger_gather_indices = tf.where(tf.equal(trigger_predictions, 1))
-      gathered_triggers = tf.expand_dims(tf.gather_nd(trigger_mlp, trigger_gather_indices), 1)
-      tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
-      gathered_roles = tf.gather_nd(tiled_roles, trigger_gather_indices)
+      with tf.variable_scope('SRL-Arcs', reuse=reuse):
+        # gather just the triggers
+        # trigger_predictions: batch x seq_len
+        # gathered_triggers: num_triggers_in_batch x 1 x self.trigger_mlp_size
+        # role mlp: batch x seq_len x self.role_mlp_size
+        # gathered roles: need a (bucket_size x self.role_mlp_size) role representation for each trigger,
+        # i.e. a (num_triggers_in_batch x bucket_size x self.role_mlp_size) tensor
+        trigger_gather_indices = tf.where(tf.equal(trigger_predictions, 1))
+        gathered_triggers = tf.expand_dims(tf.gather_nd(trigger_mlp, trigger_gather_indices), 1)
+        tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
+        gathered_roles = tf.gather_nd(tiled_roles, trigger_gather_indices)
 
-      # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
-      srl_logits = self.bilinear_classifier_nary(gathered_triggers, gathered_roles, num_srl_classes)
-      srl_targets = targets[:,:,3:]
-      srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
-      srl_output = self.output_srl_gather(srl_logits_transpose, srl_targets, trigger_predictions)
+        # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
+        srl_logits = self.bilinear_classifier_nary(gathered_triggers, gathered_roles, num_srl_classes)
+        srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
+        srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, trigger_predictions)
+        return srl_output
+    if self.role_loss_penalty == 0:
+      num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(trigger_predictions, 1)), tf.int32))
+      srl_output = {
+        'loss': tf.constant(0.),
+        'probabilities':  tf.zeros([num_triggers, bucket_size, num_srl_classes]),
+        'logits':  tf.zeros([num_triggers, bucket_size, num_srl_classes]),
+        'correct':  tf.constant(0.),
+        'count':  tf.constant(0.)
+      }
+    else:
+      srl_targets = targets[:, :, 3:]
+      srl_output = compute_srl(srl_targets)
 
     trigger_loss = self.trigger_loss_penalty * trigger_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

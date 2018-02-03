@@ -636,3 +636,8 @@ class Configurable(object):
   def parse_layer(self):
     return self._config.getint('Training', 'parse_layer')
   argparser.add_argument('--parse_layer')
+
+  @property
+  def eval_pos_only(self):
+    return self._config.getint('Training', 'eval_pos_only')
+  argparser.add_argument('--eval_pos_only')

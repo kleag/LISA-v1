@@ -449,6 +449,7 @@ class Network(Configurable):
         if bkt_idx < len(dataset._metabucket):
           all_predictions.append([])
           all_sents.append([])
+
     print("Total time in prob_argmax: %f" % total_time)
     print("Total time in forward: %f" % forward_total_time)
     print("Not tree: %d" % not_tree_total)
@@ -474,80 +475,85 @@ class Network(Configurable):
           f.write('%s\t%s\t_\t%s\t%s\t_\t%s\t%s\t%s\t%s\n' % tup)
         f.write('\n')
 
-    # load the real gold preds file
-    srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
+    if self.eval_pos_only:
+      correct = {'UAS': 0., 'LAS': 0.}
+      overall_f1 = 0.
 
-    # save SRL gold output for debugging purposes
-    srl_gold_write_fname = os.path.join(self.save_dir, 'srl_golds.tsv')
-    with open(srl_gold_write_fname, 'w') as f:
-      for bkt_idx, idx in dataset._metabucket.data:
-        # for each word, if trigger print word, otherwise -
-        # then all the SRL labels
-        data = dataset._metabucket[bkt_idx].data[idx]
-        preds = all_predictions[bkt_idx][idx]
-        words = all_sents[bkt_idx][idx]
-        num_gold_srls = preds[0, 9]
-        num_pred_srls = preds[0, 10]
-        srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
-        srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-        # print(srl_preds_str)
-        for i, (datum, word) in enumerate(zip(data, words)):
-          pred = srl_preds_str[i] if srl_preds_str else []
-          word_str = word if np.any(["(V*" in p for p in pred]) else '-'
-          fields = (word_str,) + tuple(pred)
-          owpl_str = '\t'.join(fields)
-          f.write(owpl_str + "\n")
-        f.write('\n')
+    else:
+      # load the real gold preds file
+      srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
 
-    # save SRL output
-    srl_preds_fname = os.path.join(self.save_dir, 'srl_preds.tsv')
-    with open(srl_preds_fname, 'w') as f:
-      for bkt_idx, idx in dataset._metabucket.data:
-        # for each word, if trigger print word, otherwise -
-        # then all the SRL labels
-        data = dataset._metabucket[bkt_idx].data[idx]
-        preds = all_predictions[bkt_idx][idx]
-        words = all_sents[bkt_idx][idx]
-        num_gold_srls = preds[0, 9]
-        num_pred_srls = preds[0, 10]
-        srl_preds = preds[:, 11+num_gold_srls+num_pred_srls:]
-        trigger_indices = preds[:, 11:11+num_pred_srls]
-        srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-        for i, (datum, word) in enumerate(zip(data, words)):
-          pred = srl_preds_str[i] if srl_preds_str else []
-          word_str = word if i in trigger_indices else '-'
-          fields = (word_str,) + tuple(pred)
-          owpl_str = '\t'.join(fields)
-          f.write(owpl_str + "\n")
-        if not self.parens_check(np.transpose(srl_preds_str)):
-          print(np.transpose(srl_preds_str))
-          print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
-        f.write('\n')
+      # save SRL gold output for debugging purposes
+      srl_gold_write_fname = os.path.join(self.save_dir, 'srl_golds.tsv')
+      with open(srl_gold_write_fname, 'w') as f:
+        for bkt_idx, idx in dataset._metabucket.data:
+          # for each word, if trigger print word, otherwise -
+          # then all the SRL labels
+          data = dataset._metabucket[bkt_idx].data[idx]
+          preds = all_predictions[bkt_idx][idx]
+          words = all_sents[bkt_idx][idx]
+          num_gold_srls = preds[0, 9]
+          num_pred_srls = preds[0, 10]
+          srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
+          srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+          # print(srl_preds_str)
+          for i, (datum, word) in enumerate(zip(data, words)):
+            pred = srl_preds_str[i] if srl_preds_str else []
+            word_str = word if np.any(["(V*" in p for p in pred]) else '-'
+            fields = (word_str,) + tuple(pred)
+            owpl_str = '\t'.join(fields)
+            f.write(owpl_str + "\n")
+          f.write('\n')
 
-    with open(os.devnull, 'w') as devnull:
-      try:
-        srl_eval = check_output(["perl", "srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)
-        print(srl_eval)
-        overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
-      except CalledProcessError as e:
-        print("Call to eval failed: %s" % e.output)
-        overall_f1 = 0.
+      # save SRL output
+      srl_preds_fname = os.path.join(self.save_dir, 'srl_preds.tsv')
+      with open(srl_preds_fname, 'w') as f:
+        for bkt_idx, idx in dataset._metabucket.data:
+          # for each word, if trigger print word, otherwise -
+          # then all the SRL labels
+          data = dataset._metabucket[bkt_idx].data[idx]
+          preds = all_predictions[bkt_idx][idx]
+          words = all_sents[bkt_idx][idx]
+          num_gold_srls = preds[0, 9]
+          num_pred_srls = preds[0, 10]
+          srl_preds = preds[:, 11+num_gold_srls+num_pred_srls:]
+          trigger_indices = preds[:, 11:11+num_pred_srls]
+          srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+          for i, (datum, word) in enumerate(zip(data, words)):
+            pred = srl_preds_str[i] if srl_preds_str else []
+            word_str = word if i in trigger_indices else '-'
+            fields = (word_str,) + tuple(pred)
+            owpl_str = '\t'.join(fields)
+            f.write(owpl_str + "\n")
+          if not self.parens_check(np.transpose(srl_preds_str)):
+            print(np.transpose(srl_preds_str))
+            print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
+          f.write('\n')
 
-    with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
-      s, correct = self.model.evaluate(os.path.join(self.save_dir, os.path.basename(filename)), punct=self.model.PUNCT)
-      f.write(s)
+      with open(os.devnull, 'w') as devnull:
+        try:
+          srl_eval = check_output(["perl", "srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)
+          print(srl_eval)
+          overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
+        except CalledProcessError as e:
+          print("Call to eval failed: %s" % e.output)
+          overall_f1 = 0.
 
-    if validate:
-      print("Attention UAS: ")
-      multitask_uas_str = ''
-      for k in sorted(attn_correct_counts):
-        attn_correct_counts[k] = attn_correct_counts[k] / n_tokens
-        multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k] * 100)
-      print(multitask_uas_str)
+      with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
+        s, correct = self.model.evaluate(os.path.join(self.save_dir, os.path.basename(filename)), punct=self.model.PUNCT)
+        f.write(s)
 
-      if self.save_attn_weights:
-        attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
-        np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
+      if validate:
+        print("Attention UAS: ")
+        multitask_uas_str = ''
+        for k in sorted(attn_correct_counts):
+          attn_correct_counts[k] = attn_correct_counts[k] / n_tokens
+          multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k] * 100)
+        print(multitask_uas_str)
+
+        if self.save_attn_weights:
+          attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
+          np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
 
     pos_accuracy = (pos_correct_total/n_tokens)*100.0
     correct['F1'] = overall_f1

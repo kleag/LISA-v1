@@ -520,14 +520,13 @@ class Network(Configurable):
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           # print(srl_preds_str)
           for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-            pred = srl_preds_str[i] if srl_preds_str else []
+            orig_pred = srl_preds_str[i] if srl_preds_str else []
             bio_pred = srl_preds[i] if np.any(srl_preds) else []
-            print(pred)
             word_str = word
             tag0_str = self.tags[pred[4]] # gold tag
             tag1_str = self.tags[pred[3]] # auto tag
             tag2_str = self.tags[pred[9]] # predicted tag
-            fields = (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + tuple(bio_pred) + tuple(pred)
+            fields = (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + tuple(bio_pred) + tuple(orig_pred)
             owpl_str = '\t'.join(fields)
             f.write(owpl_str + "\n")
           f.write('\n')

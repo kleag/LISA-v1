@@ -639,5 +639,5 @@ class Configurable(object):
 
   @property
   def eval_pos_only(self):
-    return self._config.getint('Training', 'eval_pos_only')
+    return self._config.getboolean('Training', 'eval_pos_only')
   argparser.add_argument('--eval_pos_only')

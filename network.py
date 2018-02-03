@@ -521,7 +521,7 @@ class Network(Configurable):
           srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           srl_golds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_golds)]))
-          print(srl_golds_str)
+          # print(srl_golds_str)
           # print(srl_preds_str)
           for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
             orig_pred = srl_preds_str[i] if srl_preds_str else []

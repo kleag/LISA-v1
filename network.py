@@ -514,8 +514,8 @@ class Network(Configurable):
           data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
-          num_gold_srls = preds[0, 9]
-          num_pred_srls = preds[0, 10]
+          num_gold_srls = preds[0, 10]
+          num_pred_srls = preds[0, 11]
           srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
           srl_golds = preds[:, 12+num_pred_srls:12+num_gold_srls+num_pred_srls]
           srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)

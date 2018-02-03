@@ -521,7 +521,7 @@ class Network(Configurable):
           # print(srl_preds_str)
           for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
             pred = srl_preds_str[i] if srl_preds_str else []
-            bio_pred = srl_preds[i] if srl_preds else []
+            bio_pred = srl_preds[i] if np.any(srl_preds) else []
             word_str = word
             tag0_str = self.tags[pred[4]], # gold tag
             tag1_str = self.tags[pred[3]], # auto tag

@@ -155,7 +155,7 @@ class BaseParser(NN):
       sent[:,6] = rel_preds[tokens] # 7 = pred parse label
       sent[:,7] = targets[tokens, 1] # 8 = gold parse head
       sent[:,8] = targets[tokens, 2] # 9 = gold parse label
-      sent[:,9] = pos_pred[tokens, 0] # 10 = predicted pos label
+      sent[:,9] = pos_pred[tokens] # 10 = predicted pos label
       sent[:,10] = num_gold_srls # 11 = num gold predicates in sent
       sent[:,11] = num_pred_srls  # 12 = num predicted predicates in sent
       sent[:,12:12+num_pred_srls] = pred_trigger_indices # indices of predicted predicates

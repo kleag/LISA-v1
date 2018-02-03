@@ -40,7 +40,7 @@ add_pos_tags="False"
 pos_layers="-1 -2"
 joint_pos="True False"
 
-# 3*4*2*2 = 48
+# 3*4*2*2*2 = 48*2
 
 reps="2"
 
@@ -75,7 +75,7 @@ for lr in ${lrs[@]}; do
 #                                                                                partition="m40-long"
 #                                                                            fi
 
-                                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --mem=16000 --time=12:00:00 python network.py \
+                                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --mem=24G --time=12:00:00 python network.py \
                                                                             --config_file config/trans-conll12-bio-justpos.cfg \
                                                                             --save_dir $OUT_LOG/scores-$fname_append \
                                                                             --save_every 500 \

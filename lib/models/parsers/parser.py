@@ -466,7 +466,7 @@ class Parser(BaseParser):
       srl_output = {
         'loss': tf.constant(0.),
         'probabilities':  tf.zeros([num_triggers, bucket_size, num_srl_classes]),
-        'predictions': tf.zeros([num_triggers, bucket_size, num_srl_classes]),
+        'predictions': tf.zeros([num_triggers, bucket_size]),
         'logits':  tf.zeros([num_triggers, bucket_size, num_srl_classes]),
         'correct':  tf.constant(0.),
         'count':  tf.constant(0.)

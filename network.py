@@ -514,26 +514,27 @@ class Network(Configurable):
           data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
-          num_gold_srls = preds[0, 10]
-          num_pred_srls = preds[0, 11]
-          srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
-          srl_golds = preds[:, 12+num_pred_srls:12+num_gold_srls+num_pred_srls]
+          num_gold_srls = preds[0, 12]
+          num_pred_srls = preds[0, 13]
+          srl_preds = preds[:, 14+num_pred_srls+num_gold_srls:]
+          srl_golds = preds[:, 14+num_pred_srls:14+num_gold_srls+num_pred_srls]
           srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           srl_golds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_golds)]))
           # print(srl_golds_str)
           # print(srl_preds_str)
           for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+            domain = pred[5]
             orig_pred = srl_preds_str[i] if srl_preds_str else []
             gold_pred = srl_golds_str[i] if srl_golds_str else []
             bio_pred = srl_preds_bio[i] if srl_preds_bio else []
             word_str = word
-            tag0_str = self.tags[pred[4]] # gold tag
-            tag1_str = self.tags[pred[3]] # auto tag
-            tag2_str = self.tags[pred[9]] # predicted tag
+            tag0_str = self.tags[pred[6]] # gold tag
+            tag1_str = self.tags[pred[8]] # auto tag
+            tag2_str = self.tags[pred[11]] # predicted tag
             gold_pred = word if np.any(["(V*" in p for p in gold_pred]) else '-'
             pred_pred = word if np.any(["(V*" in p for p in orig_pred]) else '-'
-            fields = (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (gold_pred,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
+            fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (gold_pred,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
             owpl_str = '\t'.join(fields)
             f.write(owpl_str + "\n")
           f.write('\n')
@@ -547,10 +548,10 @@ class Network(Configurable):
           data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
-          num_gold_srls = preds[0, 9]
-          num_pred_srls = preds[0, 10]
-          srl_preds = preds[:, 11+num_gold_srls+num_pred_srls:]
-          trigger_indices = preds[:, 11:11+num_pred_srls]
+          num_gold_srls = preds[0, 12]
+          num_pred_srls = preds[0, 13]
+          srl_preds = preds[:, 14+num_gold_srls+num_pred_srls:]
+          trigger_indices = preds[:, 14:14+num_pred_srls]
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           for i, (datum, word) in enumerate(zip(data, words)):
             pred = srl_preds_str[i] if srl_preds_str else []

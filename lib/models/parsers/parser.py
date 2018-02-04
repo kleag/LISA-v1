@@ -177,6 +177,7 @@ class Parser(BaseParser):
           if self.cnn_residual and self.n_recur > 0:
             top_recur = nn.layer_norm(top_recur, reuse)
 
+        # if layer is set to -2, these are used
         pos_pred_inputs = top_recur
         aux_trigger_inputs = top_recur
         trigger_inputs = top_recur
@@ -190,6 +191,7 @@ class Parser(BaseParser):
             with tf.variable_scope('proj1', reuse=reuse):
               top_recur = self.MLP(top_recur, (2 if self.recur_bidir else 1) * self.recur_size, n_splits=1)
 
+        # if layer is set to -1, these are used
         if self.pos_layer == -1:
           pos_pred_inputs = top_recur
         if self.trigger_layer == -1:

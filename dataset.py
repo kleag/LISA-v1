@@ -105,7 +105,7 @@ class Dataset(Configurable):
   def _process_buff(self, buff):
     """"""
     
-    words, tags, rels, srls, trigs = self.vocabs
+    words, tags, rels, srls, trigs, domains = self.vocabs
     srl_start_field = srls.conll_idx[0]
     sents = 0
     toks = 0
@@ -146,7 +146,7 @@ class Dataset(Configurable):
             is_trigger = token[trigs.conll_idx] != '-' and (self.train_on_nested or self.trigger_str in srl_fields)
             trigger_str = str(is_trigger)
 
-          buff[i][j] = (word,) + words[word] + tags[tag1] + trigs[trigger_str] + (domain,) + tags[tag2] + (head,) + rels[rel] + tuple(srl_tags)
+          buff[i][j] = (word,) + words[word] + tags[tag1] + trigs[trigger_str] + domains[domain] + tags[tag2] + (head,) + rels[rel] + tuple(srl_tags)
         # sent.insert(0, ('root', Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, 0, Vocab.ROOT))
     print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
     return buff

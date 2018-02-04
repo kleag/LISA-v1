@@ -75,7 +75,8 @@ class Network(Configurable):
                      (self.tag_file, [5, 4], 'Tags'), # auto, gold
                      (self.rel_file, 7, 'Rels'),
                      (self.srl_file, range(14, 50), 'SRLs'),
-                     (self.trig_file, [10, 4] if self.joint_pos_predicates else 10, 'Trigs')]
+                     (self.trig_file, [10, 4] if self.joint_pos_predicates else 10, 'Trigs'),
+                     (self.domain_file, 0, 'Domains')]
 
     print("Loading vocabs")
     sys.stdout.flush()
@@ -524,7 +525,7 @@ class Network(Configurable):
           # print(srl_golds_str)
           # print(srl_preds_str)
           for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-            domain = pred[5]
+            domain = self._vocabs[5][pred[5]]
             orig_pred = srl_preds_str[i] if srl_preds_str else []
             gold_pred = srl_golds_str[i] if srl_golds_str else []
             bio_pred = srl_preds_bio[i] if srl_preds_bio else []

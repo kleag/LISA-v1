@@ -75,6 +75,14 @@ for lr in ${lrs[@]}; do
 #                                                                                partition="m40-long"
 #                                                                            fi
 
+                                                                            trigger_layer=$pos_layer
+                                                                            train_pos="True"
+                                                                            trigger_loss_penalty="0.0"
+                                                                            if [[ "$joint_pos" == "True" ]]; then
+                                                                                train_pos="False"
+                                                                                trigger_loss_penalty="1.0"
+                                                                            fi
+
                                                                             commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --mem=24G --time=12:00:00 python network.py \
                                                                             --config_file config/trans-conll12-bio-justpos.cfg \
                                                                             --save_dir $OUT_LOG/scores-$fname_append \
@@ -99,14 +107,15 @@ for lr in ${lrs[@]}; do
                                                                             --role_mlp_size $role_mlp_size \
                                                                             --add_pos_to_input $add_pos \
                                                                             --pos_layer $pos_layer \
-                                                                            --train_pos True \
+                                                                            --train_pos $train_pos \
                                                                             --train_aux_trigger_layer False \
+                                                                            --trigger_layer $trigger_layer \
                                                                             --joint_pos_predicates $joint \
                                                                             --svd_tree False \
                                                                             --mask_pairs False \
                                                                             --mask_roots False \
                                                                             --ensure_tree False \
-                                                                            --trigger_loss_penalty 0.0 \
+                                                                            --trigger_loss_penalty $trigger_loss_penalty \
                                                                             --role_loss_penalty 0.0 \
                                                                             --rel_loss_penalty 0.0 \
                                                                             --arc_loss_penalty 0.0 \

@@ -111,6 +111,7 @@ class BaseParser(NN):
       num_pred_srls = len(pred_trigger_indices)
 
       # num_triggers x seq_len
+      print(srl_preds)
       srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
       srl_pred_idx += num_pred_srls
 

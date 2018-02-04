@@ -20,13 +20,13 @@ mus="0.9"
 nus="0.98"
 epsilons="1e-12"
 warmup_steps="4000" # 2000 1000"
-batch_sizes="3500"
+batch_sizes="5000"
 
 #learn_rates = [0.04, 0.08, 0.1, 0.02]
 #warmup_steps = [2000, 4000, 8000, 16000]
 #decays = [1.5, 1.25, 0.75, 1.0, 1.75]
 
-trans_layers="4" # 3
+trans_layers="1" # 3
 cnn_layers="2 3 4"
 cnn_dims="1024 512 768 256"
 num_heads="8" # 4 8"

@@ -413,7 +413,7 @@ class Parser(BaseParser):
     trigger_output = compute_triggers(trigger_inputs, 'SRL-Triggers', True)
     trigger_targets_binary = tf.where(tf.greater(trigger_targets, vocabs[4].predicate_true_start_idx),
                                      tf.ones_like(trigger_targets), tf.zeros_like(trigger_targets))
-    if moving_params is None or self.add_triggers_to_input:
+    if moving_params is None or self.add_triggers_to_input or self.trigger_loss_penalty == 0.0:
       # gold
       trigger_predictions = trigger_targets_binary
     else:

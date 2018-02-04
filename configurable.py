@@ -102,6 +102,10 @@ class Configurable(object):
     return self._config.get('OS', 'trig_file')
   argparser.add_argument('--trig_file')
   @property
+  def domain_file(self):
+    return self._config.get('OS', 'domain_file')
+  argparser.add_argument('--domain_file')
+  @property
   def embed_file(self):
     return self._config.get('OS', 'embed_file')
   argparser.add_argument('--embed_file')

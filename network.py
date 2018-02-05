@@ -63,7 +63,7 @@ class Network(Configurable):
     self._global_step = tf.Variable(0., trainable=False)
     self._global_epoch = tf.Variable(0., trainable=False)
     self._model = model(self._config, global_step=self.global_step)
-    
+
     self._vocabs = []
 
     if self.conll:
@@ -518,17 +518,21 @@ class Network(Configurable):
                 data = dataset._metabucket[bkt_idx].data[idx]
                 preds = all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
+                domain = '-'
                 for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-                  tup = (
-                    i + 1,  # id
-                    word,  # form
-                    self.tags[pred[6]],  # gold tag
-                    # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
-                    str(pred[7]),  # pred head # todo maybe need to change to 0 for root
-                    self.rels[pred[8]]  # pred label
-                  )
-                  f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
-                f.write('\n')
+                  domain = self._vocabs[5][p[5]]
+                  if domain == d:
+                    tup = (
+                      i + 1,  # id
+                      word,  # form
+                      self.tags[pred[6]],  # gold tag
+                      # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+                      str(pred[7]),  # pred head # todo maybe need to change to 0 for root
+                      self.rels[pred[8]]  # pred label
+                    )
+                    f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
+                if domain == d:
+                  f.write('\n')
             with open(os.devnull, 'w') as devnull:
               try:
                 parse_eval_d = check_output(["perl", "bin/eval.pl", "-g", domain_gold_fname, "-s", domain_fname],

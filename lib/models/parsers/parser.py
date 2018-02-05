@@ -127,14 +127,14 @@ class Parser(BaseParser):
     adj = tf.scatter_nd(idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])
     adj = adj * mask2d
 
-    roots_mask = 1. - tf.expand_dims(tf.eye(bucket_size), 0)
+    # roots_mask = 1. - tf.expand_dims(tf.eye(bucket_size), 0)
 
     # create parents targets
     parents = targets[:, :, 1]
     multitask_targets['parents'] = parents
 
     # create children targets
-    multitask_targets['children'] = tf.transpose(adj, [0, 2, 1]) * roots_mask
+    multitask_targets['children'] = parents
 
     # create grandparents targets
     i1, i2 = tf.meshgrid(tf.range(batch_size), tf.range(bucket_size), indexing="ij")

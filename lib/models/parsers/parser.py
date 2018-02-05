@@ -206,10 +206,10 @@ class Parser(BaseParser):
             for i in range(self.n_recur):
               with tf.variable_scope('layer%d' % i, reuse=reuse):
                 manual_attn = None
-                if self.inject_manual_attn and moving_params is None:
+                if self.inject_manual_attn:
                   if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                     manual_attn = adj
-                  elif  'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:
+                  elif 'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:
                     manual_attn = grand_adj
                   elif 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
                     manual_attn = tf.transpose(adj, [0, 2, 1])

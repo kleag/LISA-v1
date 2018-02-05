@@ -100,7 +100,6 @@ class Parser(BaseParser):
           _, postag = pred_label.split('/')
         pos_idx = vocabs[1][postag]
         preds_to_pos_map[pred_idx] = pos_idx
-    print(preds_to_pos_map)
 
     # todo these are actually wrong because of nesting
     bilou_constraints = np.zeros((num_srl_classes, num_srl_classes))

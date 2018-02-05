@@ -216,6 +216,11 @@ class Configurable(object):
   def joint_pos_predicates(self):
     return self._config.getboolean('Dataset', 'joint_pos_predicates')
   argparser.add_argument('--joint_pos_predicates')
+
+  @property
+  def train_domains(self):
+    return self._config.getboolean('Dataset', 'train_domains')
+  argparser.add_argument('--train_domains')
   
   #=============================================================
   # [Layers]

@@ -556,26 +556,26 @@ class Network(Configurable):
       srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
 
       # save SRL gold output for debugging purposes
-      srl_gold_write_fname = os.path.join(self.save_dir, 'srl_golds.tsv')
-      with open(srl_gold_write_fname, 'w') as f:
-        for bkt_idx, idx in dataset._metabucket.data:
-          # for each word, if trigger print word, otherwise -
-          # then all the SRL labels
-          data = dataset._metabucket[bkt_idx].data[idx]
-          preds = all_predictions[bkt_idx][idx]
-          words = all_sents[bkt_idx][idx]
-          num_gold_srls = preds[0, 9]
-          num_pred_srls = preds[0, 10]
-          srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
-          srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-          # print(srl_preds_str)
-          for i, (datum, word) in enumerate(zip(data, words)):
-            pred = srl_preds_str[i] if srl_preds_str else []
-            word_str = word if np.any(["(V*" in p for p in pred]) else '-'
-            fields = (word_str,) + tuple(pred)
-            owpl_str = '\t'.join(fields)
-            f.write(owpl_str + "\n")
-          f.write('\n')
+      # srl_gold_write_fname = os.path.join(self.save_dir, 'srl_golds.tsv')
+      # with open(srl_gold_write_fname, 'w') as f:
+      #   for bkt_idx, idx in dataset._metabucket.data:
+      #     # for each word, if trigger print word, otherwise -
+      #     # then all the SRL labels
+      #     data = dataset._metabucket[bkt_idx].data[idx]
+      #     preds = all_predictions[bkt_idx][idx]
+      #     words = all_sents[bkt_idx][idx]
+      #     num_gold_srls = preds[0, 9]
+      #     num_pred_srls = preds[0, 10]
+      #     srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
+      #     srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+      #     # print(srl_preds_str)
+      #     for i, (datum, word) in enumerate(zip(data, words)):
+      #       pred = srl_preds_str[i] if srl_preds_str else []
+      #       word_str = word if np.any(["(V*" in p for p in pred]) else '-'
+      #       fields = (word_str,) + tuple(pred)
+      #       owpl_str = '\t'.join(fields)
+      #       f.write(owpl_str + "\n")
+      #     f.write('\n')
 
       # save SRL gold output for debugging purposes
       srl_sanity_fname = os.path.join(self.save_dir, 'srl_sanity.tsv')
@@ -592,21 +592,23 @@ class Network(Configurable):
           srl_golds = preds[:, 14+num_pred_srls:14+num_gold_srls+num_pred_srls]
           srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-          srl_golds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_golds)]))
+          # todo if you want golds in here get it from the props file
+          # srl_golds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_golds)]))
           # print(srl_golds_str)
           # print(srl_preds_str)
           for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
             domain = self._vocabs[5][pred[5]]
             orig_pred = srl_preds_str[i] if srl_preds_str else []
-            gold_pred = srl_golds_str[i] if srl_golds_str else []
+            # gold_pred = srl_golds_str[i] if srl_golds_str else []
             bio_pred = srl_preds_bio[i] if srl_preds_bio else []
             word_str = word
             tag0_str = self.tags[pred[6]] # gold tag
             tag1_str = self.tags[pred[8]] # auto tag
             tag2_str = self.tags[pred[11]] # predicted tag
-            gold_pred = word if np.any(["(V*" in p for p in gold_pred]) else '-'
+            # gold_pred = word if np.any(["(V*" in p for p in gold_pred]) else '-'
             pred_pred = word if np.any(["(V*" in p for p in orig_pred]) else '-'
-            fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (gold_pred,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
+            # fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (gold_pred,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
+            fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
             owpl_str = '\t'.join(fields)
             f.write(owpl_str + "\n")
           f.write('\n')

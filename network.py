@@ -537,7 +537,7 @@ class Network(Configurable):
               try:
                 parse_eval_d = check_output(["perl", "bin/eval.pl", "-g", domain_gold_fname, "-s", domain_fname],
                                           stderr=devnull)
-                short_str_d = parse_eval_d.split('\n')[:3]
+                short_str_d = map(lambda s: "%s_%s" % (d, s), parse_eval_d.split('\n')[:3])
                 print('\n'.join(short_str_d))
                 # correct['parse_eval'] = parse_eval
                 # correct['LAS'] = short_str[0].split()[9]

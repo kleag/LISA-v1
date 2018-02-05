@@ -50,7 +50,7 @@ class Vocab(Configurable):
     self._use_pretrained = kwargs.pop('use_pretrained', False)
     super(Vocab, self).__init__(*args, **kwargs)
 
-    self.train_domains_set = set(self.train_domains.split(','))
+    self.train_domains_set = set(self.train_domains.split(',')) if self.train_domains != '-' else set()
 
     self._embed_size = self.embed_size if self.name != 'Trigs' else self.trig_embed_size
 
@@ -181,7 +181,7 @@ class Vocab(Configurable):
       for line_num, line in enumerate(f):
         line = line.strip().split()
         # print(line)
-        if line and line[0].split('/')[0] in self.train_domains_set:
+        if line and (not self.train_domains_set or line[0].split('/')[0] in self.train_domains_set):
           if self.conll and len(line) == 10:
             if hasattr(self.conll_idx, '__iter__'):
               for idx in self.conll_idx:

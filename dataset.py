@@ -39,9 +39,8 @@ class Dataset(Configurable):
     super(Dataset, self).__init__(*args, **kwargs)
     self.vocabs = vocabs
 
-    self.train_domains_set = set(self.train_domains.split(','))
-    if self.name == "Trainset":
-      print("Loading training data from domains:", self.train_domains_set)
+    self.train_domains_set = set(self.train_domains.split(',')) if self.train_domains != '-' and self.name == "Trainset" else set()
+    print("Loading training data from domains:", self.train_domains_set if self.train_domains_set else "all")
 
     self._file_iterator = self.file_iterator(filename)
     self._train = (filename == self.train_file)
@@ -64,7 +63,7 @@ class Dataset(Configurable):
           line = f.readline()
           while line:
             line = line.strip().split()
-            if line and (self.name != "Trainset" or line[0].split('/')[0] in self.train_domains):
+            if line and (not self.train_domains_set or line[0].split('/')[0] in self.train_domains):
               buff[-1].append(line)
             else:
               if len(buff) < self.lines_per_buffer:
@@ -89,7 +88,7 @@ class Dataset(Configurable):
         buff = [[]]
         for line in f:
           line = line.strip().split()
-          if line and (self.name != "Trainset" or line[0].split('/')[0] in self.train_domains):
+          if line and (not self.train_domains_set or line[0].split('/')[0] in self.train_domains):
             buff[-1].append(line)
           else:
             if len(buff[-1]) > 0:

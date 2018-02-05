@@ -206,22 +206,25 @@ class Parser(BaseParser):
             top_recur = nn.add_timing_signal_1d(top_recur)
             for i in range(self.n_recur):
               with tf.variable_scope('layer%d' % i, reuse=reuse):
-                if self.inject_manual_attn and moving_params is None and 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
-                  manual_attn = adj
-                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                                                             self.attn_dropout, self.relu_dropout, self.prepost_dropout,
-                                                             self.relu_hidden_size,
-                                                             self.info_func, reuse, manual_attn)
-                elif self.inject_manual_attn and moving_params is None and 'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:
-                  manual_attn = grand_adj
-                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                                                             self.attn_dropout, self.relu_dropout, self.prepost_dropout,
-                                                             self.relu_hidden_size,
-                                                             self.info_func, reuse, manual_attn)
-                else:
-                  top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
-                                                             self.attn_dropout, self.relu_dropout, self.prepost_dropout,
-                                                             self.relu_hidden_size, self.info_func, reuse)
+                if self.inject_manual_attn and moving_params is None:
+                  if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
+                    manual_attn = adj
+                  elif  'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:
+                    manual_attn = grand_adj
+                  elif 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
+                    manual_attn = tf.transpose(adj, [0, 2, 1])
+
+                this_layer_capsule_heads = self.num_capsule_heads if i > 0 else 0
+                if 'children' in self.multi_layers.keys() and i in self.multi_layers['children'] and \
+                    self.multi_penalties['children'] != 0.:
+                  this_layer_capsule_heads = 1
+                print("Layer %d capsule heads: %d" % (i, this_layer_capsule_heads))
+
+                # else:
+                top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
+                                                           self.attn_dropout, self.relu_dropout, self.prepost_dropout,
+                                                           self.relu_hidden_size, self.info_func, reuse,
+                                                           this_layer_capsule_heads, manual_attn)
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
 
@@ -371,7 +374,8 @@ class Parser(BaseParser):
     for l, attn_weights in attn_weights_by_layer.iteritems():
       # attn_weights is: head x batch x seq_len x seq_len
       # idx into attention heads
-      attn_idx = 0
+      attn_idx = self.num_capsule_heads
+      cap_attn_idx = 0
       if 'parents' in self.multi_layers.keys() and l in self.multi_layers['parents']:
         outputs = self.output(attn_weights[attn_idx], multitask_targets['parents'])
         attn_idx += 1
@@ -386,12 +390,11 @@ class Parser(BaseParser):
         multitask_losses['grandparents%s' % l] = loss
         multitask_loss_sum += loss
       if 'children' in self.multi_layers.keys() and l in self.multi_layers['children']:
-        outputs = self.output_multi(attn_weights[attn_idx], multitask_targets['children'])
-        attn_idx += 1
+        outputs = self.output_transpose(attn_weights[cap_attn_idx], multitask_targets['children'])
+        cap_attn_idx += 1
         loss = self.multi_penalties['children'] * outputs['loss']
         multitask_losses['children%s' % l] = loss
         multitask_loss_sum += loss
-
 
     ######## Predicate detection ########
     # trigger_targets = tf.where(tf.greater(targets[:, :, 3], self.predicate_true_start_idx), tf.ones([batch_size, bucket_size], dtype=tf.int32),

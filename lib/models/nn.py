@@ -236,7 +236,9 @@ def combine_heads(x):
 def dot_product_attention(q, k, v,
                           bias,
                           dropout_rate=1.0,
+                          num_capsule_heads=0,
                           manual_attn=None,
+                          add_attn=None,
                           name=None):
   """dot-product attention.
   Args:
@@ -252,9 +254,19 @@ def dot_product_attention(q, k, v,
   with tf.variable_scope(name, default_name="dot_product_attention", values=[q, k, v]):
     # [batch, num_heads, query_length, memory_length]
     logits = tf.matmul(q, k, transpose_b=True)
+    if add_attn is not None:
+      # heads x batch x seq_len x seq_len
+      weights_transpose = tf.transpose(logits, [1, 0, 2, 3])
+      weights_rest = weights_transpose[1:]
+      weights_comb = tf.concat([tf.expand_dims(add_attn + weights_transpose[0], 0), weights_rest], axis=0)
+      logits = tf.transpose(weights_comb, [1, 0, 2, 3])
+
     if bias is not None:
       logits += bias
-    weights = tf.nn.softmax(logits, name="attention_weights")
+    # first num_capsule_heads capsuled, rest regular
+    weights1 = tf.nn.softmax(logits[:, :num_capsule_heads, :, :], axis=2)
+    weights2 = tf.nn.softmax(logits[:, num_capsule_heads:, :, :], axis=3)
+    weights = tf.concat([weights1, weights2], axis=1, name="attention_weights")
     # weights is batch x heads x seq_len x seq_len
     if manual_attn is not None:
       # heads x batch x seq_len x seq_len
@@ -360,6 +372,7 @@ def multihead_attention(antecedent,
                         output_depth,
                         num_heads,
                         dropout_rate,
+                        num_capsule_heads,
                         manual_attn=None,
                         name=None):
   """Multihead scaled-dot-product attention with input/output transformations.
@@ -390,7 +403,7 @@ def multihead_attention(antecedent,
     v = split_heads(v, num_heads)
     key_depth_per_head = total_key_depth // num_heads
     q *= key_depth_per_head**-0.5
-    x, attn_weights = dot_product_attention(q, k, v, bias, dropout_rate, manual_attn)
+    x, attn_weights = dot_product_attention(q, k, v, bias, dropout_rate, num_capsule_heads, manual_attn)
     x = combine_heads(x)
     params = tf.get_variable("final_proj", [1, 1, total_key_depth, output_depth])
     x = tf.expand_dims(x, 1)
@@ -553,7 +566,7 @@ class NN(Configurable):
 
   # =============================================================
   def transformer(self, inputs, hidden_size, num_heads, attn_dropout, relu_dropout, prepost_dropout, relu_hidden_size,
-                  nonlinearity, reuse, manual_attn=None):
+                  nonlinearity, reuse, num_capsule_heads, manual_attn=None):
     """"""
     # input_size = inputs.get_shape().as_list()[-1]
     lengths = tf.reshape(tf.to_int64(self.sequence_lengths), [-1])
@@ -568,7 +581,7 @@ class NN(Configurable):
 
     with tf.variable_scope("self_attention"):
       x = layer_norm(inputs, reuse)
-      y, attn_weights = multihead_attention(x, mask, hidden_size, hidden_size, hidden_size, num_heads, attn_dropout, manual_attn)
+      y, attn_weights = multihead_attention(x, mask, hidden_size, hidden_size, hidden_size, num_heads, attn_dropout, num_capsule_heads, manual_attn)
       x = tf.add(x, tf.nn.dropout(y, prepost_dropout))
 
     with tf.variable_scope("ffnn"):
@@ -1010,6 +1023,43 @@ class NN(Configurable):
       'predictions': predictions,
       'tokens': tokens_to_keep1D,
       'correct': correct * tokens_to_keep1D,
+      'n_correct': n_correct,
+      'n_tokens': self.n_tokens,
+      'accuracy': accuracy,
+      'loss': loss
+    }
+
+    return output
+
+  # =============================================================
+  def output_transpose(self, logits3D, targets3D):
+    """"""
+
+    original_shape = tf.shape(logits3D)
+    batch_size = original_shape[0]
+    bucket_size = original_shape[1]
+    flat_shape = tf.stack([batch_size, bucket_size])
+
+    logits3D = tf.transpose(logits3D, [0, 2, 1])
+
+    logits2D = tf.reshape(logits3D, tf.stack([batch_size * bucket_size, -1]))
+    targets1D = tf.reshape(targets3D, [-1])
+    tokens_to_keep1D = tf.reshape(self.tokens_to_keep3D, [-1])
+
+    predictions1D = tf.to_int32(tf.argmax(logits2D, 1))
+    probabilities2D = tf.nn.softmax(logits2D)
+    cross_entropy1D = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits2D, labels=targets1D)
+
+    correct1D = tf.to_float(tf.equal(predictions1D, targets1D))
+    n_correct = tf.reduce_sum(correct1D * tokens_to_keep1D)
+    accuracy = n_correct / self.n_tokens
+    loss = tf.reduce_sum(cross_entropy1D * tokens_to_keep1D) / self.n_tokens
+
+    output = {
+      'probabilities': tf.reshape(probabilities2D, original_shape),
+      'predictions': tf.reshape(predictions1D, flat_shape),
+      'tokens': tokens_to_keep1D,
+      'correct': correct1D * tokens_to_keep1D,
       'n_correct': n_correct,
       'n_tokens': self.n_tokens,
       'accuracy': accuracy,

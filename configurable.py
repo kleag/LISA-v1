@@ -670,3 +670,8 @@ class Configurable(object):
   def eval_by_domain(self):
     return self._config.getboolean('Training', 'eval_by_domain')
   argparser.add_argument('--eval_by_domain')
+
+  @property
+  def num_capsule_heads(self):
+    return self._config.getint('Training', 'num_capsule_heads')
+  argparser.add_argument('--num_capsule_heads')

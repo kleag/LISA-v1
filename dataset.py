@@ -40,6 +40,8 @@ class Dataset(Configurable):
     self.vocabs = vocabs
 
     self.train_domains_set = set(self.train_domains.split(','))
+    if self.name == "Trainset":
+      print("Loading training data from domains:", self.train_domains_set)
 
     self._file_iterator = self.file_iterator(filename)
     self._train = (filename == self.train_file)

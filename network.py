@@ -249,8 +249,8 @@ class Network(Configurable):
             train_trigger_loss /= n_train_iters
             train_pos_loss /= n_train_iters
             train_accuracy = 100 * n_train_correct / n_train_tokens
-            train_srl_accuracy = 100 * n_train_srl_correct / n_train_srl_count
-            train_trigger_accuracy = 100 * n_train_trigger_correct / n_train_trigger_count
+            # train_srl_accuracy = 100 * n_train_srl_correct / n_train_srl_count
+            # train_trigger_accuracy = 100 * n_train_trigger_correct / n_train_trigger_count
             train_time = n_train_sents / train_time
             print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f\n'
                   '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
@@ -313,8 +313,8 @@ class Network(Configurable):
     #            write_meta_graph=False)
     # with open(os.path.join(self.save_dir, 'history.pkl'), 'w') as f:
     #   pkl.dump(self.history, f)
-    with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
-      pass
+    # with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
+    #   pass
     self.test(sess, validate=True)
     return
 

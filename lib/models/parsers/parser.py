@@ -93,7 +93,6 @@ class Parser(BaseParser):
     preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=np.int32)
     if self.joint_pos_predicates:
       for pred_label, pred_idx in vocabs[4].iteritems():
-        print(pred_label, pred_idx)
         if pred_label in vocabs[4].SPECIAL_TOKENS:
           postag = pred_label
         else:

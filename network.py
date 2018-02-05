@@ -586,7 +586,7 @@ class Network(Configurable):
               srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
               domain = '-'
               for i, (datum, word, p) in enumerate(zip(data, words, preds)):
-                domain = self._vocabs[5](p[5])
+                domain = self._vocabs[5][p[5]]
                 if domain == d:
                   pred = srl_preds_str[i] if srl_preds_str else []
                   word_str = word if i in trigger_indices else '-'

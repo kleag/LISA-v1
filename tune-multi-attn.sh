@@ -67,7 +67,7 @@ for lr in ${lrs[@]}; do
                                                                 for add_pos in ${add_pos_tags[@]}; do
                                                                     for trigger_layer in ${trigger_layers[@]}; do
                                                                         for rep in `seq $reps`; do
-                                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$trigger_mlp_size-$role_mlp_size-$add_pos"
+                                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$trigger_mlp_size-$role_mlp_size-$add_pos-$joint-$trigger_layer"
                                                                             partition="titanx-long"
                                                                             if [[ $((i % 4)) == 0 ]]; then
                                                                                 partition="m40-long"

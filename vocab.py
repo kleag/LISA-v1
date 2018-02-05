@@ -181,7 +181,7 @@ class Vocab(Configurable):
       for line_num, line in enumerate(f):
         line = line.strip().split()
         # print(line)
-        if line and (not self.train_domains_set or line[0].split('/')[0] in self.train_domains_set):
+        if line and (not self.train_domains_set or line[0].split('/')[0] in self.train_domains_set or self.name == "Tags"):
           if self.conll and len(line) == 10:
             if hasattr(self.conll_idx, '__iter__'):
               for idx in self.conll_idx:

@@ -569,6 +569,46 @@ class Network(Configurable):
             print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
           f.write('\n')
 
+      if self.eval_by_domain:
+        for d in self._vocabs[4].keys():
+          with open(d + "_" + srl_preds_fname, 'w') as f:
+            for bkt_idx, idx in dataset._metabucket.data:
+              # for each word, if trigger print word, otherwise -
+              # then all the SRL labels
+              data = dataset._metabucket[bkt_idx].data[idx]
+              preds = all_predictions[bkt_idx][idx]
+              words = all_sents[bkt_idx][idx]
+              num_gold_srls = preds[0, 12]
+              num_pred_srls = preds[0, 13]
+              srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
+              trigger_indices = preds[:, 14:14 + num_pred_srls]
+              srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+              domain = '-'
+              for i, (datum, word, p) in enumerate(zip(data, words, preds)):
+                domain = self._vocabs[4](p[5])
+                if domain == d:
+                  pred = srl_preds_str[i] if srl_preds_str else []
+                  word_str = word if i in trigger_indices else '-'
+                  fields = (word_str,) + tuple(pred)
+                  owpl_str = '\t'.join(fields)
+                  f.write(owpl_str + "\n")
+              if not self.parens_check(np.transpose(srl_preds_str)):
+                print(np.transpose(srl_preds_str))
+                print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
+              if domain == d:
+                f.write('\n')
+          with open(os.devnull, 'w') as devnull:
+            try:
+              srl_eval_d = check_output(["perl", "srl-eval.pl", d + "_" + srl_gold_fname, srl_preds_fname], stderr=devnull)
+              # print(srl_eval)
+              str_d = srl_eval_d.split('\n')[6]
+            except CalledProcessError as e:
+              print("Call to eval failed: %s" % e.output)
+              str_d = ""
+          print("SRL %s:" % d)
+          print(str_d)
+
+
       with open(os.devnull, 'w') as devnull:
         try:
           srl_eval = check_output(["perl", "srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)

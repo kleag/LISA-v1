@@ -453,6 +453,7 @@ class Network(Configurable):
           all_sents.append([])
 
     correct = {'UAS': 0., 'LAS': 0., 'parse_eval': '', 'F1': 0.}
+    srl_acc = 0.0
     if self.eval_parse:
       print("Total time in prob_argmax: %f" % total_time)
       print("Total time in forward: %f" % forward_total_time)
@@ -638,6 +639,8 @@ class Network(Configurable):
             print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
           f.write('\n')
 
+      srl_acc = (srl_correct_total / srl_count_total)*100.0
+
       with open(os.devnull, 'w') as devnull:
         try:
           srl_eval = check_output(["perl", "srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)
@@ -718,7 +721,7 @@ class Network(Configurable):
     # uas = np.mean(correct["UAS"]) * 100
     print('UAS: %s    LAS: %s' % (correct["UAS"], correct["LAS"]))
     print('POS: %.2f' % pos_accuracy)
-    print('SRL acc: %.2f' % ((srl_correct_total / srl_count_total)*100.0))
+    print('SRL acc: %.2f' % (srl_acc))
     print('SRL F1: %s' % (correct["F1"]))
     return correct
   

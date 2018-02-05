@@ -461,6 +461,7 @@ class Network(Configurable):
         data = dataset._metabucket[bkt_idx].data[idx]
         preds = all_predictions[bkt_idx][idx]
         words = all_sents[bkt_idx][idx]
+        # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
         # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
         # sent[:, 8] = rel_preds[tokens]  # 7 = pred parse label
         # sent[:, 9] = targets[tokens, 1]  # 8 = gold parse head
@@ -470,8 +471,8 @@ class Network(Configurable):
           tup = (
             i+1,
             word,
-            self.tags[pred[3]] if pred[3] != -1 else self.tags[datum[2]],
-            self.tags[pred[4]] if pred[4] != -1 else self.tags[datum[3]],
+            self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+            self.tags[pred[6]], # gold tag
             str(pred[7]) if pred[7] != -1 else str(datum[4]),
             self.rels[pred[8]] if pred[8] != -1 else self.rels[datum[5]],
             str(pred[9]) if pred[9] != -1 else '_',

@@ -484,12 +484,14 @@ class Network(Configurable):
           # sent[:, 9] = targets[tokens, 1]  # 8 = gold parse head
           # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
           for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+            head = pred[7] + 1
+            tok_id = i + 1
             tup = (
-              i + 1,  # id
+              tok_id,  # id
               word,  # form
-              self.tags[pred[6]], # gold tag
+              self.tags[pred[6]],  # gold tag
               # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
-              str(pred[7]), # pred head # todo maybe need to change to 0 for root
+              str(head if head != tok_id else 0),  # pred head
               self.rels[pred[8]] # pred label
             )
             f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
@@ -530,7 +532,7 @@ class Network(Configurable):
                       word,  # form
                       self.tags[pred[6]],  # gold tag
                       # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
-                      str(head if head != tok_id else 0),  # pred head # todo maybe need to change to 0 for root
+                      str(head if head != tok_id else 0),  # pred head
                       self.rels[pred[8]]  # pred label
                     )
                     f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)

@@ -520,7 +520,7 @@ class Network(Configurable):
                 words = all_sents[bkt_idx][idx]
                 domain = '-'
                 for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-                  domain = self._vocabs[5][p[5]]
+                  domain = self._vocabs[5][pred[5]]
                   if domain == d:
                     tup = (
                       i + 1,  # id

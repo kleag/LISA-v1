@@ -63,7 +63,7 @@ class Network(Configurable):
     self._global_step = tf.Variable(0., trainable=False)
     self._global_epoch = tf.Variable(0., trainable=False)
     self._model = model(self._config, global_step=self.global_step)
-    
+
     self._vocabs = []
 
     if self.conll:
@@ -249,8 +249,8 @@ class Network(Configurable):
             train_trigger_loss /= n_train_iters
             train_pos_loss /= n_train_iters
             train_accuracy = 100 * n_train_correct / n_train_tokens
-            train_srl_accuracy = 100 * n_train_srl_correct / n_train_srl_count
-            train_trigger_accuracy = 100 * n_train_trigger_correct / n_train_trigger_count
+            # train_srl_accuracy = 100 * n_train_srl_correct / n_train_srl_count
+            # train_trigger_accuracy = 100 * n_train_trigger_correct / n_train_trigger_count
             train_time = n_train_sents / train_time
             print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f\n'
                   '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
@@ -287,10 +287,7 @@ class Network(Configurable):
             # las = np.mean(correct["LAS"]) * 100
             # uas = np.mean(correct["UAS"]) * 100
             # print('UAS: %.2f    LAS: %.2f' % (uas, las))
-            if self.eval_criterion == 'LAS' or self.eval_criterion == 'UAS':
-              current_score = np.mean(correct[self.eval_criterion]) * 100
-            else:
-              current_score = correct[self.eval_criterion]
+            current_score = correct[self.eval_criterion]
             if self.save and current_score > current_best:
               current_best = current_score
               print("Writing model to %s" % (os.path.join(self.save_dir, self.name.lower() + '-trained')))
@@ -298,6 +295,8 @@ class Network(Configurable):
                          latest_filename=self.name.lower(),
                          global_step=self.global_epoch,
                          write_meta_graph=False)
+              with open(os.path.join(self.save_dir, "parse_results.txt"), 'w') as parse_results_f:
+                print(correct['parse_eval'], file=parse_results_f)
             # with open(os.path.join(self.save_dir, 'history.pkl'), 'w') as f:
             #   pkl.dump(self.history, f)
             # self.test(sess, validate=True)
@@ -314,8 +313,8 @@ class Network(Configurable):
     #            write_meta_graph=False)
     # with open(os.path.join(self.save_dir, 'history.pkl'), 'w') as f:
     #   pkl.dump(self.history, f)
-    with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
-      pass
+    # with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
+    #   pass
     self.test(sess, validate=True)
     return
 
@@ -420,13 +419,15 @@ class Network(Configurable):
     attention_weights = {}
     attn_correct_counts = {}
     pos_correct_total = 0.
+    n_tokens = 0.
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
       forward_start = time.time()
       probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_trigger, srl_trigger_targets, transition_params, attn_weights, attn_correct, pos_correct, pos_preds = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
-      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_trigger, srl_trigger_targets, pos_preds, transition_params)
+      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_trigger, srl_trigger_targets, pos_preds, transition_params)
+      n_tokens += n_tokens_batch
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
       for k, v in attn_correct.iteritems():
@@ -451,65 +452,130 @@ class Network(Configurable):
           all_predictions.append([])
           all_sents.append([])
 
-    print("Total time in prob_argmax: %f" % total_time)
-    print("Total time in forward: %f" % forward_total_time)
-    print("Not tree: %d" % not_tree_total)
-    print("Roots < 1: %d; Roots > 1: %d; 2-cycles: %d; n-cycles: %d" % (roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total))
-    n_tokens = 0
-    with open(os.path.join(self.save_dir, os.path.basename(filename)), 'w') as f:
-      for bkt_idx, idx in dataset._metabucket.data:
-        data = dataset._metabucket[bkt_idx].data[idx]
-        preds = all_predictions[bkt_idx][idx]
-        words = all_sents[bkt_idx][idx]
-        # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
-        # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
-        # sent[:, 8] = rel_preds[tokens]  # 7 = pred parse label
-        # sent[:, 9] = targets[tokens, 1]  # 8 = gold parse head
-        # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
-        for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-          n_tokens += 1
-          tup = (
-            i+1,
-            word,
-            self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
-            self.tags[pred[6]], # gold tag
-            str(pred[7]) if pred[7] != -1 else str(datum[4]),
-            self.rels[pred[8]] if pred[8] != -1 else self.rels[datum[5]],
-            str(pred[9]) if pred[9] != -1 else '_',
-            self.rels[pred[10]] if pred[10] != -1 else '_'
-          )
-          f.write('%s\t%s\t_\t%s\t%s\t_\t%s\t%s\t%s\t%s\n' % tup)
-        f.write('\n')
+    correct = {'UAS': 0., 'LAS': 0., 'parse_eval': '', 'F1': 0.}
+    if self.eval_parse:
+      print("Total time in prob_argmax: %f" % total_time)
+      print("Total time in forward: %f" % forward_total_time)
+      print("Not tree: %d" % not_tree_total)
+      print("Roots < 1: %d; Roots > 1: %d; 2-cycles: %d; n-cycles: %d" % (roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total))
+      # ID: Word index, integer starting at 1 for each new sentence; may be a range for multiword tokens; may be a decimal number for empty nodes.
+      # FORM: Word form or punctuation symbol.
+      # LEMMA: Lemma or stem of word form.
+      # UPOSTAG: Universal part-of-speech tag.
+      # XPOSTAG: Language-specific part-of-speech tag; underscore if not available.
+      # FEATS: List of morphological features from the universal feature inventory or from a defined language-specific extension; underscore if not available.
+      # HEAD: Head of the current word, which is either a value of ID or zero (0).
+      # DEPREL: Universal dependency relation to the HEAD (root iff HEAD = 0) or a defined language-specific subtype of one.
+      # DEPS: Enhanced dependency graph in the form of a list of head-deprel pairs.
+      # MISC: Any other annotation.
 
-    if self.eval_pos_only:
-      correct = {'UAS': 0., 'LAS': 0.}
-      overall_f1 = 0.
+      parse_gold_fname = self.gold_dev_parse_file if validate else self.gold_test_parse_file
 
-    else:
+      # write predicted parse
+      parse_pred_fname = os.path.join(self.save_dir, "parse_preds.tsv")
+      with open(parse_pred_fname, 'w') as f:
+        for bkt_idx, idx in dataset._metabucket.data:
+          data = dataset._metabucket[bkt_idx].data[idx]
+          preds = all_predictions[bkt_idx][idx]
+          words = all_sents[bkt_idx][idx]
+          # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
+          # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
+          # sent[:, 8] = rel_preds[tokens]  # 7 = pred parse label
+          # sent[:, 9] = targets[tokens, 1]  # 8 = gold parse head
+          # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
+          for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+            head = pred[7] + 1
+            tok_id = i + 1
+            tup = (
+              tok_id,  # id
+              word,  # form
+              self.tags[pred[6]],  # gold tag
+              # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+              str(head if head != tok_id else 0),  # pred head
+              self.rels[pred[8]] # pred label
+            )
+            f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
+          f.write('\n')
+
+      with open(os.devnull, 'w') as devnull:
+        try:
+          parse_eval = check_output(["perl", "bin/eval.pl", "-g", parse_gold_fname, "-s", parse_pred_fname], stderr=devnull)
+          short_str = parse_eval.split('\n')[:3]
+          print('\n'.join(short_str))
+          print('\n')
+          correct['parse_eval'] = parse_eval
+          correct['LAS'] = short_str[0].split()[9]
+          correct['UAS'] = short_str[1].split()[9]
+        except CalledProcessError as e:
+          print("Call to parse eval failed: %s" % e.output)
+
+      if self.eval_by_domain:
+        parse_gold_fname_path = '/'.join(parse_gold_fname.split('/')[:-1])
+        parse_gold_fname_end = parse_gold_fname.split('/')[-1]
+        for d in self._vocabs[5].keys():
+          if d not in self._vocabs[5].SPECIAL_TOKENS:
+            domain_gold_fname = os.path.join(parse_gold_fname_path, d + '_' + parse_gold_fname_end)
+            domain_fname = os.path.join(self.save_dir, '%s_parse_preds.tsv' % d)
+            with open(domain_fname, 'w') as f:
+              for bkt_idx, idx in dataset._metabucket.data:
+                data = dataset._metabucket[bkt_idx].data[idx]
+                preds = all_predictions[bkt_idx][idx]
+                words = all_sents[bkt_idx][idx]
+                domain = '-'
+                for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+                  domain = self._vocabs[5][pred[5]]
+                  head = pred[7] + 1
+                  tok_id = i + 1
+                  if domain == d:
+                    tup = (
+                      tok_id,  # id
+                      word,  # form
+                      self.tags[pred[6]],  # gold tag
+                      # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+                      str(head if head != tok_id else 0),  # pred head
+                      self.rels[pred[8]]  # pred label
+                    )
+                    f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
+                if domain == d:
+                  f.write('\n')
+            with open(os.devnull, 'w') as devnull:
+              try:
+                parse_eval_d = check_output(["perl", "bin/eval.pl", "-g", domain_gold_fname, "-s", domain_fname],
+                                          stderr=devnull)
+                short_str_d = map(lambda s: "%s %s" % (d, s), parse_eval_d.split('\n')[:3])
+                print('\n'.join(short_str_d))
+                print('\n')
+                # correct['parse_eval'] = parse_eval
+                # correct['LAS'] = short_str[0].split()[9]
+                # correct['UAS'] = short_str[1].split()[9]
+              except CalledProcessError as e:
+                print("Call to eval failed: %s" % e.output)
+
+    if self.eval_srl:
       # load the real gold preds file
       srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
 
       # save SRL gold output for debugging purposes
-      srl_gold_write_fname = os.path.join(self.save_dir, 'srl_golds.tsv')
-      with open(srl_gold_write_fname, 'w') as f:
-        for bkt_idx, idx in dataset._metabucket.data:
-          # for each word, if trigger print word, otherwise -
-          # then all the SRL labels
-          data = dataset._metabucket[bkt_idx].data[idx]
-          preds = all_predictions[bkt_idx][idx]
-          words = all_sents[bkt_idx][idx]
-          num_gold_srls = preds[0, 9]
-          num_pred_srls = preds[0, 10]
-          srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
-          srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-          # print(srl_preds_str)
-          for i, (datum, word) in enumerate(zip(data, words)):
-            pred = srl_preds_str[i] if srl_preds_str else []
-            word_str = word if np.any(["(V*" in p for p in pred]) else '-'
-            fields = (word_str,) + tuple(pred)
-            owpl_str = '\t'.join(fields)
-            f.write(owpl_str + "\n")
-          f.write('\n')
+      # srl_gold_write_fname = os.path.join(self.save_dir, 'srl_golds.tsv')
+      # with open(srl_gold_write_fname, 'w') as f:
+      #   for bkt_idx, idx in dataset._metabucket.data:
+      #     # for each word, if trigger print word, otherwise -
+      #     # then all the SRL labels
+      #     data = dataset._metabucket[bkt_idx].data[idx]
+      #     preds = all_predictions[bkt_idx][idx]
+      #     words = all_sents[bkt_idx][idx]
+      #     num_gold_srls = preds[0, 9]
+      #     num_pred_srls = preds[0, 10]
+      #     srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
+      #     srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+      #     # print(srl_preds_str)
+      #     for i, (datum, word) in enumerate(zip(data, words)):
+      #       pred = srl_preds_str[i] if srl_preds_str else []
+      #       word_str = word if np.any(["(V*" in p for p in pred]) else '-'
+      #       fields = (word_str,) + tuple(pred)
+      #       owpl_str = '\t'.join(fields)
+      #       f.write(owpl_str + "\n")
+      #     f.write('\n')
 
       # save SRL gold output for debugging purposes
       srl_sanity_fname = os.path.join(self.save_dir, 'srl_sanity.tsv')
@@ -526,21 +592,23 @@ class Network(Configurable):
           srl_golds = preds[:, 14+num_pred_srls:14+num_gold_srls+num_pred_srls]
           srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-          srl_golds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_golds)]))
+          # todo if you want golds in here get it from the props file
+          # srl_golds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_golds)]))
           # print(srl_golds_str)
           # print(srl_preds_str)
           for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
             domain = self._vocabs[5][pred[5]]
             orig_pred = srl_preds_str[i] if srl_preds_str else []
-            gold_pred = srl_golds_str[i] if srl_golds_str else []
+            # gold_pred = srl_golds_str[i] if srl_golds_str else []
             bio_pred = srl_preds_bio[i] if srl_preds_bio else []
             word_str = word
             tag0_str = self.tags[pred[6]] # gold tag
             tag1_str = self.tags[pred[8]] # auto tag
             tag2_str = self.tags[pred[11]] # predicted tag
-            gold_pred = word if np.any(["(V*" in p for p in gold_pred]) else '-'
+            # gold_pred = word if np.any(["(V*" in p for p in gold_pred]) else '-'
             pred_pred = word if np.any(["(V*" in p for p in orig_pred]) else '-'
-            fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (gold_pred,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
+            # fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (gold_pred,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
+            fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
             owpl_str = '\t'.join(fields)
             f.write(owpl_str + "\n")
           f.write('\n')
@@ -575,9 +643,9 @@ class Network(Configurable):
           srl_eval = check_output(["perl", "srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)
           print(srl_eval)
           overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
+          correct['F1'] = overall_f1
         except CalledProcessError as e:
           print("Call to eval failed: %s" % e.output)
-          overall_f1 = 0.
 
       if self.eval_by_domain:
         srl_gold_fname_path = '/'.join(srl_gold_fname.split('/')[:-1])
@@ -623,35 +691,35 @@ class Network(Configurable):
             print("SRL %s:" % d)
             print(str_d)
 
-      with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
-        s, correct = self.model.evaluate(os.path.join(self.save_dir, os.path.basename(filename)), punct=self.model.PUNCT)
-        f.write(s)
+      # with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
+      #   s, correct = self.model.evaluate(os.path.join(self.save_dir, os.path.basename(filename)), punct=self.model.PUNCT)
+      #   f.write(s)
 
-      if validate:
-        print("Attention UAS: ")
-        multitask_uas_str = ''
-        for k in sorted(attn_correct_counts):
-          attn_correct_counts[k] = attn_correct_counts[k] / n_tokens
-          multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k] * 100)
-        print(multitask_uas_str)
+    if validate and self.multitask_layers != "":
+      print("Attention UAS: ")
+      multitask_uas_str = ''
+      for k in sorted(attn_correct_counts):
+        # todo w/ w/o mask punct
+        attn_correct_counts[k] = attn_correct_counts[k] / n_tokens
+        multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k] * 100)
+      print(multitask_uas_str)
 
-        if self.save_attn_weights:
-          attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
-          np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
+      if self.save_attn_weights:
+        attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
+        np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
 
     pos_accuracy = (pos_correct_total/n_tokens)*100.0
-    correct['F1'] = overall_f1
     correct['POS'] = pos_accuracy
     # if validate:
     #   np.savez(os.path.join(self.save_dir, 'non_tree_preds.txt'), non_tree_preds_total)
     # print(non_tree_preds_total)
     # print(non_tree_preds_total, file=f)
-    las = np.mean(correct["LAS"]) * 100
-    uas = np.mean(correct["UAS"]) * 100
-    print('UAS: %.2f    LAS: %.2f' % (uas, las))
+    # las = np.mean(correct["LAS"]) * 100
+    # uas = np.mean(correct["UAS"]) * 100
+    print('UAS: %s    LAS: %s' % (correct["UAS"], correct["LAS"]))
     print('POS: %.2f' % pos_accuracy)
     print('SRL acc: %.2f' % ((srl_correct_total / srl_count_total)*100.0))
-    print('SRL F1: %.2f' % (overall_f1))
+    print('SRL F1: %s' % (correct["F1"]))
     return correct
   
   #=============================================================

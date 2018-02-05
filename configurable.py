@@ -147,6 +147,16 @@ class Configurable(object):
   def gold_test_props_file(self):
     return self._config.get('OS', 'gold_test_props_file')
   argparser.add_argument('--gold_test_props_file')
+
+  @property
+  def gold_dev_parse_file(self):
+    return self._config.get('OS', 'gold_dev_parse_file')
+  argparser.add_argument('--gold_dev_parse_file')
+
+  @property
+  def gold_test_parse_file(self):
+    return self._config.get('OS', 'gold_test_parse_file')
+  argparser.add_argument('--gold_test_parse_file')
   
   #=============================================================
   # [Dataset]
@@ -206,6 +216,11 @@ class Configurable(object):
   def joint_pos_predicates(self):
     return self._config.getboolean('Dataset', 'joint_pos_predicates')
   argparser.add_argument('--joint_pos_predicates')
+
+  @property
+  def train_domains(self):
+    return self._config.get('Dataset', 'train_domains')
+  argparser.add_argument('--train_domains')
   
   #=============================================================
   # [Layers]
@@ -642,9 +657,14 @@ class Configurable(object):
   argparser.add_argument('--parse_layer')
 
   @property
-  def eval_pos_only(self):
-    return self._config.getboolean('Training', 'eval_pos_only')
-  argparser.add_argument('--eval_pos_only')
+  def eval_parse(self):
+    return self._config.getboolean('Training', 'eval_parse')
+  argparser.add_argument('--eval_parse')
+
+  @property
+  def eval_srl(self):
+    return self._config.getboolean('Training', 'eval_srl')
+  argparser.add_argument('--eval_srl')
 
   @property
   def eval_by_domain(self):

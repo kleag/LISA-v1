@@ -39,14 +39,15 @@ class Dataset(Configurable):
     super(Dataset, self).__init__(*args, **kwargs)
     self.vocabs = vocabs
 
-    self.trigger_indices = [i for s, i in self.vocabs[3].iteritems() if self.trigger_str in s]
+    self.train_domains_set = set(self.train_domains.split(','))
+    if self.name == "Trainset":
+      print("Loading training data from domains:", self.train_domains_set)
 
     self._file_iterator = self.file_iterator(filename)
     self._train = (filename == self.train_file)
     self._metabucket = Metabucket(self._config, n_bkts=self.n_bkts)
     self._data = None
     self.rebucket()
-
 
     self.inputs = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')
     self.targets = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='targets')
@@ -63,7 +64,7 @@ class Dataset(Configurable):
           line = f.readline()
           while line:
             line = line.strip().split()
-            if line:
+            if line and (self.name != "Trainset" or line[0].split('/')[0] in self.train_domains):
               buff[-1].append(line)
             else:
               if len(buff) < self.lines_per_buffer:
@@ -88,7 +89,7 @@ class Dataset(Configurable):
         buff = [[]]
         for line in f:
           line = line.strip().split()
-          if line:
+          if line and (self.name != "Trainset" or line[0].split('/')[0] in self.train_domains):
             buff[-1].append(line)
           else:
             if len(buff[-1]) > 0:

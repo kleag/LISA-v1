@@ -50,6 +50,8 @@ class Vocab(Configurable):
     self._use_pretrained = kwargs.pop('use_pretrained', False)
     super(Vocab, self).__init__(*args, **kwargs)
 
+    self.train_domains_set = set(self.train_domains.split(','))
+
     self._embed_size = self.embed_size if self.name != 'Trigs' else self.trig_embed_size
 
     self.SPECIAL_TOKENS = ('<PAD>', '<UNK>') #, '<ROOT>', '<UNK>')
@@ -179,7 +181,7 @@ class Vocab(Configurable):
       for line_num, line in enumerate(f):
         line = line.strip().split()
         # print(line)
-        if line:
+        if line and line[0].split('/')[0] in self.train_domains_set:
           if self.conll and len(line) == 10:
             if hasattr(self.conll_idx, '__iter__'):
               for idx in self.conll_idx:
@@ -209,26 +211,26 @@ class Vocab(Configurable):
           else:
             print('The training file is misformatted at line %d (had %d columns, expected %d)' % (line_num+1, len(line), 13))
 
-      # add all the labels
-      if self.name == "SRLs":
-        with open(self.valid_file, 'r') as f:
-          for line_num, line in enumerate(f):
-            line = line.strip().split()
-            if line:
-              if hasattr(self.conll_idx, '__iter__'):
-                for idx in self.conll_idx:
-                  if idx < len(line)-1 and (self.train_on_nested or '/' not in line[idx]):
-                    # print("adding ", line[idx])
-                    self.add(counts, line[idx])
-        with open(self.test_file, 'r') as f:
-          for line_num, line in enumerate(f):
-            line = line.strip().split()
-            if line:
-              if hasattr(self.conll_idx, '__iter__'):
-                for idx in self.conll_idx:
-                  if idx < len(line)-1 and (self.train_on_nested or '/' not in line[idx]):
-                    # print("adding ", line[idx])
-                    self.add(counts, line[idx])
+      # # add all the labels
+      # if self.name == "SRLs":
+      #   with open(self.valid_file, 'r') as f:
+      #     for line_num, line in enumerate(f):
+      #       line = line.strip().split()
+      #       if line:
+      #         if hasattr(self.conll_idx, '__iter__'):
+      #           for idx in self.conll_idx:
+      #             if idx < len(line)-1 and (self.train_on_nested or '/' not in line[idx]):
+      #               # print("adding ", line[idx])
+      #               self.add(counts, line[idx])
+      #   with open(self.test_file, 'r') as f:
+      #     for line_num, line in enumerate(f):
+      #       line = line.strip().split()
+      #       if line:
+      #         if hasattr(self.conll_idx, '__iter__'):
+      #           for idx in self.conll_idx:
+      #             if idx < len(line)-1 and (self.train_on_nested or '/' not in line[idx]):
+      #               # print("adding ", line[idx])
+      #               self.add(counts, line[idx])
 
 
     self._counts = counts

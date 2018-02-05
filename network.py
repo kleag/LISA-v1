@@ -672,7 +672,7 @@ class Network(Configurable):
     print('UAS: %s    LAS: %s' % (correct["UAS"], correct["LAS"]))
     print('POS: %.2f' % pos_accuracy)
     print('SRL acc: %.2f' % ((srl_correct_total / srl_count_total)*100.0))
-    print('SRL F1: %.s' % (correct["F1"]))
+    print('SRL F1: %s' % (correct["F1"]))
     return correct
   
   #=============================================================

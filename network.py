@@ -521,13 +521,15 @@ class Network(Configurable):
                 domain = '-'
                 for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
                   domain = self._vocabs[5][pred[5]]
+                  head = pred[7] + 1
+                  tok_id = i + 1
                   if domain == d:
                     tup = (
-                      i + 1,  # id
+                      tok_id,  # id
                       word,  # form
                       self.tags[pred[6]],  # gold tag
                       # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
-                      str(pred[7]),  # pred head # todo maybe need to change to 0 for root
+                      str(head if head != tok_id else 0),  # pred head # todo maybe need to change to 0 for root
                       self.rels[pred[8]]  # pred label
                     )
                     f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)

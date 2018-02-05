@@ -459,8 +459,7 @@ class Network(Configurable):
       print("Total time in prob_argmax: %f" % total_time)
       print("Total time in forward: %f" % forward_total_time)
       print("Not tree: %d" % not_tree_total)
-      print("Roots < 1: %d; Roots > 1: %d; 2-cycles: %d; n-cycles: %d" % (
-      roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total))
+      print("Roots < 1: %d; Roots > 1: %d; 2-cycles: %d; n-cycles: %d" % (roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total))
       # ID: Word index, integer starting at 1 for each new sentence; may be a range for multiword tokens; may be a decimal number for empty nodes.
       # FORM: Word form or punctuation symbol.
       # LEMMA: Lemma or stem of word form.
@@ -472,8 +471,7 @@ class Network(Configurable):
       # DEPS: Enhanced dependency graph in the form of a list of head-deprel pairs.
       # MISC: Any other annotation.
 
-      parse_gold_fname = self.valid_file if validate else self.test_file
-
+      parse_gold_fname = self.gold_dev_parse_file if validate else self.gold_test_parse_file
 
       # write predicted parse
       parse_pred_fname = os.path.join(self.save_dir, "parse_preds.tsv")
@@ -504,7 +502,7 @@ class Network(Configurable):
           print(parse_eval)
           overall_f1 = float(parse_eval.split('\n')[6].split()[-1])
         except CalledProcessError as e:
-          print("Call to eval failed: %s" % e.output)
+          print("Call to parse eval failed: %s" % e.output)
           overall_f1 = 0.
 
     if self.eval_srl:

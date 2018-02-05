@@ -147,6 +147,16 @@ class Configurable(object):
   def gold_test_props_file(self):
     return self._config.get('OS', 'gold_test_props_file')
   argparser.add_argument('--gold_test_props_file')
+
+  @property
+  def gold_dev_parse_file(self):
+    return self._config.get('OS', 'gold_dev_parse_file')
+  argparser.add_argument('--gold_dev_parse_file')
+
+  @property
+  def gold_test_parse_file(self):
+    return self._config.get('OS', 'gold_test_parse_file')
+  argparser.add_argument('--gold_test_parse_file')
   
   #=============================================================
   # [Dataset]

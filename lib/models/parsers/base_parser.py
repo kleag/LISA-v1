@@ -88,9 +88,11 @@ class BaseParser(NN):
     # print("srl_preds", srl_preds.shape, srl_preds)
     # print("srl_trigger", srl_triggers.shape, srl_triggers)
     srl_pred_idx = 0
+    n_tokens = 0.
     for inputs, targets, parse_probs, rel_probs, n_cycle, len_2_cycle, srl_trigger, srl_trigger_target, pos_pred in zip(mb_inputs, mb_targets, mb_parse_probs, mb_rel_probs, n_cycles, len_2_cycles, srl_triggers, srl_trigger_targets, pos_preds):
       tokens_to_keep = np.greater(inputs[:,0], Vocab.ROOT)
       length = np.sum(tokens_to_keep)
+      n_tokens += length
       parse_preds, rel_preds, argmax_time, roots_lt, roots_gt = self.prob_argmax(parse_probs, rel_probs, tokens_to_keep, n_cycle, len_2_cycle)
       total_time += argmax_time
       roots_lt_total += roots_lt
@@ -177,7 +179,7 @@ class BaseParser(NN):
         s_pred = np.expand_dims(s_pred, -1)
       sent[:,14+num_pred_srls+num_gold_srls:] = s_pred
       sents.append(sent)
-    return sents, total_time, roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total, non_trees_total, non_tree_preds
+    return sents, total_time, roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total, non_trees_total, non_tree_preds, n_tokens
   
   #=============================================================
   @staticmethod

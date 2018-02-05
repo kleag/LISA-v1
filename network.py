@@ -420,13 +420,15 @@ class Network(Configurable):
     attention_weights = {}
     attn_correct_counts = {}
     pos_correct_total = 0.
+    n_tokens = 0.
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
       forward_start = time.time()
       probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_trigger, srl_trigger_targets, transition_params, attn_weights, attn_correct, pos_correct, pos_preds = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
-      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_trigger, srl_trigger_targets, pos_preds, transition_params)
+      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_trigger, srl_trigger_targets, pos_preds, transition_params)
+      n_tokens += n_tokens_batch
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
       for k, v in attn_correct.iteritems():
@@ -451,41 +453,61 @@ class Network(Configurable):
           all_predictions.append([])
           all_sents.append([])
 
-    print("Total time in prob_argmax: %f" % total_time)
-    print("Total time in forward: %f" % forward_total_time)
-    print("Not tree: %d" % not_tree_total)
-    print("Roots < 1: %d; Roots > 1: %d; 2-cycles: %d; n-cycles: %d" % (roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total))
-    n_tokens = 0
-    with open(os.path.join(self.save_dir, os.path.basename(filename)), 'w') as f:
-      for bkt_idx, idx in dataset._metabucket.data:
-        data = dataset._metabucket[bkt_idx].data[idx]
-        preds = all_predictions[bkt_idx][idx]
-        words = all_sents[bkt_idx][idx]
-        # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
-        # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
-        # sent[:, 8] = rel_preds[tokens]  # 7 = pred parse label
-        # sent[:, 9] = targets[tokens, 1]  # 8 = gold parse head
-        # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
-        for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-          n_tokens += 1
-          tup = (
-            i+1,
-            word,
-            self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
-            self.tags[pred[6]], # gold tag
-            str(pred[7]) if pred[7] != -1 else str(datum[4]),
-            self.rels[pred[8]] if pred[8] != -1 else self.rels[datum[5]],
-            str(pred[9]) if pred[9] != -1 else '_',
-            self.rels[pred[10]] if pred[10] != -1 else '_'
-          )
-          f.write('%s\t%s\t_\t%s\t%s\t_\t%s\t%s\t%s\t%s\n' % tup)
-        f.write('\n')
+    correct = {'UAS': 0., 'LAS': 0.}
+    overall_f1 = 0.
+    if self.eval_parse:
+      print("Total time in prob_argmax: %f" % total_time)
+      print("Total time in forward: %f" % forward_total_time)
+      print("Not tree: %d" % not_tree_total)
+      print("Roots < 1: %d; Roots > 1: %d; 2-cycles: %d; n-cycles: %d" % (
+      roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total))
+      # ID: Word index, integer starting at 1 for each new sentence; may be a range for multiword tokens; may be a decimal number for empty nodes.
+      # FORM: Word form or punctuation symbol.
+      # LEMMA: Lemma or stem of word form.
+      # UPOSTAG: Universal part-of-speech tag.
+      # XPOSTAG: Language-specific part-of-speech tag; underscore if not available.
+      # FEATS: List of morphological features from the universal feature inventory or from a defined language-specific extension; underscore if not available.
+      # HEAD: Head of the current word, which is either a value of ID or zero (0).
+      # DEPREL: Universal dependency relation to the HEAD (root iff HEAD = 0) or a defined language-specific subtype of one.
+      # DEPS: Enhanced dependency graph in the form of a list of head-deprel pairs.
+      # MISC: Any other annotation.
 
-    if self.eval_pos_only:
-      correct = {'UAS': 0., 'LAS': 0.}
-      overall_f1 = 0.
+      parse_gold_fname = self.valid_file if validate else self.test_file
 
-    else:
+
+      # write predicted parse
+      parse_pred_fname = os.path.join(self.save_dir, "parse_preds.tsv")
+      with open(parse_pred_fname, 'w') as f:
+        for bkt_idx, idx in dataset._metabucket.data:
+          data = dataset._metabucket[bkt_idx].data[idx]
+          preds = all_predictions[bkt_idx][idx]
+          words = all_sents[bkt_idx][idx]
+          # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
+          # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
+          # sent[:, 8] = rel_preds[tokens]  # 7 = pred parse label
+          # sent[:, 9] = targets[tokens, 1]  # 8 = gold parse head
+          # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
+          for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+            tup = (
+              i + 1,  # id
+              word,  # form
+              self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+              str(pred[7]), # pred head # todo maybe need to change to 0 for root
+              self.rels[pred[8]] # pred label
+            )
+            f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
+          f.write('\n')
+
+      with open(os.devnull, 'w') as devnull:
+        try:
+          parse_eval = check_output(["perl", "bin/eval.pl", "-g", parse_gold_fname, "-s", parse_pred_fname], stderr=devnull)
+          print(parse_eval)
+          overall_f1 = float(parse_eval.split('\n')[6].split()[-1])
+        except CalledProcessError as e:
+          print("Call to eval failed: %s" % e.output)
+          overall_f1 = 0.
+
+    if self.eval_srl:
       # load the real gold preds file
       srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
 
@@ -623,21 +645,22 @@ class Network(Configurable):
             print("SRL %s:" % d)
             print(str_d)
 
-      with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
-        s, correct = self.model.evaluate(os.path.join(self.save_dir, os.path.basename(filename)), punct=self.model.PUNCT)
-        f.write(s)
+      # with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
+      #   s, correct = self.model.evaluate(os.path.join(self.save_dir, os.path.basename(filename)), punct=self.model.PUNCT)
+      #   f.write(s)
 
-      if validate:
-        print("Attention UAS: ")
-        multitask_uas_str = ''
-        for k in sorted(attn_correct_counts):
-          attn_correct_counts[k] = attn_correct_counts[k] / n_tokens
-          multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k] * 100)
-        print(multitask_uas_str)
+    if validate and self.multitask_layers != "":
+      print("Attention UAS: ")
+      multitask_uas_str = ''
+      for k in sorted(attn_correct_counts):
+        # todo w/ w/o mask punct
+        attn_correct_counts[k] = attn_correct_counts[k] / n_tokens
+        multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k] * 100)
+      print(multitask_uas_str)
 
-        if self.save_attn_weights:
-          attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
-          np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
+      if self.save_attn_weights:
+        attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
+        np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
 
     pos_accuracy = (pos_correct_total/n_tokens)*100.0
     correct['F1'] = overall_f1

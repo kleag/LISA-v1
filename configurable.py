@@ -642,9 +642,14 @@ class Configurable(object):
   argparser.add_argument('--parse_layer')
 
   @property
-  def eval_pos_only(self):
-    return self._config.getboolean('Training', 'eval_pos_only')
-  argparser.add_argument('--eval_pos_only')
+  def eval_parse(self):
+    return self._config.getboolean('Training', 'eval_parse')
+  argparser.add_argument('--eval_parse')
+
+  @property
+  def eval_srl(self):
+    return self._config.getboolean('Training', 'eval_srl')
+  argparser.add_argument('--eval_srl')
 
   @property
   def eval_by_domain(self):

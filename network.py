@@ -461,6 +461,10 @@ class Network(Configurable):
         data = dataset._metabucket[bkt_idx].data[idx]
         preds = all_predictions[bkt_idx][idx]
         words = all_sents[bkt_idx][idx]
+        # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
+        # sent[:, 8] = rel_preds[tokens]  # 7 = pred parse label
+        # sent[:, 9] = targets[tokens, 1]  # 8 = gold parse head
+        # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
         for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
           n_tokens += 1
           tup = (
@@ -468,10 +472,10 @@ class Network(Configurable):
             word,
             self.tags[pred[3]] if pred[3] != -1 else self.tags[datum[2]],
             self.tags[pred[4]] if pred[4] != -1 else self.tags[datum[3]],
-            str(pred[5]) if pred[5] != -1 else str(datum[4]),
-            self.rels[pred[6]] if pred[6] != -1 else self.rels[datum[5]],
-            str(pred[7]) if pred[7] != -1 else '_',
-            self.rels[pred[8]] if pred[8] != -1 else '_'
+            str(pred[7]) if pred[7] != -1 else str(datum[4]),
+            self.rels[pred[8]] if pred[8] != -1 else self.rels[datum[5]],
+            str(pred[9]) if pred[9] != -1 else '_',
+            self.rels[pred[10]] if pred[10] != -1 else '_'
           )
           f.write('%s\t%s\t_\t%s\t%s\t_\t%s\t%s\t%s\t%s\n' % tup)
         f.write('\n')

@@ -52,17 +52,17 @@ class Vocab(Configurable):
 
     self._embed_size = self.embed_size if self.name != 'Trigs' else self.trig_embed_size
 
-    self.SPECIAL_TOKENS = ('<PAD>', '<ROOT>', '<UNK>')
+    self.SPECIAL_TOKENS = ('<PAD>', '<UNK>') #, '<ROOT>', '<UNK>')
 
     if cased is None:
       self._cased = super(Vocab, self).cased
     else:
       self._cased = cased
     if self.name == 'Tags':
-      self.SPECIAL_TOKENS = ('PAD', 'ROOT')
+      self.SPECIAL_TOKENS = ('PAD') #, 'ROOT')
       # self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
     elif self.name == 'Rels':
-      self.SPECIAL_TOKENS = ('pad', self.root_label)
+      self.SPECIAL_TOKENS = ('pad') #, self.root_label)
       # self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
     elif self.name == 'Trigs':
       self.SPECIAL_TOKENS = ()

@@ -29,10 +29,10 @@ class Parser(BaseParser):
     inputs = dataset.inputs
     targets = dataset.targets
 
-    num_pred_classes = len(vocabs[4])
-    num_srl_classes = len(vocabs[3])
-    num_rel_classes = len(vocabs[2])
     num_pos_classes = len(vocabs[1])
+    num_rel_classes = len(vocabs[2])
+    num_srl_classes = len(vocabs[3])
+    num_pred_classes = len(vocabs[4])
 
     # need to add batch dim for batch size 1
     # inputs = tf.Print(inputs, [tf.shape(inputs), tf.shape(targets)], summarize=10)
@@ -345,7 +345,7 @@ class Parser(BaseParser):
 
     def get_parse_rel_logits():
       with tf.variable_scope('Rels', reuse=reuse):
-        rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, len(vocabs[2]), predictions)
+        rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, num_rel_classes, predictions)
       return rel_logits, rel_logits_cond
 
     rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
@@ -472,18 +472,18 @@ class Parser(BaseParser):
         srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
         srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, trigger_predictions)
         return srl_output
+    srl_targets = targets[:, :, 3:]
     if self.role_loss_penalty == 0:
       # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(trigger_targets_binary, 1)), tf.int32))
       srl_output = {
         'loss': tf.constant(0.),
         'probabilities':  tf.constant(0.), # tf.zeros([num_triggers, bucket_size, num_srl_classes]),
-        'predictions': tf.reshape(tf.transpose(targets[:,:,3:], [0, 2, 1]), [-1, bucket_size]), # tf.zeros([num_triggers, bucket_size]),
+        'predictions': tf.reshape(tf.transpose(srl_targets, [0, 2, 1]), [-1, bucket_size]), # tf.zeros([num_triggers, bucket_size]),
         'logits':  tf.constant(0.), # tf.zeros([num_triggers, bucket_size, num_srl_classes]),
         'correct':  tf.constant(0.),
         'count':  tf.constant(0.)
       }
     else:
-      srl_targets = targets[:, :, 3:]
       srl_output = compute_srl(srl_targets)
 
     trigger_loss = self.trigger_loss_penalty * trigger_output['loss']

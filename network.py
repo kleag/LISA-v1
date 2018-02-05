@@ -570,7 +570,7 @@ class Network(Configurable):
           f.write('\n')
 
       if self.eval_by_domain:
-        srl_gold_fname_path = srl_gold_fname.split('/')[:-1].join('/')
+        srl_gold_fname_path = '/'.join(srl_gold_fname.split('/')[:-1])
         srl_gold_fname_end = srl_gold_fname.split('/')[-1]
         for d in self._vocabs[5].keys():
           if d not in self._vocabs[5].SPECIAL_TOKENS:

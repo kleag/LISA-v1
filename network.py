@@ -287,10 +287,7 @@ class Network(Configurable):
             # las = np.mean(correct["LAS"]) * 100
             # uas = np.mean(correct["UAS"]) * 100
             # print('UAS: %.2f    LAS: %.2f' % (uas, las))
-            if self.eval_criterion == 'LAS' or self.eval_criterion == 'UAS':
-              current_score = np.mean(correct[self.eval_criterion]) * 100
-            else:
-              current_score = correct[self.eval_criterion]
+            current_score = correct[self.eval_criterion]
             if self.save and current_score > current_best:
               current_best = current_score
               print("Writing model to %s" % (os.path.join(self.save_dir, self.name.lower() + '-trained')))
@@ -298,6 +295,8 @@ class Network(Configurable):
                          latest_filename=self.name.lower(),
                          global_step=self.global_epoch,
                          write_meta_graph=False)
+              with open(os.path.join(self.save_dir, "parse_results.txt"), 'w') as parse_results_f:
+                print(correct['parse_eval'], file=parse_results_f)
             # with open(os.path.join(self.save_dir, 'history.pkl'), 'w') as f:
             #   pkl.dump(self.history, f)
             # self.test(sess, validate=True)
@@ -453,8 +452,7 @@ class Network(Configurable):
           all_predictions.append([])
           all_sents.append([])
 
-    correct = {'UAS': 0., 'LAS': 0.}
-    overall_f1 = 0.
+    correct = {'UAS': 0., 'LAS': 0., 'parse_eval': '', 'F1': 0.}
     if self.eval_parse:
       print("Total time in prob_argmax: %f" % total_time)
       print("Total time in forward: %f" % forward_total_time)
@@ -500,11 +498,13 @@ class Network(Configurable):
       with open(os.devnull, 'w') as devnull:
         try:
           parse_eval = check_output(["perl", "bin/eval.pl", "-g", parse_gold_fname, "-s", parse_pred_fname], stderr=devnull)
-          print(parse_eval)
-          overall_f1 = float(parse_eval.split('\n')[6].split()[-1])
+          short_str = parse_eval.split('\n')[:3]
+          print(short_str)
+          correct['parse_eval'] = parse_eval
+          correct['LAS'] = short_str[0].split()[9]
+          correct['UAS'] = short_str[1].split()[9]
         except CalledProcessError as e:
           print("Call to parse eval failed: %s" % e.output)
-          overall_f1 = 0.
 
     if self.eval_srl:
       # load the real gold preds file
@@ -596,9 +596,9 @@ class Network(Configurable):
           srl_eval = check_output(["perl", "srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)
           print(srl_eval)
           overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
+          correct['F1'] = overall_f1
         except CalledProcessError as e:
           print("Call to eval failed: %s" % e.output)
-          overall_f1 = 0.
 
       if self.eval_by_domain:
         srl_gold_fname_path = '/'.join(srl_gold_fname.split('/')[:-1])
@@ -662,18 +662,17 @@ class Network(Configurable):
         np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
 
     pos_accuracy = (pos_correct_total/n_tokens)*100.0
-    correct['F1'] = overall_f1
     correct['POS'] = pos_accuracy
     # if validate:
     #   np.savez(os.path.join(self.save_dir, 'non_tree_preds.txt'), non_tree_preds_total)
     # print(non_tree_preds_total)
     # print(non_tree_preds_total, file=f)
-    las = np.mean(correct["LAS"]) * 100
-    uas = np.mean(correct["UAS"]) * 100
-    print('UAS: %.2f    LAS: %.2f' % (uas, las))
+    # las = np.mean(correct["LAS"]) * 100
+    # uas = np.mean(correct["UAS"]) * 100
+    print('UAS: %s    LAS: %s' % (correct["UAS"], correct["LAS"]))
     print('POS: %.2f' % pos_accuracy)
     print('SRL acc: %.2f' % ((srl_correct_total / srl_count_total)*100.0))
-    print('SRL F1: %.2f' % (overall_f1))
+    print('SRL F1: %.s' % (correct["F1"]))
     return correct
   
   #=============================================================

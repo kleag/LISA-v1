@@ -111,7 +111,7 @@ class BaseParser(NN):
       num_pred_srls = len(pred_trigger_indices)
 
       # num_triggers x seq_len
-      print(srl_preds)
+      # print(srl_preds)
       srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
       srl_pred_idx += num_pred_srls
 
@@ -150,7 +150,7 @@ class BaseParser(NN):
       # print("targets", targets)
       # print("tokens", tokens)
       sent[:,0] = tokens # 1 = index
-      sent[:,1:6] = inputs[tokens,:-1] # 2,3,4,5,6 inputs[0, 1, 2, 3, 4] = word, word, auto_tag, predicate t/f, domain
+      sent[:,1:6] = inputs[tokens,:] # 2,3,4,5,6 inputs[0, 1, 2, 3, 4] = word, word, auto_tag, predicate t/f, domain
       sent[:,6] = targets[tokens, 0] # 5 targets[0] = gold_tag
       sent[:,7] = parse_preds[tokens] # 6 = pred parse head
       sent[:,8] = rel_preds[tokens] # 7 = pred parse label

@@ -205,6 +205,7 @@ class Parser(BaseParser):
             top_recur = nn.add_timing_signal_1d(top_recur)
             for i in range(self.n_recur):
               with tf.variable_scope('layer%d' % i, reuse=reuse):
+                manual_attn = None
                 if self.inject_manual_attn and moving_params is None:
                   if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                     manual_attn = adj

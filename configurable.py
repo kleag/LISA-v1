@@ -219,7 +219,7 @@ class Configurable(object):
 
   @property
   def train_domains(self):
-    return self._config.getboolean('Dataset', 'train_domains')
+    return self._config.get('Dataset', 'train_domains')
   argparser.add_argument('--train_domains')
   
   #=============================================================

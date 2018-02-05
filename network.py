@@ -577,7 +577,7 @@ class Network(Configurable):
         except CalledProcessError as e:
           print("Call to eval failed: %s" % e.output)
           overall_f1 = 0.
-          
+
       if self.eval_by_domain:
         srl_gold_fname_path = '/'.join(srl_gold_fname.split('/')[:-1])
         srl_gold_fname_end = srl_gold_fname.split('/')[-1]

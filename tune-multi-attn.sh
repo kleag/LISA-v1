@@ -99,7 +99,7 @@ for lr in ${lrs[@]}; do
                                                                             --role_mlp_size $role_mlp_size \
                                                                             --trigger_layer $trigger_layer \
                                                                             --add_pos_to_input $add_pos \
-                                                                            --joint_predicate_pos $joint \
+                                                                            --joint_pos_predicates $joint \
                                                                             --subsample_trigger_rate 1.0 \
                                                                             --eval_by_domain True \
                                                                             --save False \

@@ -499,7 +499,7 @@ class Network(Configurable):
         try:
           parse_eval = check_output(["perl", "bin/eval.pl", "-g", parse_gold_fname, "-s", parse_pred_fname], stderr=devnull)
           short_str = parse_eval.split('\n')[:3]
-          print(short_str)
+          print('\n'.join(short_str))
           correct['parse_eval'] = parse_eval
           correct['LAS'] = short_str[0].split()[9]
           correct['UAS'] = short_str[1].split()[9]

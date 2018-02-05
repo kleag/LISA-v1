@@ -396,7 +396,10 @@ class Vocab(Configurable):
         return (self._str2idx.get(key, self.UNK),)
     elif isinstance(key, (int, long, np.int32, np.int64)):
       if key not in self._idx2str:
-        print("idx %d not in vocab %s" % (key, self.name))
+        if self.name != "Words":
+          raise ValueError("idx %d not in vocab %s" % (key, self.name))
+        else:
+          print("idx %d not in vocab %s" % (key, self.name))
       return self._idx2str.get(key, self.UNK)
     elif hasattr(key, '__iter__'):
       return tuple(self[k] for k in key)

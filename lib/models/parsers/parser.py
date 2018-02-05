@@ -24,7 +24,8 @@ class Parser(BaseParser):
 
     self.multi_penalties = {k: float(v) for k, v in map(lambda s: s.split(':'), self.multitask_penalties.split(';'))} if self.multitask_penalties else {}
     self.multi_layers = {k: set(map(int, v.split(','))) for k, v in map(lambda s: s.split(':'), self.multitask_layers.split(';'))} if self.multitask_layers else {}
-    
+
+    # todo use variables for vocabs this indexing is stupid
     vocabs = dataset.vocabs
     inputs = dataset.inputs
     targets = dataset.targets

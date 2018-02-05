@@ -570,8 +570,9 @@ class Network(Configurable):
           f.write('\n')
 
       if self.eval_by_domain:
-        for d in self._vocabs[4].keys():
-          with open(d + "_" + srl_preds_fname, 'w') as f:
+        for d in self._vocabs[5].keys():
+          domain_fname = os.path.join(self.save_dir, '%s_srl_preds.tsv' % d)
+          with open(domain_fname, 'w') as f:
             for bkt_idx, idx in dataset._metabucket.data:
               # for each word, if trigger print word, otherwise -
               # then all the SRL labels
@@ -585,7 +586,7 @@ class Network(Configurable):
               srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
               domain = '-'
               for i, (datum, word, p) in enumerate(zip(data, words, preds)):
-                domain = self._vocabs[4](p[5])
+                domain = self._vocabs[5](p[5])
                 if domain == d:
                   pred = srl_preds_str[i] if srl_preds_str else []
                   word_str = word if i in trigger_indices else '-'

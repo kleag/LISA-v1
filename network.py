@@ -489,7 +489,8 @@ class Network(Configurable):
             tup = (
               i + 1,  # id
               word,  # form
-              self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+              self.tags[pred[6]], # gold tag
+              # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
               str(pred[7]), # pred head # todo maybe need to change to 0 for root
               self.rels[pred[8]] # pred label
             )

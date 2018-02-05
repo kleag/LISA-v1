@@ -101,6 +101,7 @@ for lr in ${lrs[@]}; do
                                                                             --add_pos_to_input $add_pos \
                                                                             --joint_predicate_pos $joint \
                                                                             --subsample_trigger_rate 1.0 \
+                                                                            --eval_by_domain True \
                                                                             --save False \
                                                                             &> $OUT_LOG/train-$fname_append.log")
                                                                             i=$((i + 1))

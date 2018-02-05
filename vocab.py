@@ -201,6 +201,9 @@ class Vocab(Configurable):
               if self.name == "Trigs":
                 actual = "False" if line[self.conll_idx] == '-' else "True"
                 self.add(counts, actual)
+              elif self.name == "Domains":
+                actual = line[self.conll_idx].split('/')[0]
+                self.add(counts, actual)
               else:
                 self.add(counts, line[self.conll_idx])
           else:

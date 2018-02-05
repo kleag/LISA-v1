@@ -506,6 +506,41 @@ class Network(Configurable):
         except CalledProcessError as e:
           print("Call to parse eval failed: %s" % e.output)
 
+      if self.eval_by_domain:
+        parse_gold_fname_path = '/'.join(parse_gold_fname.split('/')[:-1])
+        parse_gold_fname_end = parse_gold_fname.split('/')[-1]
+        for d in self._vocabs[5].keys():
+          if d not in self._vocabs[5].SPECIAL_TOKENS:
+            domain_gold_fname = os.path.join(parse_gold_fname_path, d + '_' + parse_gold_fname_end)
+            domain_fname = os.path.join(self.save_dir, '%s_parse_preds.tsv' % d)
+            with open(domain_fname, 'w') as f:
+              for bkt_idx, idx in dataset._metabucket.data:
+                data = dataset._metabucket[bkt_idx].data[idx]
+                preds = all_predictions[bkt_idx][idx]
+                words = all_sents[bkt_idx][idx]
+                for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+                  tup = (
+                    i + 1,  # id
+                    word,  # form
+                    self.tags[pred[6]],  # gold tag
+                    # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+                    str(pred[7]),  # pred head # todo maybe need to change to 0 for root
+                    self.rels[pred[8]]  # pred label
+                  )
+                  f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
+                f.write('\n')
+            with open(os.devnull, 'w') as devnull:
+              try:
+                parse_eval_d = check_output(["perl", "bin/eval.pl", "-g", domain_gold_fname, "-s", domain_fname],
+                                          stderr=devnull)
+                short_str_d = parse_eval_d.split('\n')[:3]
+                print('\n'.join(short_str_d))
+                # correct['parse_eval'] = parse_eval
+                # correct['LAS'] = short_str[0].split()[9]
+                # correct['UAS'] = short_str[1].split()[9]
+              except CalledProcessError as e:
+                print("Call to eval failed: %s" % e.output)
+
     if self.eval_srl:
       # load the real gold preds file
       srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file

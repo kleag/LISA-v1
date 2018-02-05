@@ -30,7 +30,7 @@ relu_hidden_sizes="256"
 
 parents_penalties="1.0 0.1 0.01"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:0 parents:1 parents:2 parents:3 none"
+parents_layers="parents:0 parents:1 parents:2 parents:3 no"
 #grandparents_layers="grandparents:1 grandparents:3 grandparents:1,3"
 
 trigger_mlp_sizes="256"
@@ -72,7 +72,8 @@ for lr in ${lrs[@]}; do
                                                                             if [[ $((i % 4)) == 0 ]]; then
                                                                                 partition="m40-long"
                                                                             fi
-                                                                            if [[ "$parents_layer" == "none" ]]; then
+                                                                            orig_parents_layer=$parents_layer
+                                                                            if [[ "$parents_layer" == "no" ]]; then
                                                                                 parents_layer=""
                                                                             fi
                                                                             commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G --time=24:00:00 python network.py  \
@@ -105,6 +106,7 @@ for lr in ${lrs[@]}; do
                                                                             --save False \
                                                                             &> $OUT_LOG/train-$fname_append.log")
                                                                             i=$((i + 1))
+                                                                            parents_layer=$orig_parents_layer
                                                                         done
                                                                     done
                                                                 done

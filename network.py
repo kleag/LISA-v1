@@ -569,6 +569,15 @@ class Network(Configurable):
             print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
           f.write('\n')
 
+      with open(os.devnull, 'w') as devnull:
+        try:
+          srl_eval = check_output(["perl", "srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)
+          print(srl_eval)
+          overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
+        except CalledProcessError as e:
+          print("Call to eval failed: %s" % e.output)
+          overall_f1 = 0.
+          
       if self.eval_by_domain:
         srl_gold_fname_path = '/'.join(srl_gold_fname.split('/')[:-1])
         srl_gold_fname_end = srl_gold_fname.split('/')[-1]
@@ -612,16 +621,6 @@ class Network(Configurable):
                 str_d = ""
             print("SRL %s:" % d)
             print(str_d)
-
-
-      with open(os.devnull, 'w') as devnull:
-        try:
-          srl_eval = check_output(["perl", "srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)
-          print(srl_eval)
-          overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
-        except CalledProcessError as e:
-          print("Call to eval failed: %s" % e.output)
-          overall_f1 = 0.
 
       with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
         s, correct = self.model.evaluate(os.path.join(self.save_dir, os.path.basename(filename)), punct=self.model.PUNCT)

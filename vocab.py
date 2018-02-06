@@ -50,7 +50,7 @@ class Vocab(Configurable):
     self._use_pretrained = kwargs.pop('use_pretrained', False)
     super(Vocab, self).__init__(*args, **kwargs)
 
-    self.train_domains_set = set(self.train_domains.split(',')) if self.train_domains != '-' else set()
+    self.train_domains_set = set(self.train_domains.split(',')) if self.train_domains != '-' and self.name != "Domains" else set()
 
     self._embed_size = self.embed_size if self.name != 'Trigs' else self.trig_embed_size
 

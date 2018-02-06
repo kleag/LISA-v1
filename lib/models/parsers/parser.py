@@ -206,7 +206,7 @@ class Parser(BaseParser):
             for i in range(self.n_recur):
               with tf.variable_scope('layer%d' % i, reuse=reuse):
                 manual_attn = None
-                if self.inject_manual_attn and ((moving_params is None) or self.gold_attn_at_train):
+                if self.inject_manual_attn and not ((moving_params is not None) and self.gold_attn_at_train):
                   if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                     manual_attn = adj
                   elif 'grandparents' in self.multi_layers.keys() and i in self.multi_layers['grandparents']:

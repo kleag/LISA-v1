@@ -113,6 +113,8 @@ for lr in ${lrs[@]}; do
                                                                 --add_pos_to_input true \
                                                                 --ensure_tree True \
                                                                 --eval_by_domain True \
+                                                                --eval_parse True \
+                                                                --eval_srl False \
                                                                 --save False \
                                                                 &> $OUT_LOG/train-$fname_append.log")
                                                                 i=$((i + 1))

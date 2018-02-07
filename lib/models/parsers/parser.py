@@ -244,16 +244,6 @@ class Parser(BaseParser):
             if self.n_recur > 0:
               top_recur = nn.layer_norm(top_recur, reuse)
 
-            if self.pos_layer == self.n_recur-1:
-              pos_pred_inputs = top_recur
-            if self.trigger_layer == self.n_recur - 1:
-              trigger_inputs = top_recur
-            if self.aux_trigger_layer == self.n_recur-1:
-              aux_trigger_inputs = top_recur
-            if self.parse_layer == self.n_recur-1:
-              parse_pred_inputs = top_recur
-
-
         ##### BiLSTM #######
         if self.dist_model == 'bilstm':
           with tf.variable_scope("BiLSTM", reuse=reuse):
@@ -269,6 +259,15 @@ class Parser(BaseParser):
             #   top_recur = nn.layer_norm(top_recur, reuse)
         if self.num_blocks > 1:
           top_recur = nn.layer_norm(top_recur, reuse)
+
+        if self.pos_layer == self.n_recur - 1:
+          pos_pred_inputs = top_recur
+        if self.trigger_layer == self.n_recur - 1:
+          trigger_inputs = top_recur
+        if self.aux_trigger_layer == self.n_recur - 1:
+          aux_trigger_inputs = top_recur
+        if self.parse_layer == self.n_recur - 1:
+          parse_pred_inputs = top_recur
 
     ####### 2D CNN ########
     if self.cnn2d_layers > 0:

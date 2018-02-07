@@ -347,7 +347,7 @@ class Network(Configurable):
           f.write('%s\t%s\t_\t%s\t%s\t_\t%s\t%s\t%s\t%s\n' % tup)
         f.write('\n')
     for k, v in attn_predictions.iteritems():
-      with open(os.path.join(self.save_dir, k + "_", os.path.basename(filename)), 'w') as f:
+      with open(os.path.join(self.save_dir, k + "_" + os.path.basename(filename)), 'w') as f:
         for bkt_idx, idx in dataset._metabucket.data:
           data = dataset._metabucket[bkt_idx].data[idx]
           preds = v[bkt_idx][idx]

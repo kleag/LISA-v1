@@ -263,12 +263,12 @@ class Network(Configurable):
       filename = self.valid_file
       minibatches = self.valid_minibatches
       dataset = self._validset
-      op = self.ops['test_op'][:5]
+      op = self.ops['test_op'][:6]
     else:
       filename = self.test_file
       minibatches = self.test_minibatches
       dataset = self._testset
-      op = self.ops['test_op'][5:]
+      op = self.ops['test_op'][6:]
     
     all_predictions = [[]]
     all_sents = [[]]
@@ -287,11 +287,12 @@ class Network(Configurable):
     attn_n_tokens_masked_counts = {}
     attn_correct_unmasked_counts = {}
     attn_n_tokens_unmasked_counts = {}
+    attn_predictions = {}
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
       forward_start = time.time()
-      probs, n_cycles, len_2_cycles, attn_weights, attn_correct = sess.run(op, feed_dict=feed_dict)
+      probs, n_cycles, len_2_cycles, attn_weights, attn_correct, attn_probs = sess.run(op, feed_dict=feed_dict)
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
       for k, v in attn_correct.iteritems():
@@ -300,6 +301,11 @@ class Network(Configurable):
         attn_correct_counts[k] += v
       forward_total_time += time.time() - forward_start
       preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles)
+      for k, v in attn_probs.iteritems():
+        attn_preds, _, _, _, _, _, _, _ = self.model.validate(mb_inputs, mb_targets, (v, probs[1]), n_cycles, len_2_cycles)
+        if k not in attn_predictions:
+          attn_predictions[k] = [[]]
+        attn_predictions[k][-1].extend(attn_preds)
       total_time += parse_time
       roots_lt_total += roots_lt
       roots_gt_total += roots_gt
@@ -314,6 +320,8 @@ class Network(Configurable):
         if bkt_idx < len(dataset._metabucket):
           all_predictions.append([])
           all_sents.append([])
+          for k, v in attn_predictions.iteritems():
+            attn_predictions[k].append([])
     print("Total time in prob_argmax: %f" % total_time)
     print("Total time in forward: %f" % forward_total_time)
     print("Not tree: %d" % not_tree_total)
@@ -338,6 +346,26 @@ class Network(Configurable):
           )
           f.write('%s\t%s\t_\t%s\t%s\t_\t%s\t%s\t%s\t%s\n' % tup)
         f.write('\n')
+    for k, v in attn_predictions.iteritems():
+      with open(os.path.join(self.save_dir, k + "_", os.path.basename(filename)), 'w') as f:
+        for bkt_idx, idx in dataset._metabucket.data:
+          data = dataset._metabucket[bkt_idx].data[idx]
+          preds = v[bkt_idx][idx]
+          words = all_sents[bkt_idx][idx]
+          for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+            n_tokens += 1
+            tup = (
+              i + 1,
+              word,
+              self.tags[pred[3]] if pred[3] != -1 else self.tags[datum[2]],
+              self.tags[pred[4]] if pred[4] != -1 else self.tags[datum[3]],
+              str(pred[5] + 1 if pred[5] != i else 0) if pred[5] != -1 else str(datum[4] + 1 if datum[4] != i else 0),
+              self.rels[pred[6]] if pred[6] != -1 else self.rels[datum[5]],
+              str(pred[7] + 1 if pred[7] != i else 0) if pred[7] != -1 else '_',
+              self.rels[pred[8]] if pred[8] != -1 else '_',
+            )
+            f.write('%s\t%s\t_\t%s\t%s\t_\t%s\t%s\t%s\t%s\n' % tup)
+          f.write('\n')
     with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
       s, correct = self.model.evaluate(os.path.join(self.save_dir, os.path.basename(filename)), punct=self.model.PUNCT)
       f.write(s)
@@ -437,11 +465,13 @@ class Network(Configurable):
                       valid_output['len_2_cycles'],
                       valid_output['attn_weights'],
                       valid_output['attn_correct'],
+                      valid_output['attn_probs'],
                       test_output['probabilities'],
                       test_output['n_cycles'],
                       test_output['len_2_cycles'],
                       test_output['attn_weights'],
                       test_output['attn_correct'],
+                      test_output['attn_probs'],
                       ]
     ops['optimizer'] = optimizer
     

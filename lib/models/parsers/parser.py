@@ -80,6 +80,7 @@ class Parser(BaseParser):
     multitask_losses = {}
     multitask_loss_sum = 0
     multitask_correct = {}
+    multitask_probs = {}
 
     # normal parse edges
     # multitask_targets['parents'] = adj
@@ -370,6 +371,7 @@ class Parser(BaseParser):
         loss = self.multi_penalties['parents'] * outputs['loss']
         multitask_losses['parents%s' % l] = loss
         multitask_correct['parents%s' % l] = outputs['n_correct']
+        multitask_probs['parents%s' % l] = outputs['probabilities']
         multitask_loss_sum += loss
       if 'grandparents' in self.multi_layers.keys() and l in self.multi_layers['grandparents']:
         outputs = self.output(attn_weights[attn_idx], multitask_targets['grandparents'])
@@ -454,6 +456,8 @@ class Parser(BaseParser):
     output['attn_weights'] = attn_weights_by_layer_softmaxed
 
     output['attn_correct'] = multitask_correct
+
+    output['attn_probs'] = multitask_probs
 
     # output['cycles'] = arc_output['n_cycles'] + arc_output['len_2_cycles']
 

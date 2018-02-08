@@ -24,7 +24,7 @@ batch_sizes="5000"
 
 trans_layers="4 6" # 3
 cnn_dims="1024 512" # 768
-num_heads="8 4 10" #4 8"
+num_heads="8 4 12" #4 8"
 head_sizes="64 128"
 relu_hidden_sizes="256 1024"
 
@@ -52,8 +52,12 @@ for lr in ${lrs[@]}; do
                                                 if [[ "$warmup_steps" == "0" ]]; then
                                                     decay="0.75"
                                                 fi
+                                                partition="titanx-short"
+                                                if [[ "$head_size" == "128" ]]; then
+                                                    partition="m40-short"
+                                                fi
                                                 fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size"
-                                                commands+=("srun --gres=gpu:1 --partition=titanx-short,m40-short --mem=24G --time=4:00:00 python network.py  \
+                                                commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G --time=4:00:00 python network.py  \
                                                 --config_file config/trans-conll12-parse.cfg \
                                                 --save_dir $OUT_LOG/scores-$fname_append \
                                                 --save_every 500 \

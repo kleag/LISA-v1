@@ -24,7 +24,7 @@ batch_sizes="5000"
 
 trans_layers="4 6" # 3
 cnn_dims="1024 512" # 768
-num_heads="8 4 16" #4 8"
+num_heads="8 4 10" #4 8"
 head_sizes="64 128"
 relu_hidden_sizes="256 1024"
 

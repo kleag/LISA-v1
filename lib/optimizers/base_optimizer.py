@@ -132,8 +132,8 @@ class BaseOptimizer(Configurable):
   def get_accumulator(self, x_tm1, acc_name, shape=None):
     """"""
     
-    if shape is None:
-      shape = self.get_variable_shape(x_tm1)
+    # if shape is None:
+    shape = self.get_variable_shape(x_tm1)
     
     if acc_name not in self._accumulators:
       self._accumulators[acc_name] = {}

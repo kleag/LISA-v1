@@ -31,14 +31,16 @@ class BaseOptimizer(Configurable):
   def __init__(self, *args, **kwargs):
     """"""
     
-    self._global_step = kwargs.pop('global_step', tf.Variable(0., trainable=False))
+    self._global_steps = kwargs.pop('global_steps', {'loss': tf.Variable(0., trainable=False)})
     super(BaseOptimizer, self).__init__(*args, **kwargs)
     self._accumulators = {}
     return
   
   #=============================================================
-  def minimize(self, loss, name=None):
+  def minimize(self, loss, objective="loss", name=None):
     """"""
+
+    global_step = self.global_steps[objective]
     
     # Error checking
     var_list = tf.trainable_variables()
@@ -77,8 +79,8 @@ class BaseOptimizer(Configurable):
             cache['idxs'] = g_t.indices
             self._apply_sparse(cache)
       with tf.control_dependencies([self._finish(caches)]):
-        with tf.device(self.global_step.device):
-          return tf.assign_add(self.global_step, 1, name=name).op
+        with tf.device(global_step.device):
+          return tf.assign_add(global_step, 1, name=name).op
   
   #=============================================================
   def _init_acc(self, var_list, grads):
@@ -253,19 +255,20 @@ class BaseOptimizer(Configurable):
 
   #===============================================================
   @property
-  def learning_rate(self):
+  def learning_rate(self, objective='loss'):
+    global_step = self._global_steps[objective]
     if self.warmup_steps > 0:
       lr = super(BaseOptimizer, self).learning_rate
-      lr *= tf.minimum(tf.rsqrt(self.global_step), tf.multiply(self.global_step, self.warmup_steps**-self.decay))
+      lr *= tf.minimum(tf.rsqrt(global_step), tf.multiply(global_step, self.warmup_steps**-self.decay))
       return lr
     else:
       if self.decay_steps > 0:
-        return super(BaseOptimizer, self).learning_rate * self.decay**(self.global_step / self.decay_steps)
+        return super(BaseOptimizer, self).learning_rate * self.decay**(global_step / self.decay_steps)
       else:
         return super(BaseOptimizer, self).learning_rate
-  @property
-  def global_step(self):
-    return self._global_step
+  # @property
+  # def global_step(self):
+  #   return self._global_step
   @property
   def accumulators(self):
     return self._accumulators

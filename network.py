@@ -60,9 +60,9 @@ class Network(Configurable):
     with open(os.path.join(self.save_dir, 'config.cfg'), 'w') as f:
       self._config.write(f)
 
-    # objectives = ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
-    # self._global_steps = {o: tf.Variable(0., trainable=False) for o in objectives}
-    self._global_step = tf.Variable(0., trainable=False)
+    objectives = ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
+    self._global_steps = {o: tf.Variable(0., trainable=False) for o in objectives}
+    # self._global_step = tf.Variable(0., trainable=False)
     self._global_epoch = tf.Variable(0., trainable=False)
 
     # todo what is this??
@@ -766,11 +766,11 @@ class Network(Configurable):
     """"""
     
     # optims = {k: optimizers.RadamOptimizer(self._config, global_step=step) for k, step in self._global_steps}
-    optimizer = optimizers.RadamOptimizer(self._config, global_step=self._global_step)
+    optimizer = optimizers.RadamOptimizer(self._config, global_steps=self._global_steps)
     train_output = self._model(self._trainset)
 
     # lrs = map(lambda o: o.learning_rate, optims)
-    lr = optimizer.learning_rate
+    lrs = optimizer.learning_rates
 
     train_op = optimizer.minimize(train_output['loss'])
     # train_ops = map(lambda k, o: o.minimize(train_output[k]), optims.iteritems())

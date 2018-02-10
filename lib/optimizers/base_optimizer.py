@@ -258,14 +258,14 @@ class BaseOptimizer(Configurable):
   def learning_rate(self, objective='loss'):
     global_step = self._global_steps[objective]
     if self.warmup_steps > 0:
-      lr = super(BaseOptimizer, self).learning_rate
+      lr = super(BaseOptimizer, self).learning_rate(objective)
       lr *= tf.minimum(tf.rsqrt(global_step), tf.multiply(global_step, self.warmup_steps**-self.decay))
       return lr
     else:
       if self.decay_steps > 0:
-        return super(BaseOptimizer, self).learning_rate * self.decay**(global_step / self.decay_steps)
+        return super(BaseOptimizer, self).learning_rate(objective) * self.decay**(global_step / self.decay_steps)
       else:
-        return super(BaseOptimizer, self).learning_rate
+        return super(BaseOptimizer, self).learning_rate(objective)
   # @property
   # def global_step(self):
   #   return self._global_step

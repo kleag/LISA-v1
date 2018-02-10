@@ -766,10 +766,11 @@ class Network(Configurable):
     """"""
     
     # optims = {k: optimizers.RadamOptimizer(self._config, global_step=step) for k, step in self._global_steps}
-    optimizer = optimizers.RadamOptimizer(self._config, global_step=self.global_step)
+    optimizer = optimizers.RadamOptimizer(self._config, global_step=self._global_step)
     train_output = self._model(self._trainset)
 
-    lrs = map(lambda o: o.learning_rate, optims)
+    # lrs = map(lambda o: o.learning_rate, optims)
+    lr = optimizer.learning_rate
 
     train_op = optimizer.minimize(train_output['loss'])
     # train_ops = map(lambda k, o: o.minimize(train_output[k]), optims.iteritems())
@@ -843,7 +844,8 @@ class Network(Configurable):
                            train_output['trigger_correct'],
                            train_output['pos_loss'],
                            train_output['pos_correct'],
-                           train_output['multitask_losses']] + lrs
+                           train_output['multitask_losses'],
+                           lr]
     ops['valid_op'] = [valid_output['loss'],
                        valid_output['n_correct'],
                        valid_output['n_tokens'],

@@ -41,7 +41,7 @@ class BaseOptimizer(Configurable):
   def minimize(self, loss, objective="loss", name=None):
     """"""
 
-    global_step = self.global_steps[objective]
+    global_step = self._global_steps[objective]
     
     # Error checking
     var_list = tf.trainable_variables()

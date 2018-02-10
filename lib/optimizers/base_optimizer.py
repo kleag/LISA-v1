@@ -41,6 +41,7 @@ class BaseOptimizer(Configurable):
   def minimize(self, loss, objective, name=None):
     """"""
 
+    print("objective: %s", objective)
     global_step = self._global_steps[objective]
     
     # Error checking

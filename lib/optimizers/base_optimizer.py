@@ -75,10 +75,12 @@ class BaseOptimizer(Configurable):
         with tf.name_scope("update_" + x_tm1.op.name), tf.device(x_tm1.device):
           if isinstance(g_t, tf.Tensor):
             cache['g_t'] = tf.where(tf.is_finite(g_t), g_t, tf.zeros_like(g_t))
+            print("got cache a", cache['g_t'])
             self._apply_dense(cache, objective)
           else:
             cache['g_t'] = tf.where(tf.is_finite(g_t.values), g_t.values, tf.zeros_like(g_t.values))
             cache['idxs'] = g_t.indices
+            print("got cache b", cache['g_t'])
             self._apply_sparse(cache, objective)
       with tf.control_dependencies([self._finish(caches)]):
         with tf.device(global_step.device):

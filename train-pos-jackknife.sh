@@ -26,7 +26,7 @@ for split in `seq 0 $((num_splits-1))`; do
     commands+=("srun --gres=gpu:1 --partition=titanx-long --mem=16000 --time=12:00:00 python network.py \
     --config_file config/trans-conll12-bio-justpos.cfg \
     --train_file $data_dir/train_$split \
-    --dev_file $data_dir/test_$split \
+    --valid_file $data_dir/test_$split \
     --save_dir $OUT_LOG/scores-$fname_append \
     --save_every 500 \
     --train_iters 500000 \

@@ -38,7 +38,7 @@ class BaseOptimizer(Configurable):
     return
   
   #=============================================================
-  def minimize(self, loss, objective="loss", name=None):
+  def minimize(self, loss, objective, name=None):
     """"""
 
     global_step = self._global_steps[objective]
@@ -157,6 +157,7 @@ class BaseOptimizer(Configurable):
     
     b_tm1 = self.get_accumulator(x_tm1, '%s' % name)
     tm1 = self.get_accumulator(x_tm1, '%s/tm1' % name, shape=[])
+    print("got tm1:", '%s/tm1' % name, tm1.get_shape())
     t = tf.assign_add(tm1, 1)
     if beta < 1:
       beta_t = tf.convert_to_tensor(beta, name='%s/decay' % name)

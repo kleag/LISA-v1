@@ -60,7 +60,8 @@ class Network(Configurable):
     with open(os.path.join(self.save_dir, 'config.cfg'), 'w') as f:
       self._config.write(f)
 
-    self._objectives = ['pos_loss', 'trigger_loss', 'parse_loss', 'srl_loss', 'multitask_loss_sum']
+    # self._objectives = ['pos_loss', 'trigger_loss', 'parse_loss', 'srl_loss', 'multitask_loss_sum']
+    self._objectives = ['trigger_loss']
     self._global_steps = {o: tf.Variable(0., trainable=False) for o in self._objectives}
     # self._global_step = tf.Variable(0., trainable=False)
     self._global_epoch = tf.Variable(0., trainable=False)

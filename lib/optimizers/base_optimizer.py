@@ -34,6 +34,7 @@ class BaseOptimizer(Configurable):
     self._global_steps = kwargs.pop('global_steps', {'loss': tf.Variable(0., trainable=False)})
     super(BaseOptimizer, self).__init__(*args, **kwargs)
     self._accumulators = {}
+    self._init_lr = self.learning_rate
     return
   
   #=============================================================
@@ -254,18 +255,28 @@ class BaseOptimizer(Configurable):
     return name_map
 
   #===============================================================
-  @property
-  def learning_rate(self, objective='loss'):
+  # @property
+  # def learning_rate(self, objective):
+  #   global_step = self._global_steps[objective]
+  #   if self.warmup_steps > 0:
+  #     lr = super(BaseOptimizer, self).learning_rate(objective)
+  #     lr *= tf.minimum(tf.rsqrt(global_step), tf.multiply(global_step, self.warmup_steps**-self.decay))
+  #     return lr
+  #   else:
+  #     if self.decay_steps > 0:
+  #       return super(BaseOptimizer, self).learning_rate(objective) * self.decay**(global_step / self.decay_steps)
+  #     else:
+  #       return super(BaseOptimizer, self).learning_rate(objective)
+  # @property
+  def lr(self, objective):
     global_step = self._global_steps[objective]
     if self.warmup_steps > 0:
-      lr = super(BaseOptimizer, self).learning_rate(objective)
-      lr *= tf.minimum(tf.rsqrt(global_step), tf.multiply(global_step, self.warmup_steps**-self.decay))
-      return lr
+      return self._init_lr * tf.minimum(tf.rsqrt(global_step), tf.multiply(global_step, self.warmup_steps**-self.decay))
     else:
       if self.decay_steps > 0:
-        return super(BaseOptimizer, self).learning_rate(objective) * self.decay**(global_step / self.decay_steps)
+        return self._init_lr * self.decay**(global_step / self.decay_steps)
       else:
-        return super(BaseOptimizer, self).learning_rate(objective)
+        return self._init_lr
   # @property
   # def global_step(self):
   #   return self._global_step

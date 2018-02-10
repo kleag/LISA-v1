@@ -70,7 +70,7 @@ class RadamOptimizer(BaseOptimizer):
     else:
       v_bar_t = 1
     
-    s_t = self.learning_rate * m_bar_t / v_bar_t
+    s_t = self.lr(objective) * m_bar_t / v_bar_t
     cache['s_t'] = s_t
     return cache
   
@@ -99,7 +99,7 @@ class RadamOptimizer(BaseOptimizer):
     else:
       v_bar_t_ = 1
     
-    s_t_ = self.learning_rate(objective) * m_bar_t_ / v_bar_t_
+    s_t_ = self.lr(objective) * m_bar_t_ / v_bar_t_
     cache['s_t'] = s_t_
     cache['g_t'] = g_t_
     cache['idxs'] = idxs

@@ -680,3 +680,24 @@ class Configurable(object):
   def gold_attn_at_train(self):
     return self._config.getboolean('Training', 'gold_attn_at_train')
   argparser.add_argument('--gold_attn_at_train')
+
+  @property
+  def start_pos_step(self):
+    return self._config.getint('Training', 'start_pos_step')
+  argparser.add_argument('--start_pos_step')
+  @property
+  def start_parse_step(self):
+    return self._config.getint('Training', 'start_parse_step')
+  argparser.add_argument('--start_parse_step')
+  @property
+  def start_trigger_step(self):
+    return self._config.getint('Training', 'start_trigger_step')
+  argparser.add_argument('--start_trigger_step')
+  @property
+  def start_multitask_step(self):
+    return self._config.getint('Training', 'start_multitask_step')
+  argparser.add_argument('--start_multitask_step')
+  @property
+  def start_srl_step(self):
+    return self._config.getint('Training', 'start_srl_step')
+  argparser.add_argument('--start_srl_step')

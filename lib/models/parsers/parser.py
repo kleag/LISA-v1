@@ -88,7 +88,9 @@ class Parser(BaseParser):
 
     # do parse update if the random ~ unif(0,1) <= proportion
     # otherwise, do srl update
-    do_parse_update = tf.less_equal(tf.reshape(tf.random_uniform([1]), []), self.parse_update_proportion)
+    # do_parse_update = tf.less_equal(tf.reshape(tf.random_uniform([1]), []), self.parse_update_proportion)
+    # do_srl_update = tf.greater_equal(self.global_steps['trigger_loss'], self.trigger_pretrain_steps)
+
 
     # do_arc_update = tf.not_equal(self.arc_loss_penalty, 0.)
     # do_rel_update = tf.not_equal(self.rel_loss_penalty, 0.)
@@ -340,7 +342,7 @@ class Parser(BaseParser):
         dummy_rel_mlp = tf.zeros([batch_size, bucket_size, self.class_mlp_size])
         return tf.constant(0.), dummy_rel_mlp, dummy_rel_mlp
 
-      arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
+      arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.not_equal(self.arc_loss_penalty, 0.0),
                                                       lambda: get_parse_logits(),
                                                       lambda: dummy_parse_logits())
       arc_output = self.output_svd(arc_logits, targets[:,:,1])
@@ -356,11 +358,11 @@ class Parser(BaseParser):
         rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, num_rel_classes, predictions)
       return rel_logits, rel_logits_cond
 
-    rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
+    rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
                                           lambda: get_parse_rel_logits(),
                                           lambda: (tf.constant(0.), tf.constant(0.)))
     rel_output = self.output(rel_logits, targets[:, :, 2], num_rel_classes)
-    rel_output['probabilities'] = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
+    rel_output['probabilities'] = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
                                           lambda: self.conditional_probabilities(rel_logits_cond),
                                           lambda: rel_output['probabilities'])
 
@@ -498,14 +500,15 @@ class Parser(BaseParser):
     srl_loss = self.role_loss_penalty * srl_output['loss']
     arc_loss = self.arc_loss_penalty * arc_output['loss']
     rel_loss = self.rel_loss_penalty * rel_output['loss']
+    parse_loss = arc_loss + rel_loss
 
     # if this is a parse update, then actual parse loss equal to sum of rel loss and arc loss
-    actual_parse_loss = tf.cond(do_parse_update, lambda: tf.add(rel_loss, arc_loss), lambda: tf.constant(0.))
+    # actual_parse_loss = tf.cond(do_parse_update, lambda: tf.add(rel_loss, arc_loss), lambda: tf.constant(0.))
 
     # if this is a parse update and the parse proportion is not one, then no srl update. otherwise,
     # srl update equal to sum of srl_loss, trigger_loss
-    srl_combined_loss = srl_loss + trigger_loss + aux_trigger_loss
-    actual_srl_loss = tf.cond(tf.logical_and(do_parse_update, tf.not_equal(self.parse_update_proportion, 1.0)), lambda: tf.constant(0.), lambda: srl_combined_loss)
+    # srl_combined_loss = srl_loss + trigger_loss + aux_trigger_loss
+    # actual_srl_loss = tf.cond(tf.logical_and(do_parse_update, tf.not_equal(self.parse_update_proportion, 1.0)), lambda: tf.constant(0.), lambda: srl_combined_loss)
 
     output = {}
 
@@ -521,7 +524,7 @@ class Parser(BaseParser):
     output['n_tokens'] = self.n_tokens
     output['accuracy'] = output['n_correct'] / output['n_tokens']
 
-    output['loss'] = actual_srl_loss + actual_parse_loss + multitask_loss_sum + pos_loss
+    output['loss'] = srl_loss + trigger_loss + parse_loss + multitask_loss_sum + pos_loss
     # output['loss'] = srl_loss + trigger_loss + actual_parse_loss
     # output['loss'] = actual_srl_loss + arc_loss + rel_loss
 
@@ -537,6 +540,7 @@ class Parser(BaseParser):
     output['arc_logits'] = arc_logits
     output['rel_logits'] = rel_logits
 
+    output['parse_loss'] = parse_loss
     output['rel_loss'] = rel_loss # rel_output['loss']
     output['log_loss'] = arc_loss # arc_output['log_loss']
     output['2cycle_loss'] = arc_output['2cycle_loss']

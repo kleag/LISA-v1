@@ -60,7 +60,7 @@ class Network(Configurable):
     with open(os.path.join(self.save_dir, 'config.cfg'), 'w') as f:
       self._config.write(f)
 
-    self._objectives = ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
+    self._objectives = ['pos_loss', 'trigger_loss', 'parse_loss', 'srl_loss', 'multitask_loss_sum']
     self._global_steps = {o: tf.Variable(0., trainable=False) for o in self._objectives}
     # self._global_step = tf.Variable(0., trainable=False)
     self._global_epoch = tf.Variable(0., trainable=False)
@@ -190,8 +190,30 @@ class Network(Configurable):
             pctx.trace_next_step()
             # Dump the profile to '/tmp/train_dir' after the step.
             pctx.dump_next_step()
-          results = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
-          loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, pos_loss, pos_correct, multitask_losses, lr = results[self.num_train_ops:]
+
+          # compute the train ops we're going to run for this step
+          # ['pos_loss', 'trigger_loss', 'parse_loss', 'srl_loss', 'multitask_loss_sum']
+          do_pos_train_step = self.pos_penalty > 0.0 and total_train_iters > self.start_pos_step
+          do_trigger_train_step = self.trigger_loss_penalty > 0.0 and total_train_iters > self.start_trigger_step
+          do_parse_train_step = (self.rel_loss_penalty > 0.0 or self.arc_loss_penalty > 0.0) and total_train_iters > self.start_parse_step and np.random.rand() < self.parse_update_proportion
+          do_srl_train_step = self.role_loss_penalty > 0.0 and total_train_iters > self.start_srl_step
+          do_multitask_attn_step = self.multitask_layers and total_train_iters > self.start_multitask_step
+
+          this_step_train_ops = []
+          if do_pos_train_step:
+            this_step_train_ops.append(self.all_train_ops['pos_loss'])
+          if do_parse_train_step:
+            this_step_train_ops.append(self.all_train_ops['parse_loss'])
+          if do_srl_train_step:
+            this_step_train_ops.append(self.all_train_ops['srl_loss'])
+          if do_trigger_train_step:
+            this_step_train_ops.append(self.all_train_ops['trigger_loss'])
+          if do_multitask_attn_step:
+            this_step_train_ops.append(self.all_train_ops['multitask_loss_sum'])
+
+          num_train_ops = len(this_step_train_ops)
+          results = sess.run(this_step_train_ops + self.ops['train_op_srl'], feed_dict=feed_dict)
+          loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, pos_loss, pos_correct, multitask_losses, lr = results[num_train_ops:]
           total_train_iters += 1
           train_time += time.time() - start_time
           train_loss += loss
@@ -782,19 +804,19 @@ class Network(Configurable):
     # train_ops = {o: optimizer.minimize(train_output[o]) for o in self._objectives}
 
     # ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
-    self.train_ops = []
-    if self.train_pos:
-      self.train_ops.append(optimizer.minimize(train_output['pos_loss']))
-    if self.role_loss_penalty > 0:
-      self.train_ops.append(optimizer.minimize(train_output['srl_loss']))
-    if self.trigger_loss_penalty > 0:
-      self.train_ops.append(optimizer.minimize(train_output['trigger_loss']))
-    if self.rel_loss_penalty > 0 or self.arc_loss_penalty > 0:
-      self.train_ops.append(optimizer.minimize(train_output['actual_parse_loss']))
-    if self.multitask_layers:
-      self.train_ops.append(optimizer.minimize(train_output['multitask_loss_sum']))
+    self.all_train_ops = {o: optimizer.minimize(train_output[o]) for o in self._objectives}
+    # if self.train_pos:
+    #   self.train_ops.append(optimizer.minimize(train_output['pos_loss']))
+    # if self.role_loss_penalty > 0:
+    #   self.train_ops.append(optimizer.minimize(train_output['srl_loss']))
+    # if self.trigger_loss_penalty > 0:
+    #   self.train_ops.append(optimizer.minimize(train_output['trigger_loss']))
+    # if self.rel_loss_penalty > 0 or self.arc_loss_penalty > 0:
+    #   self.train_ops.append(optimizer.minimize(train_output['actual_parse_loss']))
+    # if self.multitask_layers:
+    #   self.train_ops.append(optimizer.minimize(train_output['multitask_loss_sum']))
 
-    self.num_train_ops = len(self.train_ops)
+    # self.num_train_ops = len(self.train_ops)
 
     # These have to happen after optimizer.minimize is called
     valid_output = self._model(self._validset, moving_params=optimizer)
@@ -803,10 +825,10 @@ class Network(Configurable):
 
     
     ops = {}
-    ops['train_op'] = self.train_ops + [train_output['loss'],
+    ops['train_op'] = [train_output['loss'],
                        train_output['n_correct'],
                        train_output['n_tokens']]
-    ops['train_op_svd'] = self.train_ops + [train_output['loss'],
+    ops['train_op_svd'] = [train_output['loss'],
                            train_output['n_correct'],
                            train_output['n_tokens'],
                            train_output['roots_loss'],
@@ -814,7 +836,7 @@ class Network(Configurable):
                            train_output['svd_loss'],
                            train_output['log_loss'],
                            train_output['rel_loss']]
-    ops['train_op_srl'] = self.train_ops + [train_output['loss'],
+    ops['train_op_srl'] = [train_output['loss'],
                            train_output['n_correct'],
                            train_output['n_tokens'],
                            train_output['roots_loss'],

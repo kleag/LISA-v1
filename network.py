@@ -585,7 +585,7 @@ class Network(Configurable):
 
       # save SRL gold output for debugging purposes
       srl_sanity_fname = os.path.join(self.save_dir, 'srl_sanity.tsv')
-      with open(srl_sanity_fname, 'w') as f:
+      with open(srl_sanity_fname, 'w') as f, open(filename, 'r') as orig_f:
         for bkt_idx, idx in dataset._metabucket.data:
           # for each word, if trigger print word, otherwise -
           # then all the SRL labels
@@ -603,6 +603,12 @@ class Network(Configurable):
           # print(srl_golds_str)
           # print(srl_preds_str)
           for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+            orig_line = orig_f.readline().strip()
+            while not orig_line:
+              orig_line = orig_f.readline().strip()
+            orig_split_line = orig_line.split('\t')
+            docid = orig_split_line[0]
+            sentid = orig_split_line[1]
             domain = self._vocabs[5][pred[5]]
             orig_pred = srl_preds_str[i] if srl_preds_str else []
             # gold_pred = srl_golds_str[i] if srl_golds_str else []
@@ -614,7 +620,7 @@ class Network(Configurable):
             # gold_pred = word if np.any(["(V*" in p for p in gold_pred]) else '-'
             pred_pred = word if np.any(["(V*" in p for p in orig_pred]) else '-'
             # fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (gold_pred,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
-            fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
+            fields = (docid,) + (sentid,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
             owpl_str = '\t'.join(fields)
             f.write(owpl_str + "\n")
           f.write('\n')

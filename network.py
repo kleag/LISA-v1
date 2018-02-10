@@ -213,8 +213,11 @@ class Network(Configurable):
             this_step_train_ops.append(self.all_train_ops['multitask_loss_sum'])
 
           num_train_ops = len(this_step_train_ops)
+          num_lrs = len(self._objectives)
           results = sess.run(this_step_train_ops + self.ops['train_op_srl'], feed_dict=feed_dict)
-          loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, pos_loss, pos_correct, multitask_losses, lr = results[num_train_ops:]
+          lrs = results[-num_lrs:]
+          loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, pos_loss, pos_correct, multitask_losses = results[num_train_ops:-num_lrs]
+
           total_train_iters += 1
           train_time += time.time() - start_time
           train_loss += loss
@@ -280,9 +283,9 @@ class Network(Configurable):
             # train_srl_accuracy = 100 * n_train_srl_correct / n_train_srl_count
             # train_trigger_accuracy = 100 * n_train_trigger_correct / n_train_trigger_count
             train_time = n_train_sents / train_time
-            print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f\n'
+            print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %s\n'
                   '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
-                  (total_train_iters, train_loss, train_accuracy, train_time, lr, valid_loss, valid_accuracy, valid_time))
+                  (total_train_iters, train_loss, train_accuracy, train_time, ' '.join(map(str, lrs)), valid_loss, valid_accuracy, valid_time))
             print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\tpos loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_trigger_loss, train_pos_loss))
             multitask_losses_str = ''
             for n, l in train_mul_loss.iteritems():

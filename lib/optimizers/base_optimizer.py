@@ -41,7 +41,7 @@ class BaseOptimizer(Configurable):
   def minimize(self, loss, objective, name=None):
     """"""
 
-    print("objective: %s", objective)
+    # print("objective: %s", objective)
     global_step = self._global_steps[objective]
     
     # Error checking
@@ -75,12 +75,12 @@ class BaseOptimizer(Configurable):
         with tf.name_scope("update_" + x_tm1.op.name), tf.device(x_tm1.device):
           if isinstance(g_t, tf.Tensor):
             cache['g_t'] = tf.where(tf.is_finite(g_t), g_t, tf.zeros_like(g_t))
-            print("got cache a", cache['g_t'])
+            # print("got cache a", cache['g_t'])
             self._apply_dense(cache, objective)
           else:
             cache['g_t'] = tf.where(tf.is_finite(g_t.values), g_t.values, tf.zeros_like(g_t.values))
             cache['idxs'] = g_t.indices
-            print("got cache b", cache['g_t'])
+            # print("got cache b", cache['g_t'])
             self._apply_sparse(cache, objective)
       with tf.control_dependencies([self._finish(caches)]):
         with tf.device(global_step.device):
@@ -99,7 +99,7 @@ class BaseOptimizer(Configurable):
           self.get_accumulator(x_tm1, 'x/tm1', [])
         else:
           self.get_accumulator(x_tm1, 'x/tm1', [shape[0]]+[1]*(len(shape)-1))
-    print("initialized %d variables in optimizer" % len(var_list))
+    # print("initialized %d variables in optimizer" % len(var_list))
     return
   
   #=============================================================

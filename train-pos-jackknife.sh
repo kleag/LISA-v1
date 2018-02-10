@@ -21,7 +21,7 @@ declare -a commands
 i=1
 
 data_dir="/home/strubell/research/data/conll-2012/conll2012-train-jackknife"
-for split in `seq $num_splits`; do
+for split in `seq 0 $((num_splits-1))`; do
     fname_append="split$split"
     commands+=("srun --gres=gpu:1 --partition=titanx-long --mem=16000 --time=12:00:00 python network.py \
     --config_file config/trans-conll12-bio-justpos.cfg \

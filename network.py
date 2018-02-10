@@ -59,10 +59,15 @@ class Network(Configurable):
       os.mkdir(self.save_dir)
     with open(os.path.join(self.save_dir, 'config.cfg'), 'w') as f:
       self._config.write(f)
-      
+
+    # objectives = ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
+    # self._global_steps = {o: tf.Variable(0., trainable=False) for o in objectives}
     self._global_step = tf.Variable(0., trainable=False)
     self._global_epoch = tf.Variable(0., trainable=False)
-    self._model = model(self._config, global_step=self.global_step)
+
+    # todo what is this??
+    # self._model = model(self._config, global_step=self.global_step)
+    self._model = model(self._config)
 
     self._vocabs = []
 
@@ -84,8 +89,7 @@ class Network(Configurable):
       vocab = Vocab(vocab_file, index, self._config,
                     name=name,
                     cased=self.cased if not i else True,
-                    use_pretrained=(not i),
-                    global_step=self.global_step)
+                    use_pretrained=(not i))
       self._vocabs.append(vocab)
 
     print("Predicates vocab: ")
@@ -172,13 +176,13 @@ class Network(Configurable):
       n_train_srl_count = 0
       n_train_trigger_count = 0
       n_train_trigger_correct = 0
-      total_train_iters = sess.run(self.global_step)
+      total_train_iters = 0
       valid_time = 0
       valid_loss = 0
       valid_accuracy = 0
       while total_train_iters < train_iters:
         for j, (feed_dict, _) in enumerate(self.train_minibatches()):
-          train_inputs = feed_dict[self._trainset.inputs]
+          # train_inputs = feed_dict[self._trainset.inputs]
           train_targets = feed_dict[self._trainset.targets]
           start_time = time.time()
 
@@ -188,6 +192,7 @@ class Network(Configurable):
             pctx.dump_next_step()
 
           _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, pos_loss, pos_correct, multitask_losses, lr = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
+          total_train_iters += 1
           train_time += time.time() - start_time
           train_loss += loss
           train_log_loss += log_loss
@@ -760,23 +765,61 @@ class Network(Configurable):
   def _gen_ops(self):
     """"""
     
+    # optims = {k: optimizers.RadamOptimizer(self._config, global_step=step) for k, step in self._global_steps}
     optimizer = optimizers.RadamOptimizer(self._config, global_step=self.global_step)
     train_output = self._model(self._trainset)
 
-    lr = optimizer.learning_rate
-    
+    lrs = map(lambda o: o.learning_rate, optims)
+
     train_op = optimizer.minimize(train_output['loss'])
+    # train_ops = map(lambda k, o: o.minimize(train_output[k]), optims.iteritems())
+    #
+    # # ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
+    # actual_train_ops = []
+    # if self.train_pos:
+    #   actual_train_ops.append(train_ops['pos_loss'])
+    # if self.role_loss_penalty > 0:
+    #   actual_train_ops.append(train_ops['srl_loss'])
+
     # These have to happen after optimizer.minimize is called
     valid_output = self._model(self._validset, moving_params=optimizer)
     test_output = self._model(self._testset, moving_params=optimizer)
+
+
     
     ops = {}
-    ops['train_op'] = [train_op,
-                       train_output['loss'],
+    # ops['train_op'] = actual_train_ops + [train_output['loss'],
+    #                    train_output['n_correct'],
+    #                    train_output['n_tokens']]
+    # ops['train_op_svd'] = actual_train_ops + [train_output['loss'],
+    #                        train_output['n_correct'],
+    #                        train_output['n_tokens'],
+    #                        train_output['roots_loss'],
+    #                        train_output['2cycle_loss'],
+    #                        train_output['svd_loss'],
+    #                        train_output['log_loss'],
+    #                        train_output['rel_loss']]
+    # ops['train_op_srl'] = actual_train_ops + [train_output['loss'],
+    #                        train_output['n_correct'],
+    #                        train_output['n_tokens'],
+    #                        train_output['roots_loss'],
+    #                        train_output['2cycle_loss'],
+    #                        train_output['svd_loss'],
+    #                        train_output['log_loss'],
+    #                        train_output['rel_loss'],
+    #                        train_output['srl_loss'],
+    #                        train_output['srl_correct'],
+    #                        train_output['srl_count'],
+    #                        train_output['trigger_loss'],
+    #                        train_output['trigger_count'],
+    #                        train_output['trigger_correct'],
+    #                        train_output['pos_loss'],
+    #                        train_output['pos_correct'],
+    #                        train_output['multitask_losses']] + lrs
+    ops['train_op'] = [train_op] + [train_output['loss'],
                        train_output['n_correct'],
                        train_output['n_tokens']]
-    ops['train_op_svd'] = [train_op,
-                           train_output['loss'],
+    ops['train_op_svd'] = [train_op] + [train_output['loss'],
                            train_output['n_correct'],
                            train_output['n_tokens'],
                            train_output['roots_loss'],
@@ -784,8 +827,7 @@ class Network(Configurable):
                            train_output['svd_loss'],
                            train_output['log_loss'],
                            train_output['rel_loss']]
-    ops['train_op_srl'] = [train_op,
-                           train_output['loss'],
+    ops['train_op_srl'] = [train_op] + [train_output['loss'],
                            train_output['n_correct'],
                            train_output['n_tokens'],
                            train_output['roots_loss'],
@@ -801,8 +843,7 @@ class Network(Configurable):
                            train_output['trigger_correct'],
                            train_output['pos_loss'],
                            train_output['pos_correct'],
-                           train_output['multitask_losses'],
-                           lr]
+                           train_output['multitask_losses']] + lrs
     ops['valid_op'] = [valid_output['loss'],
                        valid_output['n_correct'],
                        valid_output['n_tokens'],
@@ -838,14 +879,14 @@ class Network(Configurable):
                       test_output['pos_correct'],
                       test_output['pos_preds'],
                       ]
-    ops['optimizer'] = optimizer
+    # ops['optimizer'] = optimizer
     
     return ops
     
   #=============================================================
-  @property
-  def global_step(self):
-    return self._global_step
+  # @property
+  # def global_step(self):
+  #   return self._global_step
   @property
   def global_epoch(self):
     return self._global_epoch

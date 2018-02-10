@@ -17,11 +17,16 @@ from lib.models.parsers.base_parser import BaseParser
 #***************************************************************
 class Parser(BaseParser):
   """"""
+
+  def print_once(self, *args, **kwargs):
+    if self.print_stuff:
+      print(*args, **kwargs)
   
   #=============================================================
   def __call__(self, dataset, moving_params=None):
     """"""
 
+    self.print_stuff = dataset.name == "Trainset"
     self.multi_penalties = {k: float(v) for k, v in map(lambda s: s.split(':'), self.multitask_penalties.split(';'))} if self.multitask_penalties else {}
     self.multi_layers = {k: set(map(int, v.split(','))) for k, v in map(lambda s: s.split(':'), self.multitask_layers.split(';'))} if self.multitask_layers else {}
 
@@ -66,18 +71,18 @@ class Parser(BaseParser):
 
     kernel = 3
     hidden_size = self.num_heads * self.head_size
-    print("n_recur: ", self.n_recur)
-    print("num heads: ", self.num_heads)
-    print("cnn dim: ", self.cnn_dim)
-    print("relu hidden size: ", self.relu_hidden_size)
-    print("head size: ", self.head_size)
+    self.print_once("n_recur: ", self.n_recur)
+    self.print_once("num heads: ", self.num_heads)
+    self.print_once("cnn dim: ", self.cnn_dim)
+    self.print_once("relu hidden size: ", self.relu_hidden_size)
+    self.print_once("head size: ", self.head_size)
 
-    print("cnn2d_layers: ", self.cnn2d_layers)
-    print("cnn_dim_2d: ", self.cnn_dim_2d)
+    self.print_once("cnn2d_layers: ", self.cnn2d_layers)
+    self.print_once("cnn_dim_2d: ", self.cnn_dim_2d)
 
-    print("multitask penalties: ", self.multi_penalties)
-    print("multitask layers: ", self.multi_layers)
-    print("parse update proportion: ", self.parse_update_proportion)
+    self.print_once("multitask penalties: ", self.multi_penalties)
+    self.print_once("multitask layers: ", self.multi_layers)
+    self.print_once("parse update proportion: ", self.parse_update_proportion)
 
     # trigger_indices = [i for s, i in vocabs[3].iteritems() if self.trigger_str in s]
 
@@ -218,7 +223,7 @@ class Parser(BaseParser):
                 if 'children' in self.multi_layers.keys() and i in self.multi_layers['children'] and \
                     self.multi_penalties['children'] != 0.:
                   this_layer_capsule_heads = 1
-                print("Layer %d capsule heads: %d" % (i, this_layer_capsule_heads))
+                self.print_once("Layer %d capsule heads: %d" % (i, this_layer_capsule_heads))
 
                 # else:
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,

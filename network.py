@@ -60,13 +60,10 @@ class Network(Configurable):
     with open(os.path.join(self.save_dir, 'config.cfg'), 'w') as f:
       self._config.write(f)
 
-    # objectives = ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
-    # self._global_steps = {o: tf.Variable(0., trainable=False) for o in objectives}
-    self._global_step = tf.Variable(0., trainable=False)
+    objectives = ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
+    self._global_steps = {o: tf.Variable(0., trainable=False) for o in objectives}
     self._global_epoch = tf.Variable(0., trainable=False)
 
-    # todo what is this??
-    # self._model = model(self._config, global_step=self.global_step)
     self._model = model(self._config)
 
     self._vocabs = []
@@ -765,22 +762,19 @@ class Network(Configurable):
   def _gen_ops(self):
     """"""
     
-    # optims = {k: optimizers.RadamOptimizer(self._config, global_step=step) for k, step in self._global_steps}
-    optimizer = optimizers.RadamOptimizer(self._config, global_step=self._global_step)
+    optims = {k: optimizers.RadamOptimizer(self._config, global_step=step) for k, step in self._global_steps}
     train_output = self._model(self._trainset)
 
-    # lrs = map(lambda o: o.learning_rate, optims)
-    lr = optimizer.learning_rate
+    lrs = map(lambda o: o.learning_rate, optims)
 
-    train_op = optimizer.minimize(train_output['loss'])
-    # train_ops = map(lambda k, o: o.minimize(train_output[k]), optims.iteritems())
-    #
-    # # ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
-    # actual_train_ops = []
-    # if self.train_pos:
-    #   actual_train_ops.append(train_ops['pos_loss'])
-    # if self.role_loss_penalty > 0:
-    #   actual_train_ops.append(train_ops['srl_loss'])
+    train_ops = map(lambda k, o: o.minimize(train_output[k]), optims.iteritems())
+
+    # ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
+    actual_train_ops = []
+    if self.train_pos:
+      actual_train_ops.append(train_ops['pos_loss'])
+    if self.role_loss_penalty > 0:
+      actual_train_ops.append(train_ops['srl_loss'])
 
     # These have to happen after optimizer.minimize is called
     valid_output = self._model(self._validset, moving_params=optimizer)
@@ -789,38 +783,10 @@ class Network(Configurable):
 
     
     ops = {}
-    # ops['train_op'] = actual_train_ops + [train_output['loss'],
-    #                    train_output['n_correct'],
-    #                    train_output['n_tokens']]
-    # ops['train_op_svd'] = actual_train_ops + [train_output['loss'],
-    #                        train_output['n_correct'],
-    #                        train_output['n_tokens'],
-    #                        train_output['roots_loss'],
-    #                        train_output['2cycle_loss'],
-    #                        train_output['svd_loss'],
-    #                        train_output['log_loss'],
-    #                        train_output['rel_loss']]
-    # ops['train_op_srl'] = actual_train_ops + [train_output['loss'],
-    #                        train_output['n_correct'],
-    #                        train_output['n_tokens'],
-    #                        train_output['roots_loss'],
-    #                        train_output['2cycle_loss'],
-    #                        train_output['svd_loss'],
-    #                        train_output['log_loss'],
-    #                        train_output['rel_loss'],
-    #                        train_output['srl_loss'],
-    #                        train_output['srl_correct'],
-    #                        train_output['srl_count'],
-    #                        train_output['trigger_loss'],
-    #                        train_output['trigger_count'],
-    #                        train_output['trigger_correct'],
-    #                        train_output['pos_loss'],
-    #                        train_output['pos_correct'],
-    #                        train_output['multitask_losses']] + lrs
-    ops['train_op'] = [train_op] + [train_output['loss'],
+    ops['train_op'] = actual_train_ops + [train_output['loss'],
                        train_output['n_correct'],
                        train_output['n_tokens']]
-    ops['train_op_svd'] = [train_op] + [train_output['loss'],
+    ops['train_op_svd'] = actual_train_ops + [train_output['loss'],
                            train_output['n_correct'],
                            train_output['n_tokens'],
                            train_output['roots_loss'],
@@ -828,7 +794,7 @@ class Network(Configurable):
                            train_output['svd_loss'],
                            train_output['log_loss'],
                            train_output['rel_loss']]
-    ops['train_op_srl'] = [train_op] + [train_output['loss'],
+    ops['train_op_srl'] = actual_train_ops + [train_output['loss'],
                            train_output['n_correct'],
                            train_output['n_tokens'],
                            train_output['roots_loss'],
@@ -844,8 +810,8 @@ class Network(Configurable):
                            train_output['trigger_correct'],
                            train_output['pos_loss'],
                            train_output['pos_correct'],
-                           train_output['multitask_losses'],
-                           lr]
+                           train_output['multitask_losses']] + lrs
+
     ops['valid_op'] = [valid_output['loss'],
                        valid_output['n_correct'],
                        valid_output['n_tokens'],

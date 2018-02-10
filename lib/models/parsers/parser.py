@@ -563,6 +563,8 @@ class Parser(BaseParser):
     output['trigger_correct'] = trigger_output['correct']
     output['trigger_preds'] = trigger_output['predictions']
 
+    output['multitask_loss_sum'] = multitask_loss_sum
+
 
     output['pos_loss'] = pos_loss
     output['pos_correct'] = pos_correct

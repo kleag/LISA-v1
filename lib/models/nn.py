@@ -448,13 +448,13 @@ class NN(Configurable):
   def __init__(self, *args, **kwargs):
     """"""
     
-    global_step = kwargs.pop('global_step', None)
+    # global_step = kwargs.pop('global_step', None)
     super(NN, self).__init__(*args, **kwargs)
     
-    if global_step is not None:
-      self._global_sigmoid = 1-tf.nn.sigmoid(3*(2*global_step/(self.train_iters-1)-1))
-    else:
-      self._global_sigmoid = 1
+    # if global_step is not None:
+    #   self._global_sigmoid = 1-tf.nn.sigmoid(3*(2*global_step/(self.train_iters-1)-1))
+    # else:
+    #   self._global_sigmoid = 1
     
     self.tokens_to_keep3D = None
     self.sequence_lengths = None
@@ -1853,6 +1853,6 @@ class NN(Configurable):
     raise NotImplementedError()
   
   #=============================================================
-  @property
-  def global_sigmoid(self):
-    return self._global_sigmoid
+  # @property
+  # def global_sigmoid(self):
+  #   return self._global_sigmoid

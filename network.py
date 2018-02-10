@@ -844,7 +844,8 @@ class Network(Configurable):
                            train_output['trigger_correct'],
                            train_output['pos_loss'],
                            train_output['pos_correct'],
-                           train_output['multitask_losses']] + lr
+                           train_output['multitask_losses'],
+                           lr]
     ops['valid_op'] = [valid_output['loss'],
                        valid_output['n_correct'],
                        valid_output['n_tokens'],

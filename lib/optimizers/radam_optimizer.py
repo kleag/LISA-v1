@@ -50,7 +50,7 @@ class RadamOptimizer(BaseOptimizer):
     return
   
   #=============================================================
-  def _apply_dense(self, cache):
+  def _apply_dense(self, cache, objective):
     """"""
     
     x_tm1, g_t = cache['x_tm1'], cache['g_t']
@@ -75,7 +75,7 @@ class RadamOptimizer(BaseOptimizer):
     return cache
   
   #=============================================================
-  def _apply_sparse(self, cache):
+  def _apply_sparse(self, cache, objective):
     """"""
     
     x_tm1, g_t, idxs = cache['x_tm1'], cache['g_t'], cache['idxs']
@@ -99,7 +99,7 @@ class RadamOptimizer(BaseOptimizer):
     else:
       v_bar_t_ = 1
     
-    s_t_ = self.learning_rate * m_bar_t_ / v_bar_t_
+    s_t_ = self.learning_rate(objective) * m_bar_t_ / v_bar_t_
     cache['s_t'] = s_t_
     cache['g_t'] = g_t_
     cache['idxs'] = idxs

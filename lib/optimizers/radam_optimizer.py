@@ -37,10 +37,10 @@ class RadamOptimizer(BaseOptimizer):
         self.get_accumulator(x_tm1, 'm')
         shape = self.get_variable_shape(x_tm1)
         if isinstance(g_t, tf.Tensor):
-          print("get acc m/tm1 []")
+          # print("get acc m/tm1 []")
           self.get_accumulator(x_tm1, 'm/tm1', [])
         else:
-          print("get acc m/tm1", [shape[0]]+[1]*(len(shape)-1))
+          # print("get acc m/tm1", [shape[0]]+[1]*(len(shape)-1))
           self.get_accumulator(x_tm1, 'm/tm1', [shape[0]]+[1]*(len(shape)-1))
       if self.nu > 0:
         self.get_accumulator(x_tm1, 'v')

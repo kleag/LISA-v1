@@ -132,8 +132,8 @@ class BaseOptimizer(Configurable):
   def get_accumulator(self, x_tm1, acc_name, shape=None):
     """"""
     
-    # if shape is None:
-    shape = self.get_variable_shape(x_tm1)
+    if shape is None:
+      shape = self.get_variable_shape(x_tm1)
     
     if acc_name not in self._accumulators:
       self._accumulators[acc_name] = {}
@@ -161,8 +161,8 @@ class BaseOptimizer(Configurable):
     
     b_tm1 = self.get_accumulator(x_tm1, '%s' % name)
     tm1 = self.get_accumulator(x_tm1, '%s/tm1' % name, shape=[])
-    print("got tm1:", '%s/tm1' % name, tm1.get_shape())
-    print("x_tm1", x_tm1.get_shape())
+    # print("got tm1:", '%s/tm1' % name, tm1.get_shape())
+    # print("x_tm1", x_tm1.get_shape())
     t = tf.assign_add(tm1, 1)
     if beta < 1:
       beta_t = tf.convert_to_tensor(beta, name='%s/decay' % name)

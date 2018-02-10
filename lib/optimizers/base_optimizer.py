@@ -99,6 +99,7 @@ class BaseOptimizer(Configurable):
           self.get_accumulator(x_tm1, 'x/tm1', [])
         else:
           self.get_accumulator(x_tm1, 'x/tm1', [shape[0]]+[1]*(len(shape)-1))
+    print("initialized %d variables in optimizer" % len(var_list))
     return
   
   #=============================================================

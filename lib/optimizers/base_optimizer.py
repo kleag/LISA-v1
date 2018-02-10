@@ -219,7 +219,8 @@ class BaseOptimizer(Configurable):
   #==============================================================
   def average(self, x_tm1):
     """"""
-    
+
+    # todo fix w/ multiple optimizers
     if 'x' in self._accumulators:
       return x_tm1
       #return self._accumulators['x'].get(x_tm1, x_tm1)

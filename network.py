@@ -797,7 +797,7 @@ class Network(Configurable):
     optimizer = optimizers.RadamOptimizer(self._config, global_steps=self._global_steps)
     train_output = self._model(self._trainset)
 
-    lrs = map(lambda o: optimizer.learning_rate(o), self._objectives)
+    lrs = map(lambda o: optimizer.lr(o), self._objectives)
     # lrs = optimizer.learning_rates
 
     # train_op = optimizer.minimize(train_output['loss'])

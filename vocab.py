@@ -45,7 +45,7 @@ class Vocab(Configurable):
 
     self._vocab_file = vocab_file
     self._conll_idx = conll_idx
-    global_step = kwargs.pop('global_step', None)
+    # global_step = kwargs.pop('global_step', None)
     cased = kwargs.pop('cased', None)
     self._use_pretrained = kwargs.pop('use_pretrained', False)
     super(Vocab, self).__init__(*args, **kwargs)
@@ -93,10 +93,10 @@ class Vocab(Configurable):
       self.load_embed_file()
     self._finalize()
     
-    if global_step is not None:
-      self._global_sigmoid = 1-tf.nn.sigmoid(3*(2*global_step/(self.train_iters-1)-1))
-    else:
-      self._global_sigmoid = 1
+    # if global_step is not None:
+    #   self._global_sigmoid = 1-tf.nn.sigmoid(3*(2*global_step/(self.train_iters-1)-1))
+    # else:
+    #   self._global_sigmoid = 1
     return
   
   #=============================================================
@@ -375,9 +375,9 @@ class Vocab(Configurable):
   @property
   def conll_idx(self):
     return self._conll_idx
-  @property
-  def global_sigmoid(self):
-    return self._global_sigmoid
+  # @property
+  # def global_sigmoid(self):
+  #   return self._global_sigmoid
   
   #=============================================================
   def keys(self):

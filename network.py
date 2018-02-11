@@ -195,7 +195,7 @@ class Network(Configurable):
 
           # compute the train ops we're going to run for this step
           # ['pos_loss', 'trigger_loss', 'parse_loss', 'srl_loss', 'multitask_loss_sum']
-          do_pos_train_step = self.pos_penalty > 0.0 and total_train_iters > self.start_pos_step
+          do_pos_train_step = self.pos_penalty > 0.0 and self.train_pos and total_train_iters > self.start_pos_step
           do_trigger_train_step = self.trigger_loss_penalty > 0.0 and total_train_iters > self.start_trigger_step
           do_parse_train_step = (self.rel_loss_penalty > 0.0 or self.arc_loss_penalty > 0.0) and total_train_iters > self.start_parse_step and np.random.rand() < self.parse_update_proportion
           do_srl_train_step = self.role_loss_penalty > 0.0 and total_train_iters > self.start_srl_step

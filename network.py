@@ -810,7 +810,7 @@ class Network(Configurable):
     # optimizer.minimize(train_output['loss'], 'loss')
 
     # ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
-    self.all_train_ops = {o: optimizer.minimize(train_output[o], o) for o in ['loss']}
+    self.all_train_ops = {o: optimizer.minimize(train_output[o], o) for o in ['loss', 'pos_loss']}
 
     # self.all_train_ops = {o: optimizer.minimize(train_output[o], o) for o in self._objectives}
     # if self.train_pos:

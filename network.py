@@ -288,6 +288,7 @@ class Network(Configurable):
                   '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
                   (total_train_iters, train_loss, train_accuracy, train_time, ' '.join(map(str, lrs)), valid_loss, valid_accuracy, valid_time))
             print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\tpos loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_trigger_loss, train_pos_loss))
+            print("global steps", self._global_steps)
             multitask_losses_str = ''
             for n, l in train_mul_loss.iteritems():
               train_mul_loss[n] = l/n_train_iters

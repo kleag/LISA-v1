@@ -61,7 +61,8 @@ class Network(Configurable):
       self._config.write(f)
 
     # self._objectives = ['pos_loss', 'trigger_loss', 'parse_loss', 'srl_loss', 'multitask_loss_sum']
-    self._objectives = ['loss', 'pos_loss', 'trigger_loss', 'parse_loss', 'srl_loss', 'multitask_loss_sum']
+    self._objectives = ['loss', 'pos_loss', 'srl_loss', 'trigger_loss', 'parse_loss']
+    # self._objectives = ['loss', 'pos_loss', 'trigger_loss', 'parse_loss', 'srl_loss', 'multitask_loss_sum']
     self._global_steps = {o: tf.Variable(0., trainable=False) for o in self._objectives}
     # self._global_step = tf.Variable(0., trainable=False)
     self._global_epoch = tf.Variable(0., trainable=False)
@@ -810,7 +811,7 @@ class Network(Configurable):
     # optimizer.minimize(train_output['loss'], 'loss')
 
     # ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
-    self.all_train_ops = {o: optimizer.minimize(train_output[o], o) for o in ['loss', 'pos_loss', 'srl_loss', 'trigger_loss', 'parse_loss']}
+    self.all_train_ops = {o: optimizer.minimize(train_output[o], o) for o in self._objectives}
 
     # self.all_train_ops = {o: optimizer.minimize(train_output[o], o) for o in self._objectives}
     # if self.train_pos:

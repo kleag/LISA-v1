@@ -807,10 +807,12 @@ class Network(Configurable):
     # train_op = optimizer.minimize(train_output['loss'])
     # train_ops = {o: optimizer.minimize(train_output[o]) for o in self._objectives}
 
-    optimizer.minimize(train_output['loss'], 'loss')
+    # optimizer.minimize(train_output['loss'], 'loss')
 
     # ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
-    self.all_train_ops = {o: optimizer.minimize(train_output[o], o) for o in self._objectives}
+    self.all_train_ops = {o: optimizer.minimize(train_output[o], o) for o in ['loss']}
+
+    # self.all_train_ops = {o: optimizer.minimize(train_output[o], o) for o in self._objectives}
     # if self.train_pos:
     #   self.train_ops.append(optimizer.minimize(train_output['pos_loss']))
     # if self.role_loss_penalty > 0:

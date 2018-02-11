@@ -43,6 +43,8 @@ class BaseOptimizer(Configurable):
 
     # print("objective: %s", objective)
     global_step = self._global_steps[objective]
+
+    print("loss", loss)
     
     # Error checking
     var_list = tf.trainable_variables()

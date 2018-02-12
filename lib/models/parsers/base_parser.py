@@ -63,6 +63,9 @@ class BaseParser(NN):
   #=============================================================
   def validate(self, mb_inputs, mb_targets, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, transition_params=None):
     """"""
+
+    if transition_params is not None:
+      print("Doing viterbi decoding")
     
     sents = []
     mb_parse_probs, mb_rel_probs = mb_probs
@@ -115,7 +118,6 @@ class BaseParser(NN):
       # num_triggers x seq_len
       # print(srl_preds)
       srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
-      srl_pred_idx += num_pred_srls
 
       # print("srl pred", len(srl_pred), srl_pred)
 
@@ -126,6 +128,8 @@ class BaseParser(NN):
           viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(single_pred_unary_scores, transition_params)
           # print("viterbi seq", len(viterbi_sequence), viterbi_sequence)
           srl_pred[pred_idx] = viterbi_sequence
+
+      srl_pred_idx += num_pred_srls
 
       # print("s_pred shape", srl_pred.shape)
       # print("num pred srls", num_pred_srls)

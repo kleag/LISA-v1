@@ -122,9 +122,10 @@ class BaseParser(NN):
       if transition_params is not None and num_pred_srls > 0:
         srl_unary_scores = srl_logits[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
         print("unary scores shape", srl_unary_scores.shape)
-        viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(srl_unary_scores, transition_params)
-        print("viterbi seq", len(viterbi_sequence), viterbi_sequence)
-        srl_pred = viterbi_sequence
+        for pred_idx, single_pred_unary_scores in enumerate(srl_unary_scores):
+          viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(single_pred_unary_scores, transition_params)
+          print("viterbi seq", len(viterbi_sequence), viterbi_sequence)
+          srl_pred[pred_idx] = viterbi_sequence
 
       # print("s_pred shape", srl_pred.shape)
       # print("num pred srls", num_pred_srls)

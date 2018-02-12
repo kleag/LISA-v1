@@ -1206,7 +1206,7 @@ class NN(Configurable):
     return output
 
   # =============================================================
-  def output_srl_gather(self, logits_transposed, targets, trigger_predictions):
+  def output_srl_gather(self, logits_transposed, targets, trigger_predictions, transition_params):
     """"""
 
     # logits are triggers_in_batch x num_classes x seq_len
@@ -1241,19 +1241,28 @@ class NN(Configurable):
     # num_triggers_in_batch x seq_len
     predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
 
-    def compute_srl_loss(logits_transposed, srl_targets_transposed):
+    def compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params):
       # batch*num_targets x seq_len
       trigger_counts = tf.reduce_sum(trigger_predictions, -1)
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
-      cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
-      cross_entropy *= mask
-      loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
+
+      if transition_params is not None:
+        seq_lens = tf.reduce_sum(self.tokens_to_keep3D, 1)
+        flat_seq_lens = tf.reshape(tf.tile(seq_lens, [1, bucket_size]), tf.stack([batch_size * bucket_size]))
+        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(logits_transposed, srl_targets,
+                                                                              flat_seq_lens,
+                                                                              transition_params=transition_params)
+        loss = tf.reduce_mean(-log_likelihood)
+      else:
+        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
+        cross_entropy *= mask
+        loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
       correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
       return loss, correct
 
     loss, correct = tf.cond(tf.greater(tf.shape(targets)[2], 0),
-                   lambda: compute_srl_loss(logits_transposed, srl_targets_transposed),
+                   lambda: compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params),
                    lambda: (tf.constant(0.), tf.constant(0.)))
 
     probabilities = tf.nn.softmax(logits_transposed)

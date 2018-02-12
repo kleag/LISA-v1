@@ -77,7 +77,7 @@ for lr in ${lrs[@]}; do
                                                                     multitask_layer="$multitask_layer$children_layer"
                                                                 fi
                                                                 commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --mem=24G python network.py  \
-                                                                --config_file config/trans-conll12-bio-manualattn.cfg \
+                                                                --config_file config/trans-conll05-bio-manualattn.cfg \
                                                                 --save_dir $OUT_LOG/scores-$fname_append \
                                                                 --save_every 500 \
                                                                 --train_iters 5000000 \

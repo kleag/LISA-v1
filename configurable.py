@@ -160,7 +160,7 @@ class Configurable(object):
 
   @property
   def transition_statistics(self):
-    return self._config.get('Training', 'transition_statistics')
+    return self._config.get('OS', 'transition_statistics')
   argparser.add_argument('--transition_statistics')
   
   #=============================================================

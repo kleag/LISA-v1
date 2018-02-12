@@ -107,16 +107,21 @@ class Parser(BaseParser):
 
     # todo these are actually wrong because of nesting
     bilou_constraints = np.zeros((num_srl_classes, num_srl_classes))
-    for s_str, s_idx in vocabs[3].iteritems():
-      for e_str, e_idx in vocabs[3].iteritems():
-        s_bilou = s_str[0]
-        e_bilou = e_str[0]
-        s_type = s_str[2:]
-        e_type = e_str[2:]
-        if (s_bilou == 'L' or s_bilou == 'U' or s_bilou == 'O') and (e_bilou == 'O' or e_bilou == 'B' or e_bilou == 'U'):
-          bilou_constraints[s_idx, e_idx] = 1.0
-        elif (s_bilou == 'B' or s_bilou == 'I') and s_type == e_type and (e_bilou == 'I' or e_bilou == 'L'):
-          bilou_constraints[s_idx, e_idx] = 1.0
+    if self.transition_statistics:
+      with open(self.transition_statistics, 'r') as f:
+        for line in f:
+          tag1, tag2, prob = line.split("\t")
+          bilou_constraints[vocabs[3][tag1], vocabs[3][tag2]] = float(prob)
+    # for s_str, s_idx in vocabs[3].iteritems():
+    #   for e_str, e_idx in vocabs[3].iteritems():
+    #     s_bilou = s_str[0]
+    #     e_bilou = e_str[0]
+    #     s_type = s_str[2:]
+    #     e_type = e_str[2:]
+    #     if (s_bilou == 'L' or s_bilou == 'U' or s_bilou == 'O') and (e_bilou == 'O' or e_bilou == 'B' or e_bilou == 'U'):
+    #       bilou_constraints[s_idx, e_idx] = 1.0
+    #     elif (s_bilou == 'B' or s_bilou == 'I') and s_type == e_type and (e_bilou == 'I' or e_bilou == 'L'):
+    #       bilou_constraints[s_idx, e_idx] = 1.0
 
     ###### stuff for multitask attention ######
     multitask_targets = {}

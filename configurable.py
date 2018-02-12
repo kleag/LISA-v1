@@ -680,3 +680,8 @@ class Configurable(object):
   def gold_attn_at_train(self):
     return self._config.getboolean('Training', 'gold_attn_at_train')
   argparser.add_argument('--gold_attn_at_train')
+
+  @property
+  def transition_statistics(self):
+    return self._config.get('Training', 'transition_statistics')
+  argparser.add_argument('--transition_statistics')

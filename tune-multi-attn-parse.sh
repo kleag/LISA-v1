@@ -30,9 +30,9 @@ relu_hidden_sizes="256"
 
 parents_penalties="0.1 0.01"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:0 parents:1 parents:2 no"
-grandparents_layers="grandparents:2 grandparents:3 no"
-children_layers="children:1 children:3 no"
+parents_layers="parents:0 parents:1 parents:2 parents:3 no"
+#grandparents_layers="grandparents:2 grandparents:3 no"
+children_layers="children:1 children:2 children:3 no"
 
 
 #trigger_mlp_sizes="256"
@@ -64,64 +64,50 @@ for lr in ${lrs[@]}; do
                                             for parents_penalty in ${parents_penalties[@]}; do
                                                 for parents_layer in ${parents_layers[@]}; do
                                                     for children_layer in ${children_layers[@]}; do
-                                                        for grandparents_layer in ${grandparents_layers[@]}; do
-                                                            for rep in `seq $reps`; do
-                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$grandparents_layer-$children_layer"
-                                                                multitask_layer=""
-                                                                orig_parents_layer=$parents_layer
-                                                                if [[ "$parents_layer" == "no" ]]; then
-                                                                    parents_layer=""
-                                                                else
-                                                                    multitask_layer=$parents_layer
+                                                        for rep in `seq $reps`; do
+                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$children_layer"
+                                                            multitask_layer=""
+                                                            orig_parents_layer=$parents_layer
+                                                            if [[ "$parents_layer" == "no" ]]; then
+                                                                parents_layer=""
+                                                            else
+                                                                multitask_layer=$parents_layer
+                                                            fi
+                                                            orig_children_layer=$children_layer
+                                                            if [[ "$children_layer" == "no" ]]; then
+                                                                children_layer=""
+                                                            else
+                                                                if [[ "$multitask_layer" != "" ]]; then
+                                                                    multitask_layer="$multitask_layer;"
                                                                 fi
-                                                                orig_grandparents_layer=$grandparents_layer
-                                                                if [[ "$grandparents_layer" == "no" ]]; then
-                                                                    grabndparents_layer=""
-                                                                else
-                                                                    if [[ "$multitask_layer" != "" ]]; then
-                                                                        multitask_layer="$multitask_layer;"
-                                                                    fi
-                                                                    multitask_layer="$multitask_layer$grandparents_layer"
-                                                                fi
-                                                                orig_children_layer=$children_layer
-                                                                if [[ "$children_layer" == "no" ]]; then
-                                                                    children_layer=""
-                                                                else
-                                                                    if [[ "$multitask_layer" != "" ]]; then
-                                                                        multitask_layer="$multitask_layer;"
-                                                                    fi
-                                                                    multitask_layer="$multitask_layer$children_layer"
-                                                                fi
-                                                                commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --mem=24G --time=12:00:00 python network.py  \
-                                                                --config_file config/trans-conll12-parse-nw.cfg \
-                                                                --save_dir $OUT_LOG/scores-$fname_append \
-                                                                --save_every 500 \
-                                                                --train_iters 500000 \
-                                                                --train_batch_size $batch_size \
-                                                                --warmup_steps $warmup_steps \
-                                                                --learning_rate $lr \
-                                                                --cnn_dim $cnn_dim \
-                                                                --n_recur $trans_layer \
-                                                                --num_heads $num_head \
-                                                                --head_size $head_size \
-                                                                --relu_hidden_size $relu_hidden_size \
-                                                                --mu $mu \
-                                                                --nu $nu \
-                                                                --epsilon $epsilon \
-                                                                --multitask_layers \"$multitask_layer\" \
-                                                                --multitask_penalties \"parents:$parents_penalty;grandparents:$parents_penalty;children:$parents_penalty\"
-                                                                --add_pos_to_input true \
-                                                                --ensure_tree True \
-                                                                --eval_by_domain True \
-                                                                --eval_parse True \
-                                                                --eval_srl False \
-                                                                --save False \
-                                                                &> $OUT_LOG/train-$fname_append.log")
-                                                                i=$((i + 1))
-                                                                parents_layer=$orig_parents_layer
-                                                                grandparents_layer=$orig_grandparents_layer
-                                                                children_layer=$orig_children_layer
-                                                            done
+                                                                multitask_layer="$multitask_layer$children_layer"
+                                                            fi
+                                                            commands+=("srun --gres=gpu:1 --partition=titanx-long,m40-long --mem=24G --time=12:00:00 python network.py  \
+                                                            --config_file config/trans-conll12-parse-nw.cfg \
+                                                            --save_dir $OUT_LOG/scores-$fname_append \
+                                                            --save_every 500 \
+                                                            --train_iters 500000 \
+                                                            --train_batch_size $batch_size \
+                                                            --warmup_steps $warmup_steps \
+                                                            --learning_rate $lr \
+                                                            --cnn_dim $cnn_dim \
+                                                            --n_recur $trans_layer \
+                                                            --num_heads $num_head \
+                                                            --head_size $head_size \
+                                                            --relu_hidden_size $relu_hidden_size \
+                                                            --mu $mu \
+                                                            --nu $nu \
+                                                            --epsilon $epsilon \
+                                                            --multitask_layers \"$multitask_layer\" \
+                                                            --multitask_penalties \"parents:$parents_penalty;children:$parents_penalty\"
+                                                            --eval_by_domain True \
+                                                            --eval_srl True \
+                                                            --save False \
+                                                            &> $OUT_LOG/train-$fname_append.log")
+                                                            i=$((i + 1))
+                                                            parents_layer=$orig_parents_layer
+                                                            children_layer=$orig_children_layer
+                                                        done
                                                         done
                                                     done
                                                 done

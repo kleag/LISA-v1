@@ -119,7 +119,7 @@ class BaseParser(NN):
 
       print(len(srl_pred), srl_pred)
 
-      if transition_params:
+      if transition_params is not None and num_pred_srls > 0:
         srl_unary_scores = srl_logits[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
         viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(srl_unary_scores, transition_params)
         print(len(viterbi_sequence), viterbi_sequence)

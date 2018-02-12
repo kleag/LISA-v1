@@ -1248,10 +1248,10 @@ class NN(Configurable):
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
 
       if transition_params is not None:
-        seq_lens = tf.reduce_sum(self.tokens_to_keep3D, 1)
-        flat_seq_lens = tf.reshape(tf.tile(seq_lens, [1, bucket_size]), tf.stack([batch_size * bucket_size]))
+        seq_lens = tf.reduce_sum(mask, 1)
+        # flat_seq_lens = tf.reshape(tf.tile(seq_lens, [1, bucket_size]), tf.stack([batch_size * bucket_size]))
         log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(logits_transposed, srl_targets,
-                                                                              flat_seq_lens,
+                                                                              seq_lens,
                                                                               transition_params=transition_params)
         loss = tf.reduce_mean(-log_likelihood)
       else:

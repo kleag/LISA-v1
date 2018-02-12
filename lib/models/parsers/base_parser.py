@@ -63,9 +63,6 @@ class BaseParser(NN):
   #=============================================================
   def validate(self, mb_inputs, mb_targets, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, transition_params=None):
     """"""
-
-    if transition_params is not None:
-      print("Doing viterbi decoding")
     
     sents = []
     mb_parse_probs, mb_rel_probs = mb_probs
@@ -121,7 +118,7 @@ class BaseParser(NN):
 
       # print("srl pred", len(srl_pred), srl_pred)
 
-      if transition_params is not None and num_pred_srls > 0:
+      if self.viterbi_decode and num_pred_srls > 0:
         srl_unary_scores = srl_logits[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
         # print("unary scores shape", srl_unary_scores.shape)
         for pred_idx, single_pred_unary_scores in enumerate(srl_unary_scores):

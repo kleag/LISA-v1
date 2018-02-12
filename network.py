@@ -431,6 +431,8 @@ class Network(Configurable):
       forward_start = time.time()
       probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_trigger, srl_trigger_targets, transition_params, attn_weights, attn_correct, pos_correct, pos_preds = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
+      if self.viterbi_decode:
+        print("Decoding w/ viterbi")
       preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_trigger, srl_trigger_targets, pos_preds, transition_params)
       n_tokens += n_tokens_batch
       for k, v in attn_weights.iteritems():

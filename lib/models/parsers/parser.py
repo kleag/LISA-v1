@@ -484,7 +484,7 @@ class Parser(BaseParser):
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
         srl_logits = self.bilinear_classifier_nary(gathered_triggers, gathered_roles, num_srl_classes)
         srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
-        srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, trigger_predictions, transition_params)
+        srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, trigger_predictions, transition_params if self.viterbi_train else None)
         return srl_output
     srl_targets = targets[:, :, 3:]
     if self.role_loss_penalty == 0:

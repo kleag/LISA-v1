@@ -59,7 +59,7 @@ for lr in ${lrs[@]}; do
                                                     for children_layer in ${children_layers[@]}; do
                                                         for trigger_layer in ${trigger_layers[@]}; do
                                                             for rep in `seq $reps`; do
-                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$children_layer"
+                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$children_layer-$trigger_layer"
                                                                 multitask_layer=""
                                                                 orig_parents_layer=$parents_layer
                                                                 if [[ "$parents_layer" == "no" ]]; then
@@ -96,7 +96,7 @@ for lr in ${lrs[@]}; do
                                                                 --trigger_layer $trigger_layer \
                                                                 --multitask_layers \"$multitask_layer\" \
                                                                 --multitask_penalties \"parents:$parents_penalty;children:$parents_penalty\"
-                                                                --eval_by_domain True \
+                                                                --eval_by_domain False \
                                                                 --eval_srl True \
                                                                 --save True \
                                                                 &> $OUT_LOG/train-$fname_append.log")

@@ -289,10 +289,13 @@ class Network(Configurable):
             with open(os.path.join(self.save_dir, 'history.pkl'), 'w') as f:
               pkl.dump(self.history, f)
             correct = self.test(sess, validate=True)
+            current_score = correct[self.eval_criterion]
+            if self.viterbi_decode:
+              viterbi_correct = self.test(sess, viterbi=True, validate=True)
+              current_score = np.max(viterbi_correct[self.eval_criterion], current_score)
             # las = np.mean(correct["LAS"]) * 100
             # uas = np.mean(correct["UAS"]) * 100
             # print('UAS: %.2f    LAS: %.2f' % (uas, las))
-            current_score = correct[self.eval_criterion]
             if self.save and current_score > current_best:
               current_best = current_score
               print("Writing model to %s" % (os.path.join(self.save_dir, self.name.lower() + '-trained')))
@@ -394,7 +397,7 @@ class Network(Configurable):
     
   #=============================================================
   # TODO make this work if lines_per_buff isn't set to 0
-  def test(self, sess, validate=False):
+  def test(self, sess, viterbi=False, validate=False):
     """"""
     
     if validate:
@@ -425,8 +428,6 @@ class Network(Configurable):
     attn_correct_counts = {}
     pos_correct_total = 0.
     n_tokens = 0.
-    if self.viterbi_decode:
-      print("Decoding w/ viterbi")
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
@@ -704,7 +705,7 @@ class Network(Configurable):
               except CalledProcessError as e:
                 print("Call to eval failed: %s" % e.output)
                 str_d = ""
-            print("SRL %s:" % d)
+            print("%sSRL %s:" % ("viterbi " if viterbi else "", d))
             print(str_d)
 
       # with open(os.path.join(self.save_dir, 'scores.txt'), 'a') as f:
@@ -735,7 +736,7 @@ class Network(Configurable):
     print('UAS: %s    LAS: %s' % (correct["UAS"], correct["LAS"]))
     print('POS: %.2f' % pos_accuracy)
     print('SRL acc: %.2f' % (srl_acc))
-    print('SRL F1: %s' % (correct["F1"]))
+    print('%sSRL F1: %s' % ("viterbi " if viterbi else "", correct["F1"]))
     return correct
   
   #=============================================================
@@ -997,10 +998,10 @@ if __name__ == '__main__':
         saver = tf.train.Saver(var_list=network.save_vars)
         print("Loading model: ", network.load_dir)
         saver.restore(sess, tf.train.latest_checkpoint(network.load_dir, latest_filename=network.name.lower()))
-        network.test(sess, validate=True)
+        network.test(sess, network.viterbi_decode, validate=True)
 
         # Actually evaluate on test data
         if args.test_eval:
           start_time = time.time()
-          network.test(sess, validate=False)
+          network.test(sess, network.viterbi_decode, validate=False)
           print('Parsing took %f seconds' % (time.time() - start_time))

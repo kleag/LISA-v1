@@ -98,7 +98,7 @@ for lr in ${lrs[@]}; do
                                                                 --multitask_penalties \"parents:$parents_penalty;children:$parents_penalty\"
                                                                 --eval_by_domain True \
                                                                 --eval_srl True \
-                                                                --save False \
+                                                                --save True \
                                                                 &> $OUT_LOG/train-$fname_append.log")
                                                                 i=$((i + 1))
                                                                 parents_layer=$orig_parents_layer

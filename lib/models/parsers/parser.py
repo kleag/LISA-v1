@@ -60,8 +60,12 @@ class Parser(BaseParser):
       pos_inputs = vocabs[1].embedding_lookup(inputs[:, :, 2], moving_params=self.moving_params)
       inputs_to_embed.append(pos_inputs)
     if self.add_triggers_to_input:
-      trigger_inputs = vocabs[4].embedding_lookup(inputs[:, :, 3], moving_params=self.moving_params)
-      inputs_to_embed.append(trigger_inputs)
+      # trigger_inputs = vocabs[4].embedding_lookup(inputs[:, :, 3], moving_params=self.moving_params)
+      fixed_trigger_emb = np.zeros([num_pred_classes, 1], dtype=np.int32)
+      fixed_trigger_emb[vocabs[4]["True"]] = 1.
+      fixed_trigger_emb_var = tf.get_variable(name="predicate_emb_lookup", initializer=fixed_trigger_emb, trainable=False)
+      fixed_trigger_lookup = tf.nn.embedding_lookup(fixed_trigger_emb_var, inputs[:, :, 3])
+      inputs_to_embed.append(fixed_trigger_lookup)
 
     embed_inputs = self.embed_concat(*inputs_to_embed)
     

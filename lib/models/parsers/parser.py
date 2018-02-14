@@ -570,7 +570,7 @@ class Parser(BaseParser):
     output['trigger_loss'] = trigger_loss
     output['trigger_count'] = trigger_output['count']
     output['trigger_correct'] = trigger_output['correct']
-    output['trigger_preds'] = trigger_output['predictions']
+    output['trigger_preds'] = trigger_predictions #trigger_output['predictions']
 
 
     output['pos_loss'] = pos_loss

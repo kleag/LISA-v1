@@ -78,7 +78,7 @@ for lr in ${lrs[@]}; do
                                                                 fi
 
                                                                 partition="titanx-long"
-                                                                if [[ $i <= 10 ]]; then
+                                                                if [[ $i -le 10 ]]; then
                                                                     partition="m40-long"
                                                                 fi
 

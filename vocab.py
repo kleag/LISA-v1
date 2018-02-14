@@ -61,7 +61,7 @@ class Vocab(Configurable):
     else:
       self._cased = cased
     if self.name == 'Tags':
-      self.SPECIAL_TOKENS = ('PAD',) #, 'ROOT')
+      self.SPECIAL_TOKENS = ('PAD',)
       # self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
     elif self.name == 'Rels':
       self.SPECIAL_TOKENS = ('PAD',) #, self.root_label)

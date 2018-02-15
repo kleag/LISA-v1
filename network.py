@@ -294,8 +294,8 @@ class Network(Configurable):
               correct = self.test(sess, validate=True)
               current_score = correct[self.eval_criterion]
             if self.viterbi_decode or self.viterbi_train:
-              viterbi_correct = self.test(sess, viterbi=True, validate=True)
-              current_score = np.max([viterbi_correct[self.eval_criterion], current_score])
+              correct = self.test(sess, viterbi=True, validate=True)
+              current_score = np.max([correct[self.eval_criterion], current_score])
             # las = np.mean(correct["LAS"]) * 100
             # uas = np.mean(correct["UAS"]) * 100
             # print('UAS: %.2f    LAS: %.2f' % (uas, las))
@@ -306,8 +306,9 @@ class Network(Configurable):
                          latest_filename=self.name.lower(),
                          global_step=self.global_epoch,
                          write_meta_graph=False)
-              with open(os.path.join(self.save_dir, "parse_results.txt"), 'w') as parse_results_f:
-                print(correct['parse_eval'], file=parse_results_f)
+              if self.eval_parse:
+                with open(os.path.join(self.save_dir, "parse_results.txt"), 'w') as parse_results_f:
+                  print(correct['parse_eval'], file=parse_results_f)
             # with open(os.path.join(self.save_dir, 'history.pkl'), 'w') as f:
             #   pkl.dump(self.history, f)
             # self.test(sess, validate=True)

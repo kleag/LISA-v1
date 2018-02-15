@@ -538,22 +538,24 @@ class Network(Configurable):
                 preds = all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
                 domain = '-'
-                for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-                  domain = self._vocabs[5][pred[5]]
-                  head = pred[7] + 1
-                  tok_id = i + 1
+                sent_len = len(words)
+                if self.eval_single_token_sents or sent_len > 1:
+                  for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+                    domain = self._vocabs[5][pred[5]]
+                    head = pred[7] + 1
+                    tok_id = i + 1
+                    if domain == d:
+                      tup = (
+                        tok_id,  # id
+                        word,  # form
+                        self.tags[pred[6]],  # gold tag
+                        # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+                        str(head if head != tok_id else 0),  # pred head
+                        self.rels[pred[8]]  # pred label
+                      )
+                      f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
                   if domain == d:
-                    tup = (
-                      tok_id,  # id
-                      word,  # form
-                      self.tags[pred[6]],  # gold tag
-                      # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
-                      str(head if head != tok_id else 0),  # pred head
-                      self.rels[pred[8]]  # pred label
-                    )
-                    f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
-                if domain == d:
-                  f.write('\n')
+                    f.write('\n')
             with open(os.devnull, 'w') as devnull:
               try:
                 parse_eval_d = check_output(["perl", "bin/eval.pl", "-g", domain_gold_fname, "-s", domain_fname],

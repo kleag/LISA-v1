@@ -288,9 +288,12 @@ class Network(Configurable):
             print("Elapsed time: %s" % elapsed_time_str)
             with open(os.path.join(self.save_dir, 'history.pkl'), 'w') as f:
               pkl.dump(self.history, f)
-            correct = self.test(sess, validate=True)
-            current_score = correct[self.eval_criterion]
-            if self.viterbi_decode:
+            # only look at non-viterbi decoding if we didn't train w/ crf
+            current_score = 0.
+            if not self.viterbi_train:
+              correct = self.test(sess, validate=True)
+              current_score = correct[self.eval_criterion]
+            if self.viterbi_decode or self.viterbi_train:
               viterbi_correct = self.test(sess, viterbi=True, validate=True)
               current_score = np.max([viterbi_correct[self.eval_criterion], current_score])
             # las = np.mean(correct["LAS"]) * 100

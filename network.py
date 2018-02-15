@@ -496,20 +496,22 @@ class Network(Configurable):
           # sent[:, 8] = rel_preds[tokens]  # 7 = pred parse label
           # sent[:, 9] = targets[tokens, 1]  # 8 = gold parse head
           # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
-          for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-            head = pred[7] + 1
-            tok_id = i + 1
-            # print(self.tags[datum[5]], self.tags[pred[6]])
-            tup = (
-              tok_id,  # id
-              word,  # form
-              self.tags[pred[6]],  # gold tag
-              # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
-              str(head if head != tok_id else 0),  # pred head
-              self.rels[pred[8]] # pred label
-            )
-            f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
-          f.write('\n')
+          sent_len = len(words)
+          if self.eval_single_token_sents or sent_len > 1:
+            for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+              head = pred[7] + 1
+              tok_id = i + 1
+              # print(self.tags[datum[5]], self.tags[pred[6]])
+              tup = (
+                tok_id,  # id
+                word,  # form
+                self.tags[pred[6]],  # gold tag
+                # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+                str(head if head != tok_id else 0),  # pred head
+                self.rels[pred[8]] # pred label
+              )
+              f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
+            f.write('\n')
 
       with open(os.devnull, 'w') as devnull:
         try:

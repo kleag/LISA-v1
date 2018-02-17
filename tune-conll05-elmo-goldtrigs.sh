@@ -109,7 +109,7 @@ for lr in ${lrs[@]}; do
                                                                     --num_heads $num_head \
                                                                     --head_size $head_size \
                                                                     --relu_hidden_size $relu_hidden_size \
-                                                                    --embedding_size $embedding_size \
+                                                                    --embed_size $embedding_size \
                                                                     --trig_embed_size 100 \
                                                                     --embed_file $embed_file \
                                                                     --mu $mu \

@@ -112,7 +112,6 @@ for lr in ${lrs[@]}; do
                                                                     --embedding_size $embedding_size \
                                                                     --trig_embed_size 100 \
                                                                     --embed_file $embed_file \
-                                                                    --trig
                                                                     --mu $mu \
                                                                     --nu $nu \
                                                                     --epsilon $epsilon \

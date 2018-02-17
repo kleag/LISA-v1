@@ -30,14 +30,16 @@ relu_hidden_sizes="256"
 
 parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:0 parents:1 parents:2"
+parents_layers="parents:2 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 children_layers="no" #children:1 children:2 no"
-pos_layers="-2 -1 1"
+pos_layers="1"
+embedding_sizes="100 512"
+#embedding_files="data/glove/glove.6B.100d.txt data/elmo/elmo-conll05-embeddings.txt"
 
-reps="2"
+reps="1"
 
-# 3*3*2 = 18
+# 2*2 = 4
 
 # array to hold all the commands we'll distribute
 declare -a commands
@@ -58,63 +60,74 @@ for lr in ${lrs[@]}; do
                                                 for parents_layer in ${parents_layers[@]}; do
                                                     for children_layer in ${children_layers[@]}; do
                                                         for pos_layer in ${pos_layers[@]}; do
-                                                            for rep in `seq $reps`; do
-                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$children_layer-$pos_layer"
-                                                                multitask_layer=""
-                                                                orig_parents_layer=$parents_layer
-                                                                if [[ "$parents_layer" == "no" ]]; then
-                                                                    parents_layer=""
-                                                                else
-                                                                    multitask_layer=$parents_layer
-                                                                fi
-                                                                orig_children_layer=$children_layer
-                                                                if [[ "$children_layer" == "no" ]]; then
-                                                                    children_layer=""
-                                                                else
-                                                                    if [[ "$multitask_layer" != "" ]]; then
-                                                                        multitask_layer="$multitask_layer;"
+                                                            for embedding_size in ${embedding_sizes[@]}; do
+                                                                for rep in `seq $reps`; do
+                                                                    fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$children_layer-$pos_layer-$embedding_size"
+                                                                    multitask_layer=""
+                                                                    orig_parents_layer=$parents_layer
+                                                                    if [[ "$parents_layer" == "no" ]]; then
+                                                                        parents_layer=""
+                                                                    else
+                                                                        multitask_layer=$parents_layer
                                                                     fi
-                                                                    multitask_layer="$multitask_layer$children_layer"
-                                                                fi
+                                                                    orig_children_layer=$children_layer
+                                                                    if [[ "$children_layer" == "no" ]]; then
+                                                                        children_layer=""
+                                                                    else
+                                                                        if [[ "$multitask_layer" != "" ]]; then
+                                                                            multitask_layer="$multitask_layer;"
+                                                                        fi
+                                                                        multitask_layer="$multitask_layer$children_layer"
+                                                                    fi
 
-                                                                partition="titanx-long"
-                                                                if [[ $i -le 10 ]]; then
-                                                                    partition="m40-long"
-                                                                fi
+                                                                    embed_file="data/glove/glove.6B.100d.txt"
+                                                                    if [[ "$embedding_size" == "512" ]]; then
+                                                                        embed_file="data/elmo/elmo-conll05-embeddings.txt"
+                                                                    fi
 
-                                                                train_pos="True"
-                                                                if [[ "$pos_layer" == "no" ]]; then
-                                                                    train_pos="False"
-                                                                fi
+#                                                                    partition="titanx-long"
+#                                                                    if [[ $i -le 10 ]]; then
+#                                                                        partition="m40-long"
+#                                                                    fi
 
-                                                                commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                --config_file config/trans-conll05-bio-manualattn-goldtrigs-sdeps.cfg \
-                                                                --save_dir $OUT_LOG/scores-$fname_append \
-                                                                --save_every 500 \
-                                                                --train_iters 5000000 \
-                                                                --train_batch_size $batch_size \
-                                                                --test_batch_size $batch_size \
-                                                                --warmup_steps $warmup_steps \
-                                                                --learning_rate $lr \
-                                                                --cnn_dim $cnn_dim \
-                                                                --n_recur $trans_layer \
-                                                                --num_heads $num_head \
-                                                                --head_size $head_size \
-                                                                --relu_hidden_size $relu_hidden_size \
-                                                                --mu $mu \
-                                                                --nu $nu \
-                                                                --epsilon $epsilon \
-                                                                --pos_layer $pos_layer \
-                                                                --train_pos $train_pos \
-                                                                --multitask_layers \"$multitask_layer\" \
-                                                                --multitask_penalties \"parents:$parents_penalty;children:$parents_penalty\"
-                                                                --eval_by_domain False \
-                                                                --eval_srl True \
-                                                                --save True \
-                                                                &> $OUT_LOG/train-$fname_append.log")
-                                                                i=$((i + 1))
-                                                                parents_layer=$orig_parents_layer
-                                                                children_layer=$orig_children_layer
+#                                                                    train_pos="False"
+#                                                                    if [[ "$orig_parents_layer" == "no" ]]; then
+#                                                                        train_pos="True"
+#                                                                    fi
+
+                                                                    commands+=("srun --gres=gpu:1 --partition=titanx-long --mem=24G python network.py  \
+                                                                    --config_file config/trans-conll05-bio-manualattn-goldtrigs-sdeps.cfg \
+                                                                    --save_dir $OUT_LOG/scores-$fname_append \
+                                                                    --save_every 500 \
+                                                                    --train_iters 5000000 \
+                                                                    --train_batch_size $batch_size \
+                                                                    --test_batch_size $batch_size \
+                                                                    --warmup_steps $warmup_steps \
+                                                                    --learning_rate $lr \
+                                                                    --cnn_dim $cnn_dim \
+                                                                    --n_recur $trans_layer \
+                                                                    --num_heads $num_head \
+                                                                    --head_size $head_size \
+                                                                    --relu_hidden_size $relu_hidden_size \
+                                                                    --embedding_size $embedding_size \
+                                                                    --trig_embed_size 100 \
+                                                                    --embed_file $embed_file \
+                                                                    --trig
+                                                                    --mu $mu \
+                                                                    --nu $nu \
+                                                                    --epsilon $epsilon \
+                                                                    --pos_layer $pos_layer \
+                                                                    --train_pos True \
+                                                                    --multitask_layers \"$multitask_layer\" \
+                                                                    --multitask_penalties \"parents:$parents_penalty;children:$parents_penalty\"
+                                                                    --eval_by_domain False \
+                                                                    --eval_srl True \
+                                                                    --save True \
+                                                                    &> $OUT_LOG/train-$fname_append.log")
+                                                                    i=$((i + 1))
+                                                                    parents_layer=$orig_parents_layer
+                                                                    children_layer=$orig_children_layer
+                                                                done
                                                             done
                                                         done
                                                     done

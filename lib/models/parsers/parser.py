@@ -361,6 +361,7 @@ class Parser(BaseParser):
         predictions = targets[:,:,1]
       else:
         predictions = arc_output['predictions']
+      parse_probs = arc_output['probabilities']
 
     ######## do parse-specific stuff (rels) ########
 
@@ -396,7 +397,7 @@ class Parser(BaseParser):
       cap_attn_idx = 0
       if 'parents' in self.multi_layers.keys() and l in self.multi_layers['parents']:
         outputs = self.output(attn_weights[attn_idx], multitask_targets['parents'])
-        arc_logits = attn_weights[attn_idx] # todo this is a bit of a hack
+        parse_probs = tf.nn.softmax(attn_weights[attn_idx]) # todo this is a bit of a hack
         attn_idx += 1
         loss = self.multi_penalties['parents'] * outputs['loss']
         multitask_losses['parents%s' % l] = loss
@@ -526,7 +527,7 @@ class Parser(BaseParser):
 
     output['multitask_losses'] = multitask_losses
 
-    output['probabilities'] = tf.tuple([arc_output['probabilities'],
+    output['probabilities'] = tf.tuple([parse_probs,
                                         rel_output['probabilities']])
     output['predictions'] = tf.stack([arc_output['predictions'],
                                       rel_output['predictions']])

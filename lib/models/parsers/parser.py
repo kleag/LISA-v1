@@ -388,6 +388,7 @@ class Parser(BaseParser):
     multitask_losses = {}
     multitask_correct = {}
     multitask_loss_sum = 0
+    # multitask_parents_preds = arc_logits
     for l, attn_weights in attn_weights_by_layer.iteritems():
       # attn_weights is: head x batch x seq_len x seq_len
       # idx into attention heads
@@ -395,6 +396,7 @@ class Parser(BaseParser):
       cap_attn_idx = 0
       if 'parents' in self.multi_layers.keys() and l in self.multi_layers['parents']:
         outputs = self.output(attn_weights[attn_idx], multitask_targets['parents'])
+        arc_logits = attn_weights[attn_idx] # todo this is a bit of a hack
         attn_idx += 1
         loss = self.multi_penalties['parents'] * outputs['loss']
         multitask_losses['parents%s' % l] = loss

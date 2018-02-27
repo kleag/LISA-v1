@@ -280,6 +280,8 @@ def dot_product_attention(q, k, v,
       weights_rest = weights_transpose[1:]
       w = weights_transpose[0]
       hard_weights = tf.where(tf.equal(w, tf.tile(tf.expand_dims(tf.reduce_max(w, axis=-1), -1), [1, 1, tf.shape(w)[-1]])), tf.ones_like(w), tf.zeros_like(w))
+      hard_weights = tf.Print(hard_weights, [hard_weights], "hard weights")
+      hard_weights = tf.Print(hard_weights, [w], "w")
       weights_comb = tf.concat([tf.expand_dims(hard_weights, 0), weights_rest], axis=0)
       weights = tf.transpose(weights_comb, [1, 0, 2, 3])
     # dropping out the attention links for each of the heads

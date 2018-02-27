@@ -224,6 +224,7 @@ class Parser(BaseParser):
             for i in range(self.n_recur):
               with tf.variable_scope('layer%d' % i, reuse=reuse):
                 manual_attn = None
+                hard_attn = False
                 if self.inject_manual_attn and not ((moving_params is not None) and self.gold_attn_at_train):
                   if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                     manual_attn = adj
@@ -231,6 +232,9 @@ class Parser(BaseParser):
                     manual_attn = grand_adj
                   elif 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
                     manual_attn = tf.transpose(adj, [0, 2, 1])
+                # only at test time
+                if moving_params is not None and self.hard_attn:
+                  hard_attn = True
 
                 this_layer_capsule_heads = self.num_capsule_heads if i > 0 else 0
                 if 'children' in self.multi_layers.keys() and i in self.multi_layers['children'] and \
@@ -242,7 +246,7 @@ class Parser(BaseParser):
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            self.attn_dropout, self.relu_dropout, self.prepost_dropout,
                                                            self.relu_hidden_size, self.info_func, reuse,
-                                                           this_layer_capsule_heads, manual_attn)
+                                                           this_layer_capsule_heads, manual_attn, hard_attn)
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
 
@@ -397,7 +401,8 @@ class Parser(BaseParser):
       cap_attn_idx = 0
       if 'parents' in self.multi_layers.keys() and l in self.multi_layers['parents']:
         outputs = self.output(attn_weights[attn_idx], multitask_targets['parents'])
-        parse_probs = tf.nn.softmax(attn_weights[attn_idx]) # todo this is a bit of a hack
+        parse_probs = tf.nn.softmax(attn_weights[attn_idx])
+        # todo this is a bit of a hack
         attn_idx += 1
         loss = self.multi_penalties['parents'] * outputs['loss']
         multitask_losses['parents%s' % l] = loss

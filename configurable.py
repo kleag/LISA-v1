@@ -691,3 +691,7 @@ class Configurable(object):
     return self._config.getboolean('Training', 'eval_single_token_sents')
   argparser.add_argument('--eval_single_token_sents')
 
+  @property
+  def hard_attn(self):
+    return self._config.getboolean('Training', 'hard_attn')
+  argparser.add_argument('--hard_attn')

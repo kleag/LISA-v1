@@ -238,7 +238,7 @@ def dot_product_attention(q, k, v,
                           dropout_rate=1.0,
                           num_capsule_heads=0,
                           manual_attn=None,
-                          add_attn=None,
+                          hard_attn=False,
                           name=None):
   """dot-product attention.
   Args:
@@ -254,12 +254,12 @@ def dot_product_attention(q, k, v,
   with tf.variable_scope(name, default_name="dot_product_attention", values=[q, k, v]):
     # [batch, num_heads, query_length, memory_length]
     logits = tf.matmul(q, k, transpose_b=True)
-    if add_attn is not None:
-      # heads x batch x seq_len x seq_len
-      weights_transpose = tf.transpose(logits, [1, 0, 2, 3])
-      weights_rest = weights_transpose[1:]
-      weights_comb = tf.concat([tf.expand_dims(add_attn + weights_transpose[0], 0), weights_rest], axis=0)
-      logits = tf.transpose(weights_comb, [1, 0, 2, 3])
+    # if add_attn is not None:
+    #   # heads x batch x seq_len x seq_len
+    #   weights_transpose = tf.transpose(logits, [1, 0, 2, 3])
+    #   weights_rest = weights_transpose[1:]
+    #   weights_comb = tf.concat([tf.expand_dims(add_attn + weights_transpose[0], 0), weights_rest], axis=0)
+    #   logits = tf.transpose(weights_comb, [1, 0, 2, 3])
 
     if bias is not None:
       logits += bias
@@ -273,6 +273,14 @@ def dot_product_attention(q, k, v,
       weights_transpose = tf.transpose(weights, [1, 0, 2, 3])
       weights_rest = weights_transpose[1:]
       weights_comb = tf.concat([tf.expand_dims(manual_attn, 0), weights_rest], axis=0)
+      weights = tf.transpose(weights_comb, [1, 0, 2, 3])
+    if hard_attn:
+      # heads x batch x seq_len x seq_len
+      weights_transpose = tf.transpose(weights, [1, 0, 2, 3])
+      weights_rest = weights_transpose[1:]
+      w = weights_transpose[0]
+      hard_weights = tf.where(tf.equal(w, tf.reduce_max(w, axis=-1)), tf.ones_like(w), tf.zeros_like(w))
+      weights_comb = tf.concat([hard_weights, weights_rest], axis=0)
       weights = tf.transpose(weights_comb, [1, 0, 2, 3])
     # dropping out the attention links for each of the heads
     weights_drop = tf.nn.dropout(weights, dropout_rate)
@@ -374,6 +382,7 @@ def multihead_attention(antecedent,
                         dropout_rate,
                         num_capsule_heads,
                         manual_attn=None,
+                        hard_attn=False,
                         name=None):
   """Multihead scaled-dot-product attention with input/output transformations.
   Args:
@@ -403,7 +412,7 @@ def multihead_attention(antecedent,
     v = split_heads(v, num_heads)
     key_depth_per_head = total_key_depth // num_heads
     q *= key_depth_per_head**-0.5
-    x, attn_weights = dot_product_attention(q, k, v, bias, dropout_rate, num_capsule_heads, manual_attn)
+    x, attn_weights = dot_product_attention(q, k, v, bias, dropout_rate, num_capsule_heads, manual_attn, hard_attn)
     x = combine_heads(x)
     params = tf.get_variable("final_proj", [1, 1, total_key_depth, output_depth])
     x = tf.expand_dims(x, 1)
@@ -566,7 +575,7 @@ class NN(Configurable):
 
   # =============================================================
   def transformer(self, inputs, hidden_size, num_heads, attn_dropout, relu_dropout, prepost_dropout, relu_hidden_size,
-                  nonlinearity, reuse, num_capsule_heads, manual_attn=None):
+                  nonlinearity, reuse, num_capsule_heads, manual_attn=None, hard_attn=False):
     """"""
     # input_size = inputs.get_shape().as_list()[-1]
     lengths = tf.reshape(tf.to_int64(self.sequence_lengths), [-1])
@@ -581,7 +590,7 @@ class NN(Configurable):
 
     with tf.variable_scope("self_attention"):
       x = layer_norm(inputs, reuse)
-      y, attn_weights = multihead_attention(x, mask, hidden_size, hidden_size, hidden_size, num_heads, attn_dropout, num_capsule_heads, manual_attn)
+      y, attn_weights = multihead_attention(x, mask, hidden_size, hidden_size, hidden_size, num_heads, attn_dropout, num_capsule_heads, manual_attn, hard_attn)
       x = tf.add(x, tf.nn.dropout(y, prepost_dropout))
 
     with tf.variable_scope("ffnn"):

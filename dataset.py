@@ -126,7 +126,7 @@ class Dataset(Configurable):
             head = int(head) - 1
           buff[i][j] = (word,) + words[word] + tags[tag1] + tags[tag2] + (head,) + rels[rel]
         elif self.conll2012:
-          word, tag1, tag2, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
+          word, auto_tag, gold_tag, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
           domain = token[0].split('/')[0]
           # print(word, tag1, tag2, head, rel)
           if rel == 'root':
@@ -141,12 +141,12 @@ class Dataset(Configurable):
 
           if self.joint_pos_predicates:
             is_trigger = token[trigs.conll_idx[0]] != '-' and (self.train_on_nested or self.trigger_str in srl_fields)
-            trigger_str = str(is_trigger) + '/' + tag2
+            trigger_str = str(is_trigger) + '/' + gold_tag
           else:
             is_trigger = token[trigs.conll_idx] != '-' and (self.train_on_nested or self.trigger_str in srl_fields)
             trigger_str = str(is_trigger)
 
-          buff[i][j] = (word,) + words[word] + tags[tag1] + trigs[trigger_str] + domains[domain] + tags[tag2] + (head,) + rels[rel] + tuple(srl_tags)
+          buff[i][j] = (word,) + words[word] + tags[auto_tag] + trigs[trigger_str] + domains[domain] + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
         # sent.insert(0, ('root', Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, 0, Vocab.ROOT))
     print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
     return buff

@@ -94,6 +94,18 @@ class Configurable(object):
     return self._config.get('OS', 'rel_file')
   argparser.add_argument('--rel_file')
   @property
+  def srl_file(self):
+    return self._config.get('OS', 'srl_file')
+  argparser.add_argument('--srl_file')
+  @property
+  def trig_file(self):
+    return self._config.get('OS', 'trig_file')
+  argparser.add_argument('--trig_file')
+  @property
+  def domain_file(self):
+    return self._config.get('OS', 'domain_file')
+  argparser.add_argument('--domain_file')
+  @property
   def embed_file(self):
     return self._config.get('OS', 'embed_file')
   argparser.add_argument('--embed_file')
@@ -117,6 +129,39 @@ class Configurable(object):
   def save_dir(self):
     return self._config.get('OS', 'save_dir')
   argparser.add_argument('--save_dir')
+  @property
+  def load_dir(self):
+    return self._config.get('OS', 'load_dir')
+  argparser.add_argument('--load_dir')
+  @property
+  def save(self):
+    return self._config.getboolean('OS', 'save')
+  argparser.add_argument('--save')
+
+  @property
+  def gold_dev_props_file(self):
+    return self._config.get('OS', 'gold_dev_props_file')
+  argparser.add_argument('--gold_dev_props_file')
+
+  @property
+  def gold_test_props_file(self):
+    return self._config.get('OS', 'gold_test_props_file')
+  argparser.add_argument('--gold_test_props_file')
+
+  @property
+  def gold_dev_parse_file(self):
+    return self._config.get('OS', 'gold_dev_parse_file')
+  argparser.add_argument('--gold_dev_parse_file')
+
+  @property
+  def gold_test_parse_file(self):
+    return self._config.get('OS', 'gold_test_parse_file')
+  argparser.add_argument('--gold_test_parse_file')
+
+  @property
+  def transition_statistics(self):
+    return self._config.get('OS', 'transition_statistics')
+  argparser.add_argument('--transition_statistics')
   
   #=============================================================
   # [Dataset]
@@ -156,6 +201,31 @@ class Configurable(object):
   def lines_per_buffer(self):
     return self._config.getint('Dataset', 'lines_per_buffer')
   argparser.add_argument('--lines_per_buffer')
+
+  @property
+  def conll(self):
+    return self._config.getboolean('Dataset', 'conll')
+  argparser.add_argument('--conll')
+
+  @property
+  def conll2012(self):
+    return self._config.getboolean('Dataset', 'conll2012')
+  argparser.add_argument('--conll2012')
+
+  @property
+  def train_on_nested(self):
+    return self._config.getboolean('Dataset', 'train_on_nested')
+  argparser.add_argument('--train_on_nested')
+
+  @property
+  def joint_pos_predicates(self):
+    return self._config.getboolean('Dataset', 'joint_pos_predicates')
+  argparser.add_argument('--joint_pos_predicates')
+
+  @property
+  def train_domains(self):
+    return self._config.get('Dataset', 'train_domains')
+  argparser.add_argument('--train_domains')
   
   #=============================================================
   # [Layers]
@@ -188,6 +258,10 @@ class Configurable(object):
     return self._config.getint('Sizes', 'embed_size')
   argparser.add_argument('--embed_size')
   @property
+  def trig_embed_size(self):
+    return self._config.getint('Sizes', 'trig_embed_size')
+  argparser.add_argument('--trig_embed_size')
+  @property
   def recur_size(self):
     return self._config.getint('Sizes', 'recur_size')
   argparser.add_argument('--recur_size')
@@ -203,6 +277,21 @@ class Configurable(object):
   def info_mlp_size(self):
     return self._config.getint('Sizes', 'info_mlp_size')
   argparser.add_argument('--info_mlp_size')
+
+  @property
+  def trigger_mlp_size(self):
+    return self._config.getint('Sizes', 'trigger_mlp_size')
+  argparser.add_argument('--trigger_mlp_size')
+
+  @property
+  def trigger_pred_mlp_size(self):
+    return self._config.getint('Sizes', 'trigger_pred_mlp_size')
+  argparser.add_argument('--trigger_pred_mlp_size')
+
+  @property
+  def role_mlp_size(self):
+    return self._config.getint('Sizes', 'role_mlp_size')
+  argparser.add_argument('--role_mlp_size')
   
   #=============================================================
   # [Functions]
@@ -282,6 +371,19 @@ class Configurable(object):
   def info_keep_prob(self):
     return self._config.getfloat('Dropout', 'info_keep_prob')
   argparser.add_argument('--info_keep_prob')
+
+  @property
+  def attn_dropout(self):
+    return self._config.getfloat('Dropout', 'attn_dropout')
+  argparser.add_argument('--attn_dropout')
+  @property
+  def prepost_dropout(self):
+    return self._config.getfloat('Dropout', 'prepost_dropout')
+  argparser.add_argument('--prepost_dropout')
+  @property
+  def relu_dropout(self):
+    return self._config.getfloat('Dropout', 'relu_dropout')
+  argparser.add_argument('--relu_dropout')
   
   #=============================================================
   # [Learning rate]
@@ -301,6 +403,10 @@ class Configurable(object):
   def clip(self):
     return self._config.getfloat('Learning rate', 'clip')
   argparser.add_argument('--clip')
+  @property
+  def warmup_steps(self):
+    return self._config.getint('Learning rate', 'warmup_steps')
+  argparser.add_argument('--warmup_steps')
   
   #=============================================================
   # [Radam]
@@ -359,4 +465,233 @@ class Configurable(object):
   def per_process_gpu_memory_fraction(self):
     return self._config.getfloat('Training', 'per_process_gpu_memory_fraction')
   argparser.add_argument('--per_process_gpu_memory_fraction')
-  
+  @property
+  def eval_criterion(self):
+    return self._config.get('Training', 'eval_criterion')
+  argparser.add_argument('--eval_criterion')
+
+  @property
+  def roots_penalty(self):
+    return self._config.getfloat('Training', 'roots_penalty')
+  argparser.add_argument('--roots_penalty')
+  @property
+  def pairs_penalty(self):
+    return self._config.getfloat('Training', 'pairs_penalty')
+  argparser.add_argument('--pairs_penalty')
+  @property
+  def svd_penalty(self):
+    return self._config.getfloat('Training', 'svd_penalty')
+  argparser.add_argument('--svd_penalty')
+  @property
+  def mask_roots(self):
+    return self._config.getboolean('Training', 'mask_roots')
+  argparser.add_argument('--mask_roots')
+  @property
+  def mask_pairs(self):
+    return self._config.getboolean('Training', 'mask_pairs')
+  argparser.add_argument('--mask_pairs')
+
+  @property
+  def subsample_trigger_rate(self):
+    return self._config.getfloat('Training', 'subsample_trigger_rate')
+  argparser.add_argument('--subsample_trigger_rate')
+
+  @property
+  def viterbi_train(self):
+    return self._config.getboolean('Training', 'viterbi_train')
+  argparser.add_argument('--viterbi_train')
+
+  @property
+  def viterbi_decode(self):
+    return self._config.getboolean('Training', 'viterbi_decode')
+  argparser.add_argument('--viterbi_decode')
+
+  @property
+  def trigger_str(self):
+    return self._config.get('Training', 'trigger_str')
+  argparser.add_argument('--trigger_str')
+
+  @property
+  def trigger_loss_penalty(self):
+    return self._config.getfloat('Training', 'trigger_loss_penalty')
+  argparser.add_argument('--trigger_loss_penalty')
+
+  @property
+  def role_loss_penalty(self):
+    return self._config.getfloat('Training', 'role_loss_penalty')
+  argparser.add_argument('--role_loss_penalty')
+
+  @property
+  def rel_loss_penalty(self):
+    return self._config.getfloat('Training', 'rel_loss_penalty')
+  argparser.add_argument('--rel_loss_penalty')
+
+  @property
+  def arc_loss_penalty(self):
+    return self._config.getfloat('Training', 'arc_loss_penalty')
+  argparser.add_argument('--arc_loss_penalty')
+
+  @property
+  def add_pos_to_input(self):
+    return self._config.getboolean('Training', 'add_pos_to_input')
+  argparser.add_argument('--add_pos_to_input')
+
+  @property
+  def add_triggers_to_input(self):
+    return self._config.getboolean('Training', 'add_triggers_to_input')
+  argparser.add_argument('--add_triggers_to_input')
+
+  @property
+  def save_attn_weights(self):
+    return self._config.getboolean('Training', 'save_attn_weights')
+  argparser.add_argument('--save_attn_weights')
+
+  #=============================================================
+  # [Transformer]
+  @property
+  def num_heads(self):
+    return self._config.getint('Training', 'num_heads')
+  argparser.add_argument('--num_heads')
+  @property
+  def head_size(self):
+    return self._config.getint('Training', 'head_size')
+  argparser.add_argument('--head_size')
+  @property
+  def cnn_dim(self):
+    return self._config.getint('Training', 'cnn_dim')
+  argparser.add_argument('--cnn_dim')
+  @property
+  def cnn_layers(self):
+    return self._config.getint('Training', 'cnn_layers')
+  argparser.add_argument('--cnn_layers')
+  @property
+  def relu_hidden_size(self):
+    return self._config.getint('Training', 'relu_hidden_size')
+  argparser.add_argument('--relu_hidden_size')
+
+
+  @property
+  def svd_tree(self):
+    return self._config.getboolean('Training', 'svd_tree')
+  argparser.add_argument('--svd_tree')
+
+  @property
+  def cnn2d_layers(self):
+    return self._config.getint('Training', 'cnn2d_layers')
+  argparser.add_argument('--cnn2d_layers')
+  @property
+  def cnn_dim_2d(self):
+    return self._config.getint('Training', 'cnn_dim_2d')
+  argparser.add_argument('--cnn_dim_2d')
+
+  @property
+  def num_blocks(self):
+    return self._config.getint('Training', 'num_blocks')
+  argparser.add_argument('--num_blocks')
+
+  @property
+  def dist_model(self):
+    return self._config.get('Training', 'dist_model')
+  argparser.add_argument('--dist_model')
+
+  @property
+  def lstm_residual(self):
+    return self._config.getboolean('Training', 'lstm_residual')
+  argparser.add_argument('--lstm_residual')
+
+  @property
+  def cnn_residual(self):
+    return self._config.getboolean('Training', 'cnn_residual')
+  argparser.add_argument('--cnn_residual')
+
+  @property
+  def parse_update_proportion(self):
+    return self._config.getfloat('Training', 'parse_update_proportion')
+  argparser.add_argument('--parse_update_proportion')
+
+  @property
+  def multitask_penalties(self):
+    return self._config.get('Training', 'multitask_penalties')
+  argparser.add_argument('--multitask_penalties')
+
+  @property
+  def multitask_layers(self):
+    return self._config.get('Training', 'multitask_layers')
+  argparser.add_argument('--multitask_layers')
+
+  @property
+  def inject_manual_attn(self):
+    return self._config.getboolean('Training', 'inject_manual_attn')
+  argparser.add_argument('--inject_manual_attn')
+
+  @property
+  def train_pos(self):
+    return self._config.getboolean('Training', 'train_pos')
+  argparser.add_argument('--train_pos')
+  @property
+  def pos_layer(self):
+    return self._config.getint('Training', 'pos_layer')
+  argparser.add_argument('--pos_layer')
+
+  @property
+  def train_aux_trigger_layer(self):
+    return self._config.getboolean('Training', 'train_aux_trigger_layer')
+  argparser.add_argument('--train_aux_trigger_layer')
+  @property
+  def trigger_layer(self):
+    return self._config.getint('Training', 'trigger_layer')
+  argparser.add_argument('--trigger_layer')
+  @property
+  def aux_trigger_layer(self):
+    return self._config.getint('Training', 'aux_trigger_layer')
+  argparser.add_argument('--aux_trigger_layer')
+
+  @property
+  def aux_trigger_penalty(self):
+    return self._config.getfloat('Training', 'aux_trigger_penalty')
+  argparser.add_argument('--aux_trigger_penalty')
+
+  @property
+  def pos_penalty(self):
+    return self._config.getfloat('Training', 'pos_penalty')
+  argparser.add_argument('--pos_penalty')
+
+  @property
+  def parse_layer(self):
+    return self._config.getint('Training', 'parse_layer')
+  argparser.add_argument('--parse_layer')
+
+  @property
+  def eval_parse(self):
+    return self._config.getboolean('Training', 'eval_parse')
+  argparser.add_argument('--eval_parse')
+
+  @property
+  def eval_srl(self):
+    return self._config.getboolean('Training', 'eval_srl')
+  argparser.add_argument('--eval_srl')
+
+  @property
+  def eval_by_domain(self):
+    return self._config.getboolean('Training', 'eval_by_domain')
+  argparser.add_argument('--eval_by_domain')
+
+  @property
+  def num_capsule_heads(self):
+    return self._config.getint('Training', 'num_capsule_heads')
+  argparser.add_argument('--num_capsule_heads')
+
+  @property
+  def gold_attn_at_train(self):
+    return self._config.getboolean('Training', 'gold_attn_at_train')
+  argparser.add_argument('--gold_attn_at_train')
+
+  @property
+  def eval_single_token_sents(self):
+    return self._config.getboolean('Training', 'eval_single_token_sents')
+  argparser.add_argument('--eval_single_token_sents')
+
+  @property
+  def hard_attn(self):
+    return self._config.getboolean('Training', 'hard_attn')
+  argparser.add_argument('--hard_attn')

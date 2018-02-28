@@ -51,8 +51,8 @@ def orthonormal_initializer(input_size, output_size):
       if np.max(Q) > 1e6 or loss > 1e6 or not np.isfinite(loss):
         tries += 1
         lr /= 2
-        break
-    success = True
+      else:
+        success = True
   if success:
     print('Orthogonal pretrainer loss: %.2e' % loss)
   else:
@@ -172,6 +172,76 @@ def bilinear(inputs1, inputs2, output_size, add_bias2=True, add_bias1=True, add_
         bias = moving_params.average(bias)
       bilin += tf.expand_dims(bias, 1)
     
+    return bilin
+
+
+# ===============================================================
+def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=True, add_bias=False, initializer=None,
+             scope=None, moving_params=None):
+  """"""
+
+  with tf.variable_scope(scope or 'Bilinear'):
+    # Reformat the inputs
+    ndims = len(inputs1.get_shape().as_list())
+    inputs1_shape = tf.shape(inputs1)
+    inputs1_bucket_size = inputs1_shape[ndims - 2]
+    inputs1_size = inputs1.get_shape().as_list()[-1]
+
+    inputs2_shape = tf.shape(inputs2)
+    inputs2_bucket_size = inputs2_shape[ndims - 2]
+    inputs2_size = inputs2.get_shape().as_list()[-1]
+    # output_shape = []
+    batch_size1 = 1
+    batch_size2 = 1
+    for i in xrange(ndims - 2):
+      batch_size1 *= inputs1_shape[i]
+      batch_size2 *= inputs2_shape[i]
+      # output_shape.append(inputs1_shape[i])
+    # output_shape.append(inputs1_bucket_size)
+    # output_shape.append(output_size)
+    # output_shape.append(inputs2_bucket_size)
+    # output_shape = tf.stack(output_shape)
+    inputs1 = tf.reshape(inputs1, tf.stack([batch_size1, inputs1_bucket_size, inputs1_size]))
+    inputs2 = tf.reshape(inputs2, tf.stack([batch_size2, inputs2_bucket_size, inputs2_size]))
+    if add_bias1:
+      inputs1 = tf.concat(axis=2, values=[inputs1, tf.ones(tf.stack([batch_size1, inputs1_bucket_size, 1]))])
+    if add_bias2:
+      inputs2 = tf.concat(axis=2, values=[inputs2, tf.ones(tf.stack([batch_size2, inputs2_bucket_size, 1]))])
+
+    # Get the matrix
+    if initializer is None and moving_params is None:
+      mat = orthonormal_initializer(inputs1_size + add_bias1, inputs2_size + add_bias2)[:, None, :]
+      mat = np.concatenate([mat] * output_size, axis=1)
+      initializer = tf.constant_initializer(mat)
+    weights = tf.get_variable('Weights', [inputs1_size + add_bias1, output_size, inputs2_size + add_bias2],
+                              initializer=initializer)
+    if moving_params is not None:
+      weights = moving_params.average(weights)
+    else:
+      tf.add_to_collection('Weights', weights)
+
+    # inputs1: num_triggers_in_batch x 1 x self.trigger_mlp_size
+    # inputs2: batch x seq_len x self.role_mlp_size
+
+    # Do the multiplications
+    # (bn x d) (d x rd) -> (bn x rd)
+    lin = tf.matmul(tf.reshape(inputs1, [-1, inputs1_size + add_bias1]), tf.reshape(weights, [inputs1_size + add_bias1, -1]))
+    # (b x nr x d) (b x n x d)T -> (b x nr x n)
+    lin_reshape = tf.reshape(lin, tf.stack([batch_size1, inputs1_bucket_size * output_size, inputs2_size + add_bias2]))
+    bilin = tf.matmul(lin_reshape, inputs2, adjoint_b=True)
+    # (bn x r x n)
+    bilin = tf.reshape(bilin, tf.stack([-1, output_size, inputs2_bucket_size]))
+    # (b x n x r x n)
+    # bilin = tf.reshape(bilin, output_shape)
+    # bilin = tf.Print(bilin, [batch_size1, inputs2_bucket_size, output_size, tf.shape(bilin)], "bilin shape")
+
+    # Get the bias
+    if add_bias:
+      bias = tf.get_variable('Biases', [output_size], initializer=tf.zeros_initializer())
+      if moving_params is not None:
+        bias = moving_params.average(bias)
+      bilin += tf.expand_dims(bias, 1)
+
     return bilin
 
 #===============================================================

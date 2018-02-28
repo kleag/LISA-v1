@@ -32,28 +32,48 @@ from configurable import Configurable
 class Vocab(Configurable):
   """"""
   
-  SPECIAL_TOKENS = ('<PAD>', '<ROOT>', '<UNK>')
-  START_IDX = len(SPECIAL_TOKENS)
-  PAD, ROOT, UNK = range(START_IDX)
+  # SPECIAL_TOKENS = ('<PAD>', '<ROOT>', '<UNK>')
+  # START_IDX = len(SPECIAL_TOKENS)
+  # PAD, ROOT, UNK = range(START_IDX)
+  PAD = 0
+  ROOT = 1
+  UNK = 2
   
   #=============================================================
   def __init__(self, vocab_file, conll_idx, *args, **kwargs):
     """"""
-    
+
     self._vocab_file = vocab_file
     self._conll_idx = conll_idx
-    global_step = kwargs.pop('global_step', None)
+    # global_step = kwargs.pop('global_step', None)
     cased = kwargs.pop('cased', None)
     self._use_pretrained = kwargs.pop('use_pretrained', False)
     super(Vocab, self).__init__(*args, **kwargs)
+
+    self.train_domains_set = set(self.train_domains.split(',')) if self.train_domains != '-' and self.name != "Domains" else set()
+
+    self._embed_size = self.embed_size if self.name != 'Trigs' else self.trig_embed_size
+
+    self.SPECIAL_TOKENS = ('<PAD>', '<UNK>') #, '<ROOT>', '<UNK>')
+
     if cased is None:
       self._cased = super(Vocab, self).cased
     else:
       self._cased = cased
     if self.name == 'Tags':
-      self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
+      self.SPECIAL_TOKENS = ('PAD',)
+      # self.SPECIAL_TOKENS = ('PAD', 'ROOT', 'UNK')
     elif self.name == 'Rels':
-      self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
+      self.SPECIAL_TOKENS = ('PAD',) #, self.root_label)
+      # self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
+    elif self.name == 'Trigs':
+      self.SPECIAL_TOKENS = ('PAD',)
+    elif self.name == 'SRLs':
+      self.SPECIAL_TOKENS = ('PAD',)
+
+    self.START_IDX = len(self.SPECIAL_TOKENS)
+
+    self.predicate_true_start_idx = self.START_IDX
     
     self._counts = Counter()
     self._str2idx = {}
@@ -73,10 +93,10 @@ class Vocab(Configurable):
       self.load_embed_file()
     self._finalize()
     
-    if global_step is not None:
-      self._global_sigmoid = 1-tf.nn.sigmoid(3*(2*global_step/(self.train_iters-1)-1))
-    else:
-      self._global_sigmoid = 1
+    # if global_step is not None:
+    #   self._global_sigmoid = 1-tf.nn.sigmoid(3*(2*global_step/(self.train_iters-1)-1))
+    # else:
+    #   self._global_sigmoid = 1
     return
   
   #=============================================================
@@ -91,9 +111,9 @@ class Vocab(Configurable):
   
   #=============================================================
   def init_str2idx(self):
-    return dict(zip(self.SPECIAL_TOKENS, range(Vocab.START_IDX)))
+    return dict(zip(self.SPECIAL_TOKENS, range(self.START_IDX)))
   def init_idx2str(self):
-    return dict(zip(range(Vocab.START_IDX), self.SPECIAL_TOKENS))
+    return dict(zip(range(self.START_IDX), self.SPECIAL_TOKENS))
   
   #=============================================================
   def index_vocab(self, counts):
@@ -101,12 +121,36 @@ class Vocab(Configurable):
     
     str2idx = self.init_str2idx()
     idx2str = self.init_idx2str()
-    cur_idx = Vocab.START_IDX
+    cur_idx = self.START_IDX
+    self.predicate_true_start_idx = cur_idx
     for word, count in self.sorted_vocab(counts):
-      if (count >= self.min_occur_count) and word not in str2idx:
+      if (count >= self.min_occur_count or self.name == 'SRLs') and word not in str2idx:
         str2idx[word] = cur_idx
         idx2str[cur_idx] = word
         cur_idx += 1
+    return str2idx, idx2str
+
+  # =============================================================
+  def index_vocab_joint(self, counts):
+    """"""
+
+    str2idx = self.init_str2idx()
+    idx2str = self.init_idx2str()
+    cur_idx = self.START_IDX
+    add_to_end = []
+    for word, count in self.sorted_vocab(counts):
+      if (count >= self.min_occur_count or self.name == 'SRLs') and word not in str2idx:
+        if word.split('/')[0] == "True":
+          add_to_end.append(word)
+        else:
+          str2idx[word] = cur_idx
+          idx2str[cur_idx] = word
+          cur_idx += 1
+    self.predicate_true_start_idx = cur_idx - 1
+    for word in add_to_end:
+      str2idx[word] = cur_idx
+      idx2str[cur_idx] = word
+      cur_idx += 1
     return str2idx, idx2str
   
   #=============================================================
@@ -130,24 +174,67 @@ class Vocab(Configurable):
   #=============================================================
   def add_train_file(self):
     """"""
-    
     counts = Counter()
-    with open(self.train_file) as f:
+
+    with open(self.train_file, 'r') as f:
       buff = []
       for line_num, line in enumerate(f):
         line = line.strip().split()
-        if line:
-          if len(line) == 10:
+        # print(line)
+        if line and (not self.train_domains_set or line[0].split('/')[0] in self.train_domains_set or self.name == "Tags"):
+          if self.conll and len(line) == 10:
             if hasattr(self.conll_idx, '__iter__'):
               for idx in self.conll_idx:
                 self.add(counts, line[idx])
             else:
               self.add(counts, line[self.conll_idx])
+          elif self.conll2012: #and len(line) > 1:
+            if hasattr(self.conll_idx, '__iter__'):
+              if self.name == "Trigs":
+                actual = "False" if line[self.conll_idx[0]] == '-' else "True"
+                actual = actual + "/" + line[self.conll_idx[1]]
+                self.add(counts, actual)
+              else:
+                for idx in self.conll_idx:
+                  if idx < len(line) and (self.name != 'SRLs' or (idx != len(line)-1 and (self.train_on_nested or '/' not in line[idx]))):
+                    # print("adding ", line[idx])
+                    self.add(counts, line[idx])
+            else:
+              if self.name == "Trigs":
+                actual = "False" if line[self.conll_idx] == '-' else "True"
+                self.add(counts, actual)
+              elif self.name == "Domains":
+                actual = line[self.conll_idx].split('/')[0]
+                self.add(counts, actual)
+              else:
+                self.add(counts, line[self.conll_idx])
           else:
-            raise ValueError('The training file is misformatted at line %d' % (line_num+1))
+            print('The training file is misformatted at line %d (had %d columns, expected %d)' % (line_num+1, len(line), 13))
+
+      # # add all the labels
+      # if self.name == "SRLs":
+      #   with open(self.valid_file, 'r') as f:
+      #     for line_num, line in enumerate(f):
+      #       line = line.strip().split()
+      #       if line:
+      #         if hasattr(self.conll_idx, '__iter__'):
+      #           for idx in self.conll_idx:
+      #             if idx < len(line)-1 and (self.train_on_nested or '/' not in line[idx]):
+      #               # print("adding ", line[idx])
+      #               self.add(counts, line[idx])
+      #   with open(self.test_file, 'r') as f:
+      #     for line_num, line in enumerate(f):
+      #       line = line.strip().split()
+      #       if line:
+      #         if hasattr(self.conll_idx, '__iter__'):
+      #           for idx in self.conll_idx:
+      #             if idx < len(line)-1 and (self.train_on_nested or '/' not in line[idx]):
+      #               # print("adding ", line[idx])
+      #               self.add(counts, line[idx])
+
 
     self._counts = counts
-    self._str2idx, self._idx2str = self.index_vocab(counts)
+    self._str2idx, self._idx2str = self.index_vocab_joint(counts) if self.joint_pos_predicates and self.name == "Trigs" else self.index_vocab(counts)
     return
 
   #=============================================================
@@ -157,8 +244,8 @@ class Vocab(Configurable):
     self._str2embed = self.init_str2idx()
     self._embed2str = self.init_idx2str()
     embeds = []
-    with open(self.embed_file) as f:
-      cur_idx = Vocab.START_IDX
+    with open(self.embed_file, 'r') as f:
+      cur_idx = self.START_IDX
       for line_num, line in enumerate(f):
         line = line.strip().split()
         if line:
@@ -172,14 +259,14 @@ class Vocab(Configurable):
     self.pretrained_embeddings = np.array(embeds, dtype=np.float32)
     self.pretrained_embeddings = np.pad(self.pretrained_embeddings, ((self.START_IDX, 0), (0, 0)), 'constant')
     if os.path.isfile(self.embed_aux_file):
-      with open(self.embed_aux_file) as f:
+      with open(self.embed_aux_file, 'r') as f:
         for line in f:
           line = line.strip().split()
-          if line[0] == self.SPECIAL_TOKENS[0]:
+          if self.START_IDX > 0 and line[0] == self.SPECIAL_TOKENS[0]:
             self.pretrained_embeddings[0] = np.array(line[1:], dtype=np.float32)
-          elif line[0] == self.SPECIAL_TOKENS[1]:
+          elif self.START_IDX > 1 and line[0] == self.SPECIAL_TOKENS[1]:
             self.pretrained_embeddings[1] = np.array(line[1:], dtype=np.float32)
-          elif line[0] == self.SPECIAL_TOKENS[2]:
+          elif self.START_IDX > 2 and line[0] == self.SPECIAL_TOKENS[2]:
             self.pretrained_embeddings[2] = np.array(line[1:], dtype=np.float32)
     return
   
@@ -197,7 +284,7 @@ class Vocab(Configurable):
     """"""
     
     counts = Counter()
-    with open(self.vocab_file) as f:
+    with open(self.vocab_file, 'r') as f:
       for line_num, line in enumerate(f):
         line = line.strip().split('\t')
         if line:
@@ -208,7 +295,7 @@ class Vocab(Configurable):
           else:
             raise ValueError('The vocab file is misformatted at line %d' % (line_num+1))
     self._counts = counts
-    self._str2idx, self._idx2str = self.index_vocab(counts)
+    self._str2idx, self._idx2str = self.index_vocab_joint(counts) if self.joint_pos_predicates and self.name == "Trigs" else self.index_vocab(counts)
     return
   
   #=============================================================
@@ -226,7 +313,7 @@ class Vocab(Configurable):
       embed_size = self.pretrained_embeddings.shape[1]
     else:
       initializer = tf.random_normal_initializer()
-      embed_size = self.embed_size
+      embed_size = self._embed_size
     
     with tf.device('/cpu:0'):
       with tf.variable_scope(self.name):
@@ -269,8 +356,8 @@ class Vocab(Configurable):
     
     embed_input = tf.matmul(tf.reshape(inputs, [-1, input_size]),
                             trainable_embeddings)
-    embed_input = tf.reshape(embed_input, tf.stack([batch_size, bucket_size, self.embed_size]))
-    embed_input.set_shape([tf.Dimension(None), tf.Dimension(None), tf.Dimension(self.embed_size)]) 
+    embed_input = tf.reshape(embed_input, tf.stack([batch_size, bucket_size, self._embed_size]))
+    embed_input.set_shape([tf.Dimension(None), tf.Dimension(None), tf.Dimension(self._embed_size)])
     if moving_params is None:
       tf.add_to_collection('Weights', embed_input)
     return embed_input
@@ -288,9 +375,9 @@ class Vocab(Configurable):
   @property
   def conll_idx(self):
     return self._conll_idx
-  @property
-  def global_sigmoid(self):
-    return self._global_sigmoid
+  # @property
+  # def global_sigmoid(self):
+  #   return self._global_sigmoid
   
   #=============================================================
   def keys(self):
@@ -310,7 +397,12 @@ class Vocab(Configurable):
       else:
         return (self._str2idx.get(key, self.UNK),)
     elif isinstance(key, (int, long, np.int32, np.int64)):
-      return self._idx2str.get(key, self.SPECIAL_TOKENS[self.UNK])
+      if key not in self._idx2str:
+        if self.name != "Words":
+          raise ValueError("idx %d not in vocab %s" % (key, self.name))
+        else:
+          print("idx %d not in vocab %s" % (key, self.name))
+      return self._idx2str.get(key, self.UNK)
     elif hasattr(key, '__iter__'):
       return tuple(self[k] for k in key)
     else:

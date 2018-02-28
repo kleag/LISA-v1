@@ -1,0 +1,408 @@
+%
+% File acl2018.tex
+%
+%% Based on the style files for ACL-2017, with some changes, which were, in turn,
+%% Based on the style files for ACL-2015, with some improvements
+%%  taken from the NAACL-2016 style
+%% Based on the style files for ACL-2014, which were, in turn,
+%% based on ACL-2013, ACL-2012, ACL-2011, ACL-2010, ACL-IJCNLP-2009,
+%% EACL-2009, IJCNLP-2008...
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[hyperref]{acl2018}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{url}
+\usepackage{multirow}
+
+%\aclfinalcopy % Uncomment this line for the final submission
+%\def\aclpaperid{***} %  Enter the acl Paper ID here
+
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
+
+
+\title{Semantic Role Labeling with Syntactically-Informed Self-Attention}
+
+\author{First Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  {\tt email@domain} \\\And
+  Second Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  {\tt email@domain} \\}
+
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Despite intricate ties to the syntactic structure of a sentence, current state-of-the-art semantic role labeling (SRL) models are deep neural network architectures with no explicit syntactic features. At most, they see slight gains from decoding with constraints informed by the sentence's syntactic parse. Still, prior work indicates that with careful modeling, neural semantic role labeling could benefit from greater knowledge of syntax. In this work, we present a neural network model which combines multi-task learning with syntax-aware self-attention to achieve the state-of-the-art on end-to-end SRL. Our multi-task model is trained so that it can function in a stand-alone setting, saving time by predicting its own part-of-speech tags, predicates and syntactic dependency arcs, or auxiliary syntactic parses can be injected into decoding to improve the model without requiring re-training. In experiments on the CoNLL-2005 English SRL dataset we achieve (RESULTS HERE) over the previous state-of-the-art, and on the ConLL-2012 English data we also show (RESULTS HERE) improvement. [also say that we match SoTA without parses?]
+\end{abstract}
+
+\section{Introduction}
+
+\begin{itemize}
+  \item motivate srl
+  \item discuss how state-of-the-art doesnt use syntax, though syntax really should help (motivate syntax for srl -- prev work \citep{he2017deep} shows that incorporating parse into decoding could help)
+  \item how do older architecutres use syntax? mostly for decoding, what about as inputs or more centrally to model? charles sutton joint model? graph cnns on parse for srl (they only eval on conll09 though)
+  \item also, all prev work encodes sentence over and over again for each predicate (check that this is the case! everything I am aware of so far does this)
+  \item also also, prev work except luheng takes gold predicates, ours is end-to-end
+  \item we present architecture which does MTL in this special way which is not just regularizing, but allows the SRL decisions to see explicit parse relationships -- basically the model is learning to use the parse to build strong token-level representations which will decode well, without an explicit, expensive constrained decoding step
+  \item our model is also much faster to train since (1) we don't re-encode the sequence for every predicate, (2) don't require separate predicate prediction, part-of-speech or parsing model (in fact we predict these things while still running faster!) (3) can benefit from improved parsing without needing re-training  (4) only use markov constrained decoding but still benefit from parse
+\end{itemize}
+
+\section{Model}
+\todo{integrate this info: what's our goal, why did we design this model the way that we did: fast, end-to-end, w/ syntax, w/ flexibility wrt syntax}
+Our neural network model takes word embeddings as input, which are passed through multiple convolutional, feed-forward and multi-head self-attention layers \citep{vaswani2017attention} to produce contextually encoded token representations. Representations closer to the input are used to predict predicates and part-of-speech tags by multi-class classification into the joint cross-product space of part-of-speech/predicate labels. In a subsequent layer, one self-attention head is trained to attend to each token's syntactic parse head. During training, this head is clamped to the gold syntactic structure, whereas at test time either (1) the predicted parse attention or (2) an externally predicted parse may be used. The final token representations are projected to distinct \emph{predicate} and \emph{role} embeddings, and each predicted predicate is scored with the sequence's role representations using a bilinear model, producing per-label scores for BIO-encoded semantic role labels for each token and each semantic frame in the sequence. The model is trained end-to-end using stochastic gradient descent. 
+
+\subsection{Neural network architecture}
+
+inputs: word emebeddings, fixed and not fixed. CNN + transformer. bilinear scoring 
+
+\subsection{Training}
+boring log loss. use gold parses during training, and gold triggers. use earlier layers for joint pos/trigger prediction (cite goldberg MTL paper)
+
+\subsection{Decoding}
+viterbi decoding for SRL, pos tags / triggers are greedy. different settings for predicted parses at test time
+
+\section{Related work}
+
+
+% Semantic role labeling
+(Pradhan et al., 2005)
+(Surdeanu et al., 2007)
+(Toutanova et al., 2008)
+charles sutton joint paper
+
+Joint A∗ CCG Parsing and Semantic Role Labeling
+Mike Lewis Luheng He Luke Zettlemoyer
+EMNLP 2015
+
+% Neural semantic role labeling
+Encoding Sentences with Graph Convolutional Networks
+for Semantic Role Labeling
+Diego Marcheggiani, Ivan Titov
+
+ A simple and accurate syntax-agnostic neural
+model for dependency-based semantic role labeling
+Diego Marcheggiani, Anton Frolov, and Ivan Titov
+pos tags, predicate lemmas
+
+NLP from scratch: \citet{collobert2011natural}
+
+Luheng's paper: \citet{he2017deep}
+
+\citep{zhou2015end} 6.7k tokens per
+second inference. 8 layers LSTM. CRF.
+
+AAAI paper
+
+frame-semantic parsing + syntax
+Swayamdipta et al. (2017)
+
+% Our neural network architecture
+attention is all you need
+our bio paper
+that paper which uses matrix-tree for structured attention
+
+% Multi-task learning for syntax/semantics
+(Søgaard and Goldberg 2016) MTL
+
+MTL for semantic parsing
+Deep Multitask Learning for Semantic Dependency Parsing
+Hao Peng, Sam Thomson, Noah A. Smith
+https://arxiv.org/pdf/1704.06855.pdf
+
+
+
+(Tackstrom et al., 2015)
+Efficient Inference and Structured Learning
+for Semantic Role Labeling
+Oscar Täckström, Kuzman Ganchev, Dipanjan Das
+
+
+\section{Experimental results}
+
+We present results on the CoNLL-2005 shared task and the CoNLL-2012 subset of OntoNotes 5.0 \todo{cite}. \todo{briefly describe results here}.
+
+\subsection{CoNLL-2012 SRL}
+
+\subsubsection{Data and pre-processing}
+
+Describe CoNLL-2012 split of OntoNotes 5.0. describe preprocessing (BIO).
+
+Sameer Pradhan, Alessandro Moschitti, Nianwen Xue,
+Hwee Tou Ng, Anders Bjorkelund, Olga Uryupina, ¨
+Yuchen Zhang, and Zhi Zhong. 2013. Towards robust
+linguistic analysis using ontonotes. In Proc.
+of the 2013 Conference on Computational Natural
+Language Learning (CoNLL). pages 143–152.
+
+http://cemantix.org/data/ontonotes.html
+
+
+\subsubsection{Syntactic parsing \label{dozat-parser-sec}}
+
+We experiment with adding syntax predicted by a separate syntactic parsing model ({\bf D\&M}). We re-train the state-of-the-art dependency parsing model of \citet{dozat2016deep}, which is a neural network model for first-order edge-factored graph-based dependency parsing which takes GloVe word embeddings and part-of-speech embeddings as input, encodes token representations using a four-layer bidirectional LSTM, produces edge marginals using a bi-affine scoring function, and ensures tree-structured output using Kruskal's algorithm. We train the model on the CoNLL-2012 corpus following the experimental setup from \citet{choi2015it}: we convert constituency structure to dependencies using the ClearNLP dependency converter \citep{choi2012guidelines} and use automatic part-of-speech tags assigned by the ClearNLP tagger \citep{choi2012fast}. \todo{accuracies?} We exclude single-token sentences in our evaluation.
+
+\todo{describe Table \ref{conll12-parsing-numbers}}
+
+\subsubsection{Results}
+
+% DEV
+%   Labeled   attachment score: 250725 / 269368 * 100 = 93.08 %
+%   Unlabeled attachment score: 254480 / 269368 * 100 = 94.47 %
+%   Label accuracy score:       258466 / 269368 * 100 = 95.95 %
+
+
+% wb   Labeled   attachment score: 40712 / 43948 * 100 = 92.64 %
+% wb   Unlabeled attachment score: 41214 / 43948 * 100 = 93.78 %
+% wb   Label accuracy score:       41805 / 43948 * 100 = 95.12 %
+
+
+% pt   Labeled   attachment score: 21392 / 21978 * 100 = 97.33 %
+% pt   Unlabeled attachment score: 21557 / 21978 * 100 = 98.08 %
+% pt   Label accuracy score:       21656 / 21978 * 100 = 98.53 %
+
+
+% bc   Labeled   attachment score: 24029 / 26514 * 100 = 90.63 %
+% bc   Unlabeled attachment score: 24524 / 26514 * 100 = 92.49 %
+% bc   Label accuracy score:       25014 / 26514 * 100 = 94.34 %
+
+
+% bn   Labeled   attachment score: 20977 / 22738 * 100 = 92.26 %
+% bn   Unlabeled attachment score: 21308 / 22738 * 100 = 93.71 %
+% bn   Label accuracy score:       21678 / 22738 * 100 = 95.34 %
+
+
+% mz   Labeled   attachment score: 12685 / 13701 * 100 = 92.58 %
+% mz   Unlabeled attachment score: 12908 / 13701 * 100 = 94.21 %
+% mz   Label accuracy score:       13151 / 13701 * 100 = 95.99 %
+
+
+% tc   Labeled   attachment score: 9503 / 10511 * 100 = 90.41 %
+% tc   Unlabeled attachment score: 9685 / 10511 * 100 = 92.14 %
+% tc   Label accuracy score:       9931 / 10511 * 100 = 94.48 %
+
+
+% nw   Labeled   attachment score: 121427 / 129978 * 100 = 93.42 %
+% nw   Unlabeled attachment score: 123284 / 129978 * 100 = 94.85 %
+% nw   Label accuracy score:       125231 / 129978 * 100 = 96.35 %
+
+% TEST
+%   Labeled   attachment score: 138872 / 149644 * 100 = 92.80 %
+%   Unlabeled attachment score: 141110 / 149644 * 100 = 94.30 %
+%   Label accuracy score:       143391 / 149644 * 100 = 95.82 %
+
+
+% wb   Labeled   attachment score: 15223 / 16727 * 100 = 91.01 %
+% wb   Unlabeled attachment score: 15547 / 16727 * 100 = 92.95 %
+% wb   Label accuracy score:       15761 / 16727 * 100 = 94.22 %
+
+
+% pt   Labeled   attachment score: 14280 / 14673 * 100 = 97.32 %
+% pt   Unlabeled attachment score: 14364 / 14673 * 100 = 97.89 %
+% pt   Label accuracy score:       14453 / 14673 * 100 = 98.50 %
+
+
+% bc   Labeled   attachment score: 26950 / 29198 * 100 = 92.30 %
+% bc   Unlabeled attachment score: 27394 / 29198 * 100 = 93.82 %
+% bc   Label accuracy score:       27931 / 29198 * 100 = 95.66 %
+
+
+% bn   Labeled   attachment score: 19314 / 20853 * 100 = 92.62 %
+% bn   Unlabeled attachment score: 19601 / 20853 * 100 = 94.00 %
+% bn   Label accuracy score:       19936 / 20853 * 100 = 95.60 %
+
+
+% mz   Labeled   attachment score: 14499 / 15666 * 100 = 92.55 %
+% mz   Unlabeled attachment score: 14765 / 15666 * 100 = 94.25 %
+% mz   Label accuracy score:       14971 / 15666 * 100 = 95.56 %
+
+
+% tc   Labeled   attachment score: 8463 / 9364 * 100 = 90.38 %
+% tc   Unlabeled attachment score: 8662 / 9364 * 100 = 92.50 %
+% tc   Label accuracy score:       8808 / 9364 * 100 = 94.06 %
+
+
+% nw   Labeled   attachment score: 40143 / 43163 * 100 = 93.00 %
+% nw   Unlabeled attachment score: 40777 / 43163 * 100 = 94.47 %
+% nw   Label accuracy score:       41531 / 43163 * 100 = 96.22 %
+
+\begin{table}
+\begin{tabular}{rrrr}
+\multicolumn{2}{c}{Domain}  & D\&M (2017) & SRL attention \\ \hline \hline
+\multirow{2}{*}{Overall} & dev & 94.47 & xx.xx\\
+& test & 94.30 &  xx.xx\\ \hline \hline
+\multirow{2}{*}{wb} & dev & 93.78 & xx.xx \\
+& test & 92.95 &  xx.xx\\
+\multirow{2}{*}{pt} & dev & 98.08 &  xx.xx\\
+& test & 97.89 &  xx.xx\\
+\multirow{2}{*}{bc} & dev & 92.49&  xx.xx\\
+& test & 93.82 &  xx.xx\\
+\multirow{2}{*}{bn} & dev & 93.71 &  xx.xx\\
+& test & 94.00 &  xx.xx\\
+\multirow{2}{*}{mz} & dev & 94.21 &  xx.xx\\
+& test & 94.25 &  xx.xx\\
+\multirow{2}{*}{tc} & dev & 92.14 &  xx.xx\\
+& test & 92.50 &  xx.xx\\
+\multirow{2}{*}{nw} & dev & 94.85 &  xx.xx\\
+& test & 94.47 & xx.xx
+\end{tabular}
+\caption{\label{conll12-parsing-numbers} Parsing scores (UAS) of the models used in SRL experiments on the CoNLL-2012 data}
+\end{table}
+
+\begin{table*}
+\begin{tabular}{lllllllllll}
+\multirow{2}{*}{Model} & \multicolumn{3}{c}{Dev} & & \multicolumn{3}{c}{Test} \\ \cline{2-4} \cline{6-8}
+& P & R & F1 & &  P & R & F1 \\ \hline \hline
+\citet{he2017deep} single & 74.9 & 76.2 & 75.5 & &  78.6 & 75.1 & 76.8\\
+\citet{he2017deep} PoE & 76.5 & 77.8 & 77.2  & &  80.2 & 76.6 & 78.4\\ \hline
+no parse &  78.21  & 76.93  & 77.56 & &  78.54  &  76.90  & 77.71  \\
+attn parse, no clamp &  79.06 &  76.94 &  77.99 & & 79.28 &  76.73  & 77.98 \\
+D\&M parse, no clamp & 79.17 &  77.02  & 78.08 & & 79.43 &  76.83  & 78.11 \\
+gold parse, no clamp & 79.41 &  77.27 &  78.32 & & 79.62  & 77.03 &  78.31\\
+attn parse, clamp & xx.xx & xx.xx & xx.xx & & xx.xx & xx.xx & xx.xx \\
+D\&M parse, clamp & xx.xx & xx.xx & xx.xx & & xx.xx & xx.xx & xx.xx \\
+gold parse, clamp & xx.xx & xx.xx & xx.xx & & xx.xx & xx.xx & xx.xx \\
+\end{tabular}
+\caption{Precision, recall and F1 on the CoNLL-2012 development and test sets. \emph{Clamp} indicates that syntactic attention was clamped to the gold parse during training. \emph{attn parse} uses learned parse attention and \emph{D\&M parse} is clamped to the parse predicted by the parser described in Section \ref{dozat-parser-sec}}
+\end{table*}
+
+\begin{table*}
+\begin{tabular}{lllllllllll}
+\multirow{2}{*}{Model} & \multicolumn{3}{c}{Dev} & & \multicolumn{3}{c}{Test} \\  \cline{2-4} \cline{6-8}
+& P & R & F1 & & P & R & F1  \\ \hline \hline
+\citet{he2017deep} & 88.7 & 90.6 & 89.7 & & 93.7 & 87.9 & 90.7 \\ \hline
+no parse &  98.96  & 91.99 &  95.35 & &  98.67 &  89.39  & 93.80 \\
+attn parse, no clamp &   99.32 &  91.18 &  95.08 & & 99.16 &  88.14 &  93.33\\
+D\&M parse, no clamp & 99.33 &  91.18 &  95.08 & & 99.19 &  88.14 &  93.34 \\
+gold parse, no clamp & xx.xx & xx.xx & xx.xx & & xx.xx & xx.xx & xx.xx \\
+attn parse, clamp & xx.xx & xx.xx & xx.xx & & xx.xx & xx.xx & xx.xx \\
+D\&M parse, clamp & xx.xx & xx.xx & xx.xx & & xx.xx & xx.xx & xx.xx \\
+gold parse, clamp & xx.xx & xx.xx & xx.xx & & xx.xx & xx.xx & xx.xx \\
+
+% gold parse & xx.xx & xx.xx & xx.xx\\
+\end{tabular}
+\caption{Predicate detection precision, recall and F1 on the CoNLL-2012 development and test sets. \emph{Clamp} indicates that syntactic attention was clamped to the gold parse during training. \emph{attn parse} uses learned parse attention and \emph{D\&M parse} is clamped to the parse predicted by the parser described in Section \ref{dozat-parser-sec}}
+\end{table*}
+
+\subsection{CoNLL-2005 SRL}
+
+\subsubsection{Data and pre-processing}
+conll paper: http://www.lsi.upc.edu/~srlconll/st05/papers/intro.pdf
+describe dataset. describe preprocessing: part-of-speech tags, dependencies
+
+\subsubsection{Results}
+
+% WSJ parsing dev (22):
+% POS: 96.68
+%   Labeled   attachment score: 33424 / 35446 * 100 = 94.30 %
+%   Unlabeled attachment score: 34100 / 35446 * 100 = 96.20 %
+%   Label accuracy score:       34169 / 35446 * 100 = 96.40 %
+
+% SRL dev (wsj 24):
+% POS: 96.79
+%   Labeled   attachment score: 26590 / 29058 * 100 = 91.51 %
+%   Unlabeled attachment score: 27392 / 29058 * 100 = 94.27 %
+%   Label accuracy score:       27457 / 29058 * 100 = 94.49 %
+
+% test (wsj 23):
+% POS: 97.04
+%   Labeled   attachment score: 47060 / 49991 * 100 = 94.14 %
+%   Unlabeled attachment score: 48058 / 49991 * 100 = 96.13 %
+%   Label accuracy score:       48163 / 49991 * 100 = 96.34 %
+
+% test (brown):
+% POS: 94.50
+%   Labeled   attachment score: 5465 / 6194 * 100 = 88.23 %
+%   Unlabeled attachment score: 5699 / 6194 * 100 = 92.01 %
+%   Label accuracy score:       5694 / 6194 * 100 = 91.93 %
+\begin{table}
+\begin{tabular}{lrrrr }
+\multirow{2}{*}{Section} & \multicolumn{2}{c}{D\&M (2017)} & \multicolumn{2}{c}{SRL attention} \\
+ & POS & UAS & POS & UAS\\ \hline \hline
+WSJ Dev (22) & 96.68 & 96.20 & xx.xx & xx.xx \\
+CoNLL-05 Dev (24) & 96.79 & 94.27 & xx.xx & xx.xx \\
+WSJ Test (23) & 97.04 & 96.13 & xx.xx & xx.xx \\
+Brown Test (ck01-3) & 94.50 & 92.01 & xx.xx & xx.xx \\
+\end{tabular}
+\caption{\label{conll05-parsing-numbers} Parsing scores (UAS) of the models used in SRL experiments on the CoNLL-2005 data, using Stanford dependencies v3.5 \citep{deMarneffe2008}.}
+\end{table}
+
+\begin{table*}
+\begin{tabular}{lrrrrrrrrr}
+\multirow{2}{*}{Model} & \multicolumn{3}{c}{Dev} & \multicolumn{3}{c}{WSJ Test} & \multicolumn{3}{c}{Brown Test} \\
+& P & R & F & P & R & F & P & R & F \\ \hline \hline
+\citet{he2017deep} single & 80.3 & 80.4 & 80.3 & 80.2 & 82.3 & 81.2 & 67.6&  69.6 & 68.5\\
+\citet{he2017deep} PoE & 81.8 &  81.2 & 81.5  & 82.0 & 83.4 & 82.7 & 69.7&  70.5 & 70.1\\ \hline
+no parse, no clamp &  79.70 &  78.59 &  79.14 &  81.43 &  80.69 &  81.06 &  70.10  & 66.01  & 67.99\\
+% attn Stanford &  79.23  & 79.21  & 79.22 & 81.65 &  81.31  & 81.48 & 68.63 &  65.41 &  66.98\\
+% LSTM Stanford & 79.21  & 79.10  & 79.16 & 81.75 &  81.42 &  81.59 & 69.19 &  66.01 &  67.56\\
+attn parse, no clamp &  79.73  & 79.30  & 79.51 & 81.95 &  81.14  & 81.54 & 70.55 &  66.56 &  68.49\\
+D\&M parse, no clamp & 79.82 &  79.32  & 79.57 & 82.12  & 81.30 &  81.70 & 70.73 &  66.93 &  68.78\\
+% attn Stanford & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx \\
+% LSTM Stanford & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx \\
+attn parse, clamp & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx \\
+D\&M parse, clamp & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx \\
+
+% gold parse & xx.xx & xx.xx & xx.xx\\
+\end{tabular}
+\caption{Precision, recall and F1 on CoNLL-2005.  \emph{Clamp} indicates that syntactic attention was clamped to the gold parse during training. \emph{attn parse} uses learned parse attention and \emph{D\&M parse} is clamped to the parse predicted by the parser described in Section \ref{dozat-parser-sec}}
+
+\end{table*}
+
+\begin{table*}
+\begin{tabular}{lrrrrrrrrr}
+\multirow{2}{*}{Model} & \multicolumn{3}{c}{Dev} & \multicolumn{3}{c}{WSJ Test} & \multicolumn{3}{c}{Brown Test} \\ 
+& P & R & F & P & R & F & P & R & F \\ \hline \hline
+\citet{he2017deep} & 97.4 & 97.4 & 97.4 & 94.5 & 98.5 & 96.4 & 89.3 & 95.7 & 92.4 \\ \hline
+no parse &   98.31 &  96.80 &  97.55 &  98.27 &  98.14 &  98.20 &  94.68  & 92.91 &  93.79\\
+% attn Stanford & 98.00 &  96.49 &  97.24 & 98.29 & 98.10 & 98.19 & 94.54 & 92.54 & 93.53\\
+% LSTM Stanford & 98.06 &  96.49 &  97.27 & 98.31  & 98.10 &  98.20 &  94.41  & 92.41  & 93.40\\
+attn parse, no clamp &  97.98  & 96.98 &  97.48 & 98.34 &  97.97 &  98.15 & 94.69 & 93.16 & 93.92\\
+D\&M parse, no clamp & 98.01 &  96.95  & 97.48 & 98.32  & 97.97  & 98.15 & 94.83 &  93.53 &  94.18 \\
+gold parse, no clamp & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx \\
+attn parse, clamp & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx \\
+D\&M parse, clamp & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx \\
+gold parse, clamp & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx  & xx.xx \\
+
+
+% gold parse & xx.xx & xx.xx & xx.xx\\
+\end{tabular}
+\caption{Predicate detection scores on CoNLL-2005.  \emph{Clamp} indicates that syntactic attention was clamped to the gold parse during training. \emph{attn parse} uses learned parse attention and \emph{D\&M parse} is clamped to the parse predicted by the parser described in Section \ref{dozat-parser-sec}}
+\end{table*}
+
+\section{Conclusion}
+
+future work: better training, scheduled sampling gold vs. dynamic, or training with distributions rather than 0/1 values. should be able to MTL a better parser. dynamic oracle. ensembling w/ different parsers.
+
+% \section*{Acknowledgments}
+% EMNLP tutorial on NNs for SRL! https://diegma.github.io/slides/TutorialNNforSRL.pdf
+% Timothy Dozat for his parser code
+% The acknowledgments should go immediately before the references.  Do not number the acknowledgments section ({\em i.e.}, use \verb|\section*| instead of \verb|\section|). Do not include this section when submitting your paper for review.
+
+% include your own bib file like this:
+%\bibliographystyle{acl}
+%\bibliography{acl2018}
+\bibliography{acl2018}
+\bibliographystyle{acl_natbib}
+
+% \appendix
+% \section{Supplemental Material}
+% \label{sec:supplemental}
+% Put appendix here.
+
+\end{document}

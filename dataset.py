@@ -37,13 +37,17 @@ class Dataset(Configurable):
     """"""
     
     super(Dataset, self).__init__(*args, **kwargs)
+    self.vocabs = vocabs
+
+    self.train_domains_set = set(self.train_domains.split(',')) if self.train_domains != '-' and self.name == "Trainset" else set()
+    print("Loading training data from domains:", self.train_domains_set if self.train_domains_set else "all")
+
     self._file_iterator = self.file_iterator(filename)
     self._train = (filename == self.train_file)
     self._metabucket = Metabucket(self._config, n_bkts=self.n_bkts)
     self._data = None
-    self.vocabs = vocabs
     self.rebucket()
-    
+
     self.inputs = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')
     self.targets = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='targets')
     self.builder = builder()
@@ -59,12 +63,14 @@ class Dataset(Configurable):
           line = f.readline()
           while line:
             line = line.strip().split()
-            if line:
+            if line and (not self.train_domains_set or line[0].split('/')[0] in self.train_domains):
               buff[-1].append(line)
             else:
               if len(buff) < self.lines_per_buffer:
-                if buff[-1]:
+                if len(buff[-1]) > 0:
                   buff.append([])
+                else:
+                  buff[-1] = []
               else:
                 break
             line = f.readline()
@@ -82,11 +88,13 @@ class Dataset(Configurable):
         buff = [[]]
         for line in f:
           line = line.strip().split()
-          if line:
+          if line and (not self.train_domains_set or line[0].split('/')[0] in self.train_domains):
             buff[-1].append(line)
           else:
-            if buff[-1]:
+            if len(buff[-1]) > 0:
               buff.append([])
+            else:
+              buff[-1] = []
         if buff[-1] == []:
           buff.pop()
         buff = self._process_buff(buff)
@@ -97,12 +105,50 @@ class Dataset(Configurable):
   def _process_buff(self, buff):
     """"""
     
-    words, tags, rels = self.vocabs
+    words, tags, rels, srls, trigs, domains = self.vocabs
+    srl_start_field = srls.conll_idx[0]
+    sents = 0
+    toks = 0
     for i, sent in enumerate(buff):
+      # if not self.conll2012 or (self.conll2012 and len(list(sent)) > 1):
+      # print(sent, len(sent))
+      sents += 1
+      sent_len = len(sent)
+      num_fields = len(sent[0])
+      srl_take_indices = [idx for idx in range(srl_start_field, srl_start_field + sent_len) if idx < num_fields - 1 and (self.train_on_nested or np.all(['/' not in sent[j][idx] for j in range(sent_len)]))]
       for j, token in enumerate(sent):
-        word, tag1, tag2, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
-        buff[i][j] = (word,) + words[word] + tags[tag1] + tags[tag2] + (int(head),) + rels[rel]
-      sent.insert(0, ('root', Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, 0, Vocab.ROOT))
+        toks += 1
+        if self.conll:
+          word, tag1, tag2, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
+          if rel == 'root':
+            head = j
+          else:
+            head = int(head) - 1
+          buff[i][j] = (word,) + words[word] + tags[tag1] + tags[tag2] + (head,) + rels[rel]
+        elif self.conll2012:
+          word, auto_tag, gold_tag, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
+          domain = token[0].split('/')[0]
+          # print(word, tag1, tag2, head, rel)
+          if rel == 'root':
+            head = j
+          else:
+            head = int(head) - 1
+
+          # srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in range(srl_start_field, srl_start_field + sent_len)]
+          srl_fields = [token[idx] for idx in srl_take_indices] # todo can we use fancy indexing here?
+          srl_fields += ['O'] * (sent_len - len(srl_take_indices)) #np.any([s in self.trigger_indices for s in srl_tags])
+          srl_tags = [srls[s][0] for s in srl_fields]
+
+          if self.joint_pos_predicates:
+            is_trigger = token[trigs.conll_idx[0]] != '-' and (self.train_on_nested or self.trigger_str in srl_fields)
+            trigger_str = str(is_trigger) + '/' + gold_tag
+          else:
+            is_trigger = token[trigs.conll_idx] != '-' and (self.train_on_nested or self.trigger_str in srl_fields)
+            trigger_str = str(is_trigger)
+
+          buff[i][j] = (word,) + words[word] + tags[auto_tag] + trigs[trigger_str] + domains[domain] + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
+        # sent.insert(0, ('root', Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, 0, Vocab.ROOT))
+    print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
     return buff
   
   #=============================================================
@@ -117,7 +163,7 @@ class Dataset(Configurable):
   #=============================================================
   def rebucket(self):
     """"""
-    
+
     buff = self._file_iterator.next()
     len_cntr = Counter()
     
@@ -162,9 +208,18 @@ class Dataset(Configurable):
       data = self[bkt_idx].data[bkt_mb]
       sents = self[bkt_idx].sents[bkt_mb]
       maxlen = np.max(np.sum(np.greater(data[:,:,0], 0), axis=1))
+      np.set_printoptions(threshold=np.nan)
+
+      # print("maxlen", maxlen)
+      # print("maxlen+max(target_idxs)", maxlen+max(target_idxs))
+      # print("data.shape[2]", data.shape[2])
+      # targets = data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
+      # print("data shape", targets.shape)
+      # print("data[:,:,3:] shape", targets[:,:,3:].shape)
+
       feed_dict.update({
         self.inputs: data[:,:maxlen,input_idxs],
-        self.targets: data[:,:maxlen,target_idxs]
+        self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
       })
       yield feed_dict, sents
   

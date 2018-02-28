@@ -43,6 +43,7 @@ class Tarjan:
     
     self._edges = defaultdict(set)
     self._vertices = set((0,))
+
     for dep, head in enumerate(prediction[tokens]):
       self._vertices.add(dep+1)
       self._edges[head].add(dep+1)
@@ -50,7 +51,7 @@ class Tarjan:
     self._lowlinks = {}
     self._onstack = defaultdict(lambda: False)
     self._SCCs = []
-    
+
     index = 0
     stack = []
     for v in self.vertices:

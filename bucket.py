@@ -62,7 +62,9 @@ class Bucket(Configurable):
     if len(sent) > self.size and self.size != -1:
       raise ValueError('Bucket of size %d received sequence of len %d' % (self.size, len(sent)))
     
-    words = [word[0] for word in sent][1:] # remove root
+    # words = [word[0] for word in sent][1:] # remove root
+    # idxs = [word[1:] for word in sent]
+    words = [word[0] for word in sent]
     idxs = [word[1:] for word in sent]
     self._sents.append(words)
     self._data.append(idxs)
@@ -76,16 +78,29 @@ class Bucket(Configurable):
       raise ValueError('You need to reset the Buckets before finalizing them')
     
     if len(self._data) > 0:
-      shape = (len(self._data), self.size, len(self._data[-1][-1]))
+      lens = map(len, [item for sublist in self._data for item in sublist])
+      max_len = max(lens)
+      shape = (len(self._data), self.size, max_len)
       data = np.zeros(shape, dtype=np.int32)
+
+      # if len(self._data) == 416:
+      #   print("lens", lens)
+      #   print("max_len", max_len)
+      #   print("data shape", shape)
+      #   print("self._data", len(self._data), len(self._data[-1]), len(self._data[-1][-1]))
+
       for i, datum in enumerate(self._data):
+        # if len(self._data) == 416:
+          # print("datum", datum)
+          # print("datum shape", datum.shape)
+          # print("datum len", len(datum))
         datum = np.array(datum)
-        data[i, 0:len(datum)] = datum
+        data[i, :datum.shape[0], :datum.shape[1]] = datum
       self._data = data
       self._sents = np.array(self._sents)
     else:
-      self._data = np.zeros((0,1), dtype=np.float32)
-      self._sents = np.zeros((0,1), dtype=str)
+      self._data = np.zeros((0, 1), dtype=np.float32)
+      self._sents = np.zeros((0, 1), dtype=str)
     print('Bucket %s is %d x %d' % ((self._name,) + self._data.shape[0:2]))
     return
   

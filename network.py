@@ -148,7 +148,7 @@ class Network(Configurable):
     training_start_time = time.time()
     sys.stdout.flush()
     save_path = os.path.join(self.save_dir, self.name.lower() + '-pretrained')
-    saver = tf.train.Saver(self.save_vars, max_to_keep=1)
+    saver = tf.train.Saver(self.save_vars, max_to_keep=1, save_relative_paths=True)
     
     n_bkts = self.n_bkts
     train_iters = self.train_iters
@@ -305,8 +305,7 @@ class Network(Configurable):
               saver.save(sess, os.path.join(self.save_dir, self.name.lower() + '-trained'),
                          latest_filename=self.name.lower(),
                          global_step=self.global_epoch,
-                         write_meta_graph=False,
-                         save_relative_paths=True)
+                         write_meta_graph=False)
               if self.eval_parse:
                 with open(os.path.join(self.save_dir, "parse_results.txt"), 'w') as parse_results_f:
                   print(correct['parse_eval'], file=parse_results_f)
@@ -980,7 +979,7 @@ if __name__ == '__main__':
         if args.load:
           os.system('echo Training: > %s/HEAD' % network.save_dir)
           os.system('git rev-parse HEAD >> %s/HEAD' % network.save_dir)
-          saver = tf.train.Saver(var_list=network.save_vars)
+          saver = tf.train.Saver(var_list=network.save_vars, save_relative_paths=True)
           saver.restore(sess, tf.train.latest_checkpoint(network.load_dir, latest_filename=network.name.lower()))
           if os.path.isfile(os.path.join(network.save_dir, 'history.pkl')):
             with open(os.path.join(network.save_dir, 'history.pkl')) as f:
@@ -990,7 +989,7 @@ if __name__ == '__main__':
           os.system('git rev-parse HEAD >> %s/HEAD' % network.save_dir)
         network.train(sess, profile)
       elif args.matrix:
-        saver = tf.train.Saver(var_list=network.save_vars)
+        saver = tf.train.Saver(var_list=network.save_vars, save_relative_paths=True)
         saver.restore(sess, tf.train.latest_checkpoint(network.save_dir, latest_filename=network.name.lower()))
         # TODO make this save pcolor plots of all matrices to a directory in save_dir
         #with tf.variable_scope('RNN0/BiRNN_FW/LSTMCell/Linear', reuse=True):
@@ -1005,7 +1004,7 @@ if __name__ == '__main__':
       else:
         os.system('echo Testing: >> %s/HEAD' % network.save_dir)
         os.system('git rev-parse HEAD >> %s/HEAD' % network.save_dir)
-        saver = tf.train.Saver(var_list=network.save_vars)
+        saver = tf.train.Saver(var_list=network.save_vars, save_relative_paths=True)
         print("Loading model: ", network.load_dir)
         print(network.name.lower())
         saver.restore(sess, tf.train.latest_checkpoint(network.load_dir, latest_filename=network.name.lower()))

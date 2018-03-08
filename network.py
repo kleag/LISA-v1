@@ -1006,6 +1006,7 @@ if __name__ == '__main__':
         os.system('git rev-parse HEAD >> %s/HEAD' % network.save_dir)
         saver = tf.train.Saver(var_list=network.save_vars)
         print("Loading model: ", network.load_dir)
+        print(network.name.lower())
         saver.restore(sess, tf.train.latest_checkpoint(network.load_dir, latest_filename=network.name.lower()))
 
         # decode with & without viterbi

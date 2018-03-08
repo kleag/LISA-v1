@@ -1007,7 +1007,10 @@ if __name__ == '__main__':
         saver = tf.train.Saver(var_list=network.save_vars)
         print("Loading model: ", network.load_dir)
         saver.restore(sess, tf.train.latest_checkpoint(network.load_dir, latest_filename=network.name.lower()))
-        network.test(sess, network.viterbi_decode, validate=True)
+
+        # decode with & without viterbi
+        network.test(sess, False, validate=True)
+        network.test(sess, True, validate=True)
 
         # Actually evaluate on test data
         if args.test_eval:

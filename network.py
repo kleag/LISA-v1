@@ -305,7 +305,8 @@ class Network(Configurable):
               saver.save(sess, os.path.join(self.save_dir, self.name.lower() + '-trained'),
                          latest_filename=self.name.lower(),
                          global_step=self.global_epoch,
-                         write_meta_graph=False)
+                         write_meta_graph=False,
+                         save_relative_paths=True)
               if self.eval_parse:
                 with open(os.path.join(self.save_dir, "parse_results.txt"), 'w') as parse_results_f:
                   print(correct['parse_eval'], file=parse_results_f)

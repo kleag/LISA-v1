@@ -1306,13 +1306,6 @@ class NN(Configurable):
     # (t4) f1 v0 f3
     # srl_targets = targets[:,:,3:]
 
-    # get indices of trigger labels in srl_targets
-    # tile_multiples = tf.concat([tf.ones(tf.shape(tf.shape(srl_targets)), dtype=tf.int32), tf.shape(trigger_label_indices)], axis=0)
-    # targets_tile = tf.tile(tf.expand_dims(srl_targets, -1), tile_multiples)
-    # trigger_indices = tf.cast(tf.where(tf.reduce_any(tf.equal(targets_tile, trigger_label_indices), -1)), tf.int32)
-    # idx = tf.stack([trigger_indices[:,0], trigger_indices[:,1]], -1)
-    # targets = tf.scatter_nd(idx, tf.ones([tf.shape(idx)[0]], dtype=tf.int32), [batch_size, bucket_size])
-
     cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=predicate_targets)
 
     cross_entropy *= tf.squeeze(self.tokens_to_keep3D, -1)
@@ -1325,12 +1318,12 @@ class NN(Configurable):
     correct = tf.reduce_sum(tf.cast(tf.equal(predictions, predicate_targets), tf.float32) * squeezed_mask)
     predictions *= int_mask
 
-    trigger_predictions = tf.where(tf.greater(predictions, predicate_true_start_idx), tf.ones_like(predictions), tf.zeros_like(predictions))
-    trigger_predictions *= int_mask
+    predicate_predictions = tf.where(tf.greater(predictions, predicate_true_start_idx), tf.ones_like(predictions), tf.zeros_like(predictions))
+    predicate_predictions *= int_mask
 
     output = {
       'loss': loss,
-      'trigger_predictions': trigger_predictions,
+      'predicate_predictions': predicate_predictions,
       'predictions': predictions * tf.cast(tf.squeeze(self.tokens_to_keep3D, -1), tf.int32),
       'logits': logits,
       # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),

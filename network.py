@@ -80,7 +80,7 @@ class Network(Configurable):
                      (self.tag_file, [5, 4], 'Tags'), # auto, gold
                      (self.rel_file, 7, 'Rels'),
                      (self.srl_file, range(14, 50), 'SRLs'),
-                     (self.trig_file, [10, 4] if self.joint_pos_predicates else 10, 'Trigs'),
+                     (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10, 'Trigs'),
                      (self.domain_file, 0, 'Domains')]
 
     print("Loading vocabs")

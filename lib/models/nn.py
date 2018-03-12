@@ -1290,7 +1290,7 @@ class NN(Configurable):
 
     return output
 
-  def output_trigger(self, logits, predicate_targets, predicate_true_start_idx):
+  def output_predicates(self, logits, predicate_targets, predicate_true_start_idx):
     """"""
 
     # logits are batch x seq_len x 2

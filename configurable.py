@@ -284,7 +284,7 @@ class Configurable(object):
   argparser.add_argument('--trigger_mlp_size')
 
   @property
-  def trigger_pred_mlp_size(self):
+  def predicate_pred_mlp_size(self):
     return self._config.getint('Sizes', 'trigger_pred_mlp_size')
   argparser.add_argument('--trigger_pred_mlp_size')
 
@@ -512,7 +512,7 @@ class Configurable(object):
   argparser.add_argument('--trigger_str')
 
   @property
-  def trigger_loss_penalty(self):
+  def predicate_loss_penalty(self):
     return self._config.getfloat('Training', 'trigger_loss_penalty')
   argparser.add_argument('--trigger_loss_penalty')
 
@@ -695,3 +695,8 @@ class Configurable(object):
   def hard_attn(self):
     return self._config.getboolean('Training', 'hard_attn')
   argparser.add_argument('--hard_attn')
+
+  @property
+  def full_parse(self):
+    return self._config.getboolean('Training', 'full_parse')
+  argparser.add_argument('--full_parse')

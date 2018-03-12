@@ -222,7 +222,6 @@ class Parser(BaseParser):
 
         # if layer is set to -2, these are used
         pos_pred_inputs = top_recur
-        aux_trigger_inputs = top_recur
         predicate_inputs = top_recur
 
         # Project for Tranformer / residual LSTM input
@@ -239,8 +238,6 @@ class Parser(BaseParser):
           pos_pred_inputs = top_recur
         if self.predicate_layer == -1:
           predicate_inputs = top_recur
-        if self.aux_trigger_layer == -1:
-          aux_trigger_inputs = top_recur
 
         ##### Transformer #######
         if self.dist_model == 'transformer':

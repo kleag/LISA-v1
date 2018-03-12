@@ -532,7 +532,7 @@ class Parser(BaseParser):
     rel_loss = self.rel_loss_penalty * rel_output['loss']
 
     # if this is a parse update, then actual parse loss equal to sum of rel loss and arc loss
-    actual_parse_loss = tf.cond(self.full_parse, lambda: tf.add(rel_loss, arc_loss), lambda: tf.constant(0.))
+    actual_parse_loss = tf.cond(tf.equal(int(self.full_parse), 1), lambda: tf.add(rel_loss, arc_loss), lambda: tf.constant(0.))
     # actual_parse_loss = tf.cond(do_parse_update, lambda: tf.add(rel_loss, arc_loss), lambda: tf.constant(0.))
 
     # if this is a parse update and the parse proportion is not one, then no srl update. otherwise,

@@ -62,7 +62,7 @@ class Parser(BaseParser):
 
     embed_inputs = self.embed_concat(*inputs_to_embed)
 
-    if self.add_triggers_to_input:
+    if self.add_predicates_to_input:
       predicate_inputs = vocabs[4].embedding_lookup(inputs[:, :, 3], moving_params=self.moving_params)
       # fixed_trigger_emb = np.zeros([num_pred_classes, 1], dtype=np.float32)
       # fixed_trigger_emb[vocabs[4]["True"]] = 1.
@@ -237,7 +237,7 @@ class Parser(BaseParser):
         # if layer is set to -1, these are used
         if self.pos_layer == -1:
           pos_pred_inputs = top_recur
-        if self.trigger_layer == -1:
+        if self.predicate_layer == -1:
           predicate_inputs = top_recur
         if self.aux_trigger_layer == -1:
           aux_trigger_inputs = top_recur
@@ -286,7 +286,7 @@ class Parser(BaseParser):
 
                 if i == self.pos_layer:
                   pos_pred_inputs = top_recur
-                if i == self.trigger_layer:
+                if i == self.predicate_layer:
                   predicate_inputs = top_recur
                 # if i == self.parse_layer:
                 #   parse_pred_inputs = top_recur
@@ -316,7 +316,7 @@ class Parser(BaseParser):
 
         if self.pos_layer == self.n_recur - 1:
           pos_pred_inputs = top_recur
-        if self.trigger_layer == self.n_recur - 1:
+        if self.predicate_layer == self.n_recur - 1:
           predicate_inputs = top_recur
         # if self.parse_layer == self.n_recur - 1:
         #   parse_pred_inputs = top_recur
@@ -458,7 +458,7 @@ class Parser(BaseParser):
     predicate_output = compute_predicates(predicate_inputs, 'SRL-Triggers')
     predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
                                      tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
-    if moving_params is None or self.add_triggers_to_input or self.predicate_loss_penalty == 0.0:
+    if moving_params is None or self.add_predicates_to_input or self.predicate_loss_penalty == 0.0:
       # gold
       predicate_predictions = predicate_targets_binary
     else:
@@ -495,8 +495,8 @@ class Parser(BaseParser):
     ######## do SRL-specific stuff (rels) ########
     def compute_srl(srl_target):
       with tf.variable_scope('SRL-MLP', reuse=reuse):
-        trigger_role_mlp = self.MLP(top_recur, self.trigger_mlp_size + self.role_mlp_size, n_splits=1)
-        trigger_mlp, role_mlp = trigger_role_mlp[:,:,:self.trigger_mlp_size], trigger_role_mlp[:,:,self.trigger_mlp_size:]
+        trigger_role_mlp = self.MLP(top_recur, self.predicate_mlp_size + self.role_mlp_size, n_splits=1)
+        trigger_mlp, role_mlp = trigger_role_mlp[:,:,:self.predicate_mlp_size], trigger_role_mlp[:, :, self.predicate_mlp_size:]
 
       with tf.variable_scope('SRL-Arcs', reuse=reuse):
         # gather just the triggers

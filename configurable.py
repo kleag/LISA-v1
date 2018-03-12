@@ -279,14 +279,14 @@ class Configurable(object):
   argparser.add_argument('--info_mlp_size')
 
   @property
-  def trigger_mlp_size(self):
-    return self._config.getint('Sizes', 'trigger_mlp_size')
-  argparser.add_argument('--trigger_mlp_size')
+  def predicate_mlp_size(self):
+    return self._config.getint('Sizes', 'predicate_mlp_size')
+  argparser.add_argument('--predicate_mlp_size')
 
   @property
   def predicate_pred_mlp_size(self):
-    return self._config.getint('Sizes', 'trigger_pred_mlp_size')
-  argparser.add_argument('--trigger_pred_mlp_size')
+    return self._config.getint('Sizes', 'predicate_pred_mlp_size')
+  argparser.add_argument('--predicate_pred_mlp_size')
 
   @property
   def role_mlp_size(self):
@@ -492,11 +492,6 @@ class Configurable(object):
   argparser.add_argument('--mask_pairs')
 
   @property
-  def subsample_trigger_rate(self):
-    return self._config.getfloat('Training', 'subsample_trigger_rate')
-  argparser.add_argument('--subsample_trigger_rate')
-
-  @property
   def viterbi_train(self):
     return self._config.getboolean('Training', 'viterbi_train')
   argparser.add_argument('--viterbi_train')
@@ -507,14 +502,9 @@ class Configurable(object):
   argparser.add_argument('--viterbi_decode')
 
   @property
-  def trigger_str(self):
-    return self._config.get('Training', 'trigger_str')
-  argparser.add_argument('--trigger_str')
-
-  @property
   def predicate_loss_penalty(self):
-    return self._config.getfloat('Training', 'trigger_loss_penalty')
-  argparser.add_argument('--trigger_loss_penalty')
+    return self._config.getfloat('Training', 'predicate_loss_penalty')
+  argparser.add_argument('--predicate_loss_penalty')
 
   @property
   def role_loss_penalty(self):
@@ -537,9 +527,9 @@ class Configurable(object):
   argparser.add_argument('--add_pos_to_input')
 
   @property
-  def add_triggers_to_input(self):
-    return self._config.getboolean('Training', 'add_triggers_to_input')
-  argparser.add_argument('--add_triggers_to_input')
+  def add_predicates_to_input(self):
+    return self._config.getboolean('Training', 'add_predicates_to_input')
+  argparser.add_argument('--add_predicates_to_input')
 
   @property
   def save_attn_weights(self):
@@ -634,22 +624,9 @@ class Configurable(object):
   argparser.add_argument('--pos_layer')
 
   @property
-  def train_aux_trigger_layer(self):
-    return self._config.getboolean('Training', 'train_aux_trigger_layer')
-  argparser.add_argument('--train_aux_trigger_layer')
-  @property
-  def trigger_layer(self):
-    return self._config.getint('Training', 'trigger_layer')
-  argparser.add_argument('--trigger_layer')
-  @property
-  def aux_trigger_layer(self):
-    return self._config.getint('Training', 'aux_trigger_layer')
-  argparser.add_argument('--aux_trigger_layer')
-
-  @property
-  def aux_trigger_penalty(self):
-    return self._config.getfloat('Training', 'aux_trigger_penalty')
-  argparser.add_argument('--aux_trigger_penalty')
+  def predicate_layer(self):
+    return self._config.getint('Training', 'predicate_layer')
+  argparser.add_argument('--predicate_layer')
 
   @property
   def pos_penalty(self):

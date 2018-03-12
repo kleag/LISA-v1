@@ -585,12 +585,12 @@ class Parser(BaseParser):
     output['srl_correct'] = srl_output['correct']
     output['srl_count'] = srl_output['count']
     output['transition_params'] = transition_params if transition_params is not None else tf.constant(bilou_constraints)
-    output['srl_trigger'] = predicate_predictions
-    output['srl_trigger_targets'] = predicate_targets_binary
+    output['srl_predicates'] = predicate_predictions
+    output['srl_predicate_targets'] = predicate_targets_binary
     output['predicate_loss'] = predicate_loss
-    output['trigger_count'] = predicate_output['count']
-    output['trigger_correct'] = predicate_output['correct']
-    output['trigger_preds'] = predicate_output['predictions']
+    output['predicate_count'] = predicate_output['count']
+    output['predicate_correct'] = predicate_output['correct']
+    output['predicate_preds'] = predicate_output['predictions']
 
 
     output['pos_loss'] = pos_loss

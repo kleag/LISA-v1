@@ -60,8 +60,6 @@ class Network(Configurable):
     with open(os.path.join(self.save_dir, 'config.cfg'), 'w') as f:
       self._config.write(f)
 
-    # objectives = ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
-    # self._global_steps = {o: tf.Variable(0., trainable=False) for o in objectives}
     self._global_step = tf.Variable(0., trainable=False)
     self._global_epoch = tf.Variable(0., trainable=False)
 
@@ -166,7 +164,7 @@ class Network(Configurable):
       train_rel_loss = 0
       train_srl_loss = 0
       train_mul_loss = {}
-      train_trigger_loss = 0
+      train_predicate_loss = 0
       train_pos_loss = 0
       n_train_sents = 0
       n_train_correct = 0
@@ -174,8 +172,8 @@ class Network(Configurable):
       n_train_iters = 0
       n_train_srl_correct = 0
       n_train_srl_count = 0
-      n_train_trigger_count = 0
-      n_train_trigger_correct = 0
+      n_train_predicate_count = 0
+      n_train_predicate_correct = 0
       total_train_iters = 0
       valid_time = 0
       valid_loss = 0
@@ -191,7 +189,7 @@ class Network(Configurable):
             # Dump the profile to '/tmp/train_dir' after the step.
             pctx.dump_next_step()
 
-          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, trigger_loss, trigger_count, trigger_correct, pos_loss, pos_correct, multitask_losses, lr = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
+          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, predicate_loss, predicate_count, predicate_correct, pos_loss, pos_correct, multitask_losses, lr = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
           total_train_iters += 1
           train_time += time.time() - start_time
           train_loss += loss
@@ -202,9 +200,9 @@ class Network(Configurable):
           train_rel_loss += rel_loss
           train_srl_loss += srl_loss
           train_pos_loss += pos_loss
-          train_trigger_loss += trigger_loss
-          n_train_trigger_count += trigger_count
-          n_train_trigger_correct += trigger_correct
+          train_predicate_loss += predicate_loss
+          n_train_predicate_count += predicate_count
+          n_train_predicate_correct += predicate_correct
 
           for n, l in multitask_losses.iteritems():
             if n not in train_mul_loss.keys():
@@ -251,16 +249,14 @@ class Network(Configurable):
             train_svd_loss /= n_train_iters
             train_rel_loss /= n_train_iters
             train_srl_loss /= n_train_iters
-            train_trigger_loss /= n_train_iters
+            train_predicate_loss /= n_train_iters
             train_pos_loss /= n_train_iters
             train_accuracy = 100 * n_train_correct / n_train_tokens
-            # train_srl_accuracy = 100 * n_train_srl_correct / n_train_srl_count
-            # train_trigger_accuracy = 100 * n_train_trigger_correct / n_train_trigger_count
             train_time = n_train_sents / train_time
             print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f\n'
                   '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
                   (total_train_iters, train_loss, train_accuracy, train_time, lr, valid_loss, valid_accuracy, valid_time))
-            print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\tpos loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_trigger_loss, train_pos_loss))
+            print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\tpos loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_predicate_loss, train_pos_loss))
             multitask_losses_str = ''
             for n, l in train_mul_loss.iteritems():
               train_mul_loss[n] = l/n_train_iters
@@ -277,12 +273,12 @@ class Network(Configurable):
             train_roots_loss = 0
             train_cycle2_loss = 0
             train_rel_loss = 0
-            train_trigger_loss = 0
+            train_predicate_loss = 0
             train_srl_loss = 0
             n_train_srl_correct = 0
             n_train_srl_count = 0
-            n_train_trigger_correct = 0
-            n_train_trigger_count = 0
+            n_train_predicate_correct = 0
+            n_train_predicate_count = 0
           if save_every and (total_train_iters % save_every == 0):
             elapsed_time_str = time.strftime("%d:%H:%M:%S", time.gmtime(time.time()-training_start_time))
             print("Elapsed time: %s" % elapsed_time_str)
@@ -436,9 +432,9 @@ class Network(Configurable):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
       forward_start = time.time()
-      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_trigger, srl_trigger_targets, transition_params, attn_weights, attn_correct, pos_correct, pos_preds = sess.run(op, feed_dict=feed_dict)
+      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_predicates, srl_predicate_targets, transition_params, attn_weights, attn_correct, pos_correct, pos_preds = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
-      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_trigger, srl_trigger_targets, pos_preds, transition_params if viterbi else None)
+      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_predicates, srl_predicate_targets, pos_preds, transition_params if viterbi else None)
       n_tokens += n_tokens_batch
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
@@ -574,32 +570,10 @@ class Network(Configurable):
       srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
 
       # save SRL gold output for debugging purposes
-      # srl_gold_write_fname = os.path.join(self.save_dir, 'srl_golds.tsv')
-      # with open(srl_gold_write_fname, 'w') as f:
-      #   for bkt_idx, idx in dataset._metabucket.data:
-      #     # for each word, if trigger print word, otherwise -
-      #     # then all the SRL labels
-      #     data = dataset._metabucket[bkt_idx].data[idx]
-      #     preds = all_predictions[bkt_idx][idx]
-      #     words = all_sents[bkt_idx][idx]
-      #     num_gold_srls = preds[0, 9]
-      #     num_pred_srls = preds[0, 10]
-      #     srl_preds = preds[:, 11 + num_pred_srls:11 + num_pred_srls + num_gold_srls]
-      #     srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-      #     # print(srl_preds_str)
-      #     for i, (datum, word) in enumerate(zip(data, words)):
-      #       pred = srl_preds_str[i] if srl_preds_str else []
-      #       word_str = word if np.any(["(V*" in p for p in pred]) else '-'
-      #       fields = (word_str,) + tuple(pred)
-      #       owpl_str = '\t'.join(fields)
-      #       f.write(owpl_str + "\n")
-      #     f.write('\n')
-
-      # save SRL gold output for debugging purposes
       srl_sanity_fname = os.path.join(self.save_dir, 'srl_sanity.tsv')
       with open(srl_sanity_fname, 'w') as f, open(filename, 'r') as orig_f:
         for bkt_idx, idx in dataset._metabucket.data:
-          # for each word, if trigger print word, otherwise -
+          # for each word, if predicate print word, otherwise -
           # then all the SRL labels
           data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[bkt_idx][idx]
@@ -641,7 +615,7 @@ class Network(Configurable):
       srl_preds_fname = os.path.join(self.save_dir, 'srl_preds.tsv')
       with open(srl_preds_fname, 'w') as f:
         for bkt_idx, idx in dataset._metabucket.data:
-          # for each word, if trigger print word, otherwise -
+          # for each word, if predicate print word, otherwise -
           # then all the SRL labels
           data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[bkt_idx][idx]
@@ -649,11 +623,11 @@ class Network(Configurable):
           num_gold_srls = preds[0, 12]
           num_pred_srls = preds[0, 13]
           srl_preds = preds[:, 14+num_gold_srls+num_pred_srls:]
-          trigger_indices = preds[:, 14:14+num_pred_srls]
+          predicate_indices = preds[:, 14:14+num_pred_srls]
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           for i, (datum, word) in enumerate(zip(data, words)):
             pred = srl_preds_str[i] if srl_preds_str else []
-            word_str = word if i in trigger_indices else '-'
+            word_str = word if i in predicate_indices else '-'
             fields = (word_str,) + tuple(pred)
             owpl_str = '\t'.join(fields)
             f.write(owpl_str + "\n")
@@ -682,7 +656,7 @@ class Network(Configurable):
             domain_fname = os.path.join(self.save_dir, '%s_srl_preds.tsv' % d)
             with open(domain_fname, 'w') as f:
               for bkt_idx, idx in dataset._metabucket.data:
-                # for each word, if trigger print word, otherwise -
+                # for each word, if predicate print word, otherwise -
                 # then all the SRL labels
                 data = dataset._metabucket[bkt_idx].data[idx]
                 preds = all_predictions[bkt_idx][idx]
@@ -690,14 +664,14 @@ class Network(Configurable):
                 num_gold_srls = preds[0, 12]
                 num_pred_srls = preds[0, 13]
                 srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
-                trigger_indices = preds[:, 14:14 + num_pred_srls]
+                predicate_indices = preds[:, 14:14 + num_pred_srls]
                 srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
                 domain = '-'
                 for i, (datum, word, p) in enumerate(zip(data, words, preds)):
                   domain = self._vocabs[5][p[5]]
                   if domain == d:
                     pred = srl_preds_str[i] if srl_preds_str else []
-                    word_str = word if i in trigger_indices else '-'
+                    word_str = word if i in predicate_indices else '-'
                     fields = (word_str,) + tuple(pred)
                     owpl_str = '\t'.join(fields)
                     f.write(owpl_str + "\n")
@@ -783,22 +757,12 @@ class Network(Configurable):
   def _gen_ops(self):
     """"""
     
-    # optims = {k: optimizers.RadamOptimizer(self._config, global_step=step) for k, step in self._global_steps}
     optimizer = optimizers.RadamOptimizer(self._config, global_step=self._global_step)
     train_output = self._model(self._trainset)
 
-    # lrs = map(lambda o: o.learning_rate, optims)
     lr = optimizer.learning_rate
 
     train_op = optimizer.minimize(train_output['loss'])
-    # train_ops = map(lambda k, o: o.minimize(train_output[k]), optims.iteritems())
-    #
-    # # ['pos_loss', 'trigger_loss', 'actual_parse_loss', 'srl_loss', 'multitask_loss_sum']
-    # actual_train_ops = []
-    # if self.train_pos:
-    #   actual_train_ops.append(train_ops['pos_loss'])
-    # if self.role_loss_penalty > 0:
-    #   actual_train_ops.append(train_ops['srl_loss'])
 
     # These have to happen after optimizer.minimize is called
     valid_output = self._model(self._validset, moving_params=optimizer)
@@ -807,34 +771,6 @@ class Network(Configurable):
 
     
     ops = {}
-    # ops['train_op'] = actual_train_ops + [train_output['loss'],
-    #                    train_output['n_correct'],
-    #                    train_output['n_tokens']]
-    # ops['train_op_svd'] = actual_train_ops + [train_output['loss'],
-    #                        train_output['n_correct'],
-    #                        train_output['n_tokens'],
-    #                        train_output['roots_loss'],
-    #                        train_output['2cycle_loss'],
-    #                        train_output['svd_loss'],
-    #                        train_output['log_loss'],
-    #                        train_output['rel_loss']]
-    # ops['train_op_srl'] = actual_train_ops + [train_output['loss'],
-    #                        train_output['n_correct'],
-    #                        train_output['n_tokens'],
-    #                        train_output['roots_loss'],
-    #                        train_output['2cycle_loss'],
-    #                        train_output['svd_loss'],
-    #                        train_output['log_loss'],
-    #                        train_output['rel_loss'],
-    #                        train_output['srl_loss'],
-    #                        train_output['srl_correct'],
-    #                        train_output['srl_count'],
-    #                        train_output['trigger_loss'],
-    #                        train_output['trigger_count'],
-    #                        train_output['trigger_correct'],
-    #                        train_output['pos_loss'],
-    #                        train_output['pos_correct'],
-    #                        train_output['multitask_losses']] + lrs
     ops['train_op'] = [train_op] + [train_output['loss'],
                        train_output['n_correct'],
                        train_output['n_tokens']]
@@ -857,9 +793,9 @@ class Network(Configurable):
                            train_output['srl_loss'],
                            train_output['srl_correct'],
                            train_output['srl_count'],
-                           train_output['trigger_loss'],
-                           train_output['trigger_count'],
-                           train_output['trigger_correct'],
+                           train_output['predicate_loss'],
+                           train_output['predicate_count'],
+                           train_output['predicate_correct'],
                            train_output['pos_loss'],
                            train_output['pos_correct'],
                            train_output['multitask_losses'],
@@ -876,8 +812,8 @@ class Network(Configurable):
                       valid_output['srl_logits'],
                       valid_output['srl_correct'],
                       valid_output['srl_count'],
-                      valid_output['srl_trigger'],
-                      valid_output['srl_trigger_targets'],
+                      valid_output['srl_predicates'],
+                      valid_output['srl_predicate_targets'],
                       valid_output['transition_params'],
                       valid_output['attn_weights'],
                       valid_output['attn_correct'],
@@ -891,8 +827,8 @@ class Network(Configurable):
                       test_output['srl_logits'],
                       test_output['srl_correct'],
                       test_output['srl_count'],
-                      test_output['srl_trigger'],
-                      test_output['srl_trigger_targets'],
+                      test_output['srl_predicates'],
+                      test_output['srl_predicate_targets'],
                       test_output['transition_params'],
                       test_output['attn_weights'],
                       test_output['attn_correct'],

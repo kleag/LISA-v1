@@ -610,6 +610,11 @@ class Configurable(object):
   argparser.add_argument('--multitask_layers')
 
   @property
+  def predicate_str(self):
+    return self._config.get('Training', 'predicate_str')
+  argparser.add_argument('--predicate_str')
+
+  @property
   def inject_manual_attn(self):
     return self._config.getboolean('Training', 'inject_manual_attn')
   argparser.add_argument('--inject_manual_attn')

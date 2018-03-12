@@ -136,17 +136,17 @@ class Dataset(Configurable):
 
           # srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in range(srl_start_field, srl_start_field + sent_len)]
           srl_fields = [token[idx] for idx in srl_take_indices] # todo can we use fancy indexing here?
-          srl_fields += ['O'] * (sent_len - len(srl_take_indices)) #np.any([s in self.trigger_indices for s in srl_tags])
+          srl_fields += ['O'] * (sent_len - len(srl_take_indices))
           srl_tags = [srls[s][0] for s in srl_fields]
 
           if self.joint_pos_predicates:
-            is_trigger = token[trigs.conll_idx[0]] != '-' and (self.train_on_nested or self.trigger_str in srl_fields)
-            trigger_str = str(is_trigger) + '/' + gold_tag
+            is_predicate = token[trigs.conll_idx[0]] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
+            tok_predicate_str = str(is_predicate) + '/' + gold_tag
           else:
-            is_trigger = token[trigs.conll_idx] != '-' and (self.train_on_nested or self.trigger_str in srl_fields)
-            trigger_str = str(is_trigger)
+            is_predicate = token[trigs.conll_idx] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
+            tok_predicate_str = str(is_predicate)
 
-          buff[i][j] = (word,) + words[word] + tags[auto_tag] + trigs[trigger_str] + domains[domain] + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
+          buff[i][j] = (word,) + words[word] + tags[auto_tag] + trigs[tok_predicate_str] + domains[domain] + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
         # sent.insert(0, ('root', Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, 0, Vocab.ROOT))
     print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
     return buff

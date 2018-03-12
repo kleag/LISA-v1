@@ -89,17 +89,6 @@ class Parser(BaseParser):
 
     self.print_once("multitask penalties: ", self.multi_penalties)
     self.print_once("multitask layers: ", self.multi_layers)
-    self.print_once("parse update proportion: ", self.parse_update_proportion)
-
-    # trigger_indices = [i for s, i in vocabs[3].iteritems() if self.trigger_str in s]
-
-    # do parse update if the random ~ unif(0,1) <= proportion
-    # otherwise, do srl update
-    do_parse_update = tf.less_equal(tf.reshape(tf.random_uniform([1]), []), self.parse_update_proportion)
-
-    # do_arc_update = tf.not_equal(self.arc_loss_penalty, 0.)
-    # do_rel_update = tf.not_equal(self.rel_loss_penalty, 0.)
-    # do_parse_update = tf.logical_and(do_arc_update, do_rel_update)
 
     # maps joint predicate/pos indices to pos indices
     preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=np.int32)
@@ -386,11 +375,11 @@ class Parser(BaseParser):
         rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, num_rel_classes, predictions)
       return rel_logits, rel_logits_cond
 
-    rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
+    rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
                                           lambda: get_parse_rel_logits(),
                                           lambda: (tf.constant(0.), tf.constant(0.)))
     rel_output = self.output(rel_logits, targets[:, :, 2], num_rel_classes)
-    rel_output['probabilities'] = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
+    rel_output['probabilities'] = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
                                           lambda: self.conditional_probabilities(rel_logits_cond),
                                           lambda: rel_output['probabilities'])
 
@@ -442,7 +431,7 @@ class Parser(BaseParser):
     def compute_predicates(predicate_input, name):
       with tf.variable_scope(name, reuse=reuse):
         predicate_classifier_mlp = self.MLP(predicate_input, self.predicate_pred_mlp_size, n_splits=1)
-        with tf.variable_scope('SRL-Triggers-Classifier', reuse=reuse):
+        with tf.variable_scope('SRL-Predicates-Classifier', reuse=reuse):
           predicate_classifier = self.MLP(predicate_classifier_mlp, num_pred_classes, n_splits=1)
         output = self.output_predicates(predicate_classifier, predicate_targets, vocabs[4].predicate_true_start_idx)
         return output
@@ -452,7 +441,7 @@ class Parser(BaseParser):
     #   aux_trigger_output = compute_predicates(aux_trigger_inputs, 'SRL-Triggers-Aux', False)
     #   aux_trigger_loss = self.aux_trigger_penalty * aux_trigger_output['loss']
 
-    predicate_output = compute_predicates(predicate_inputs, 'SRL-Triggers')
+    predicate_output = compute_predicates(predicate_inputs, 'SRL-Predicates')
     predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
                                      tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
     if moving_params is None or self.add_predicates_to_input or self.predicate_loss_penalty == 0.0:
@@ -492,23 +481,23 @@ class Parser(BaseParser):
     ######## do SRL-specific stuff (rels) ########
     def compute_srl(srl_target):
       with tf.variable_scope('SRL-MLP', reuse=reuse):
-        trigger_role_mlp = self.MLP(top_recur, self.predicate_mlp_size + self.role_mlp_size, n_splits=1)
-        trigger_mlp, role_mlp = trigger_role_mlp[:,:,:self.predicate_mlp_size], trigger_role_mlp[:, :, self.predicate_mlp_size:]
+        predicate_role_mlp = self.MLP(top_recur, self.predicate_mlp_size + self.role_mlp_size, n_splits=1)
+        predicate_mlp, role_mlp = predicate_role_mlp[:,:,:self.predicate_mlp_size], predicate_role_mlp[:, :, self.predicate_mlp_size:]
 
       with tf.variable_scope('SRL-Arcs', reuse=reuse):
         # gather just the triggers
         # predicate_predictions: batch x seq_len
-        # gathered_triggers: num_triggers_in_batch x 1 x self.trigger_mlp_size
+        # gathered_predicates: num_triggers_in_batch x 1 x self.trigger_mlp_size
         # role mlp: batch x seq_len x self.role_mlp_size
         # gathered roles: need a (bucket_size x self.role_mlp_size) role representation for each trigger,
         # i.e. a (num_triggers_in_batch x bucket_size x self.role_mlp_size) tensor
-        trigger_gather_indices = tf.where(tf.equal(predicate_predictions, 1))
-        gathered_triggers = tf.expand_dims(tf.gather_nd(trigger_mlp, trigger_gather_indices), 1)
+        predicate_gather_indices = tf.where(tf.equal(predicate_predictions, 1))
+        gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
         tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
-        gathered_roles = tf.gather_nd(tiled_roles, trigger_gather_indices)
+        gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
 
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
-        srl_logits = self.bilinear_classifier_nary(gathered_triggers, gathered_roles, num_srl_classes)
+        srl_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_srl_classes)
         srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
         srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, predicate_predictions, transition_params if self.viterbi_train else None)
         return srl_output

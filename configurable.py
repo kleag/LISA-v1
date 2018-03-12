@@ -98,9 +98,9 @@ class Configurable(object):
     return self._config.get('OS', 'srl_file')
   argparser.add_argument('--srl_file')
   @property
-  def trig_file(self):
-    return self._config.get('OS', 'trig_file')
-  argparser.add_argument('--trig_file')
+  def predicates_file(self):
+    return self._config.get('OS', 'predicate_file')
+  argparser.add_argument('--predicate_file')
   @property
   def domain_file(self):
     return self._config.get('OS', 'domain_file')
@@ -258,9 +258,9 @@ class Configurable(object):
     return self._config.getint('Sizes', 'embed_size')
   argparser.add_argument('--embed_size')
   @property
-  def trig_embed_size(self):
-    return self._config.getint('Sizes', 'trig_embed_size')
-  argparser.add_argument('--trig_embed_size')
+  def predicate_embed_size(self):
+    return self._config.getint('Sizes', 'predicate_embed_size')
+  argparser.add_argument('--predicate_embed_size')
   @property
   def recur_size(self):
     return self._config.getint('Sizes', 'recur_size')

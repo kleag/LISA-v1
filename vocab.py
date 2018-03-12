@@ -52,7 +52,7 @@ class Vocab(Configurable):
 
     self.train_domains_set = set(self.train_domains.split(',')) if self.train_domains != '-' and self.name != "Domains" else set()
 
-    self._embed_size = self.embed_size if self.name != 'Trigs' else self.trig_embed_size
+    self._embed_size = self.embed_size if self.name != 'Trigs' else self.predicate_embed_size
 
     self.SPECIAL_TOKENS = ('<PAD>', '<UNK>') #, '<ROOT>', '<UNK>')
 

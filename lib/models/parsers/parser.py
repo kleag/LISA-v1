@@ -526,7 +526,7 @@ class Parser(BaseParser):
     else:
       srl_output = compute_srl(srl_targets)
 
-    trigger_loss = self.predicate_loss_penalty * predicate_output['loss']
+    predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']
     arc_loss = self.arc_loss_penalty * arc_output['loss']
     rel_loss = self.rel_loss_penalty * rel_output['loss']
@@ -536,9 +536,9 @@ class Parser(BaseParser):
     # actual_parse_loss = tf.cond(do_parse_update, lambda: tf.add(rel_loss, arc_loss), lambda: tf.constant(0.))
 
     # if this is a parse update and the parse proportion is not one, then no srl update. otherwise,
-    # srl update equal to sum of srl_loss, trigger_loss
-    srl_combined_loss = srl_loss + trigger_loss
-    actual_srl_loss = tf.cond(tf.logical_and(do_parse_update, tf.not_equal(self.parse_update_proportion, 1.0)), lambda: tf.constant(0.), lambda: srl_combined_loss)
+    # srl update equal to sum of srl_loss, predicate_loss
+    srl_combined_loss = srl_loss + predicate_loss
+    # actual_srl_loss = tf.cond(tf.logical_and(do_parse_update, tf.not_equal(self.parse_update_proportion, 1.0)), lambda: tf.constant(0.), lambda: srl_combined_loss)
 
     output = {}
 
@@ -554,8 +554,8 @@ class Parser(BaseParser):
     output['n_tokens'] = self.n_tokens
     output['accuracy'] = output['n_correct'] / output['n_tokens']
 
-    output['loss'] = actual_srl_loss + actual_parse_loss + multitask_loss_sum + pos_loss
-    # output['loss'] = srl_loss + trigger_loss + actual_parse_loss
+    output['loss'] = srl_combined_loss + actual_parse_loss + multitask_loss_sum + pos_loss
+    # output['loss'] = srl_loss + predicate_loss + actual_parse_loss
     # output['loss'] = actual_srl_loss + arc_loss + rel_loss
 
     if self.word_l2_reg > 0:
@@ -587,7 +587,7 @@ class Parser(BaseParser):
     output['transition_params'] = transition_params if transition_params is not None else tf.constant(bilou_constraints)
     output['srl_trigger'] = predicate_predictions
     output['srl_trigger_targets'] = predicate_targets_binary
-    output['trigger_loss'] = trigger_loss
+    output['predicate_loss'] = predicate_loss
     output['trigger_count'] = predicate_output['count']
     output['trigger_correct'] = predicate_output['correct']
     output['trigger_preds'] = predicate_output['predictions']

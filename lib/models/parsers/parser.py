@@ -240,8 +240,10 @@ class Parser(BaseParser):
                 if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                   if use_gold_parse:
                     manual_attn = adj
+                    manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], summarize=100, "gold attn")
                   if self.full_parse:
                     arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
+                    arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), arc_logits], summarize=100, "arc_logits")
                     if not use_gold_parse:
                       # compute full parse and set it here
                       manual_attn = arc_logits
@@ -361,6 +363,7 @@ class Parser(BaseParser):
     # arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
     #                                                 lambda: get_parse_logits(),
     #                                                 lambda: dummy_parse_logits())
+    arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.rank(arc_logits)], "arc logits shape/rank", summarize=20)
     arc_output = self.output_svd(arc_logits, targets[:,:,1])
     if moving_params is None:
       predictions = targets[:,:,1]

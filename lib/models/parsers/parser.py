@@ -240,10 +240,10 @@ class Parser(BaseParser):
                 if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                   if use_gold_parse:
                     manual_attn = adj
-                    manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], summarize=100, "gold attn")
+                    manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)
                   if self.full_parse:
                     arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
-                    arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), arc_logits], summarize=100, "arc_logits")
+                    arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), arc_logits], "arc_logits", summarize=100)
                     if not use_gold_parse:
                       # compute full parse and set it here
                       manual_attn = arc_logits

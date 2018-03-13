@@ -457,9 +457,9 @@ class Parser(BaseParser):
         'predictions': 0.0,
         'logits': 0.0,
         # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),
-        'count': 0.0,
-        'correct': 0.0,
-        'targets': 0.0,
+        'count': 0,
+        'correct': 0.,
+        'targets': 0,
       }
 
     predicate_output = tf.cond(tf.greater(self.predicate_loss_penalty, 0.0),

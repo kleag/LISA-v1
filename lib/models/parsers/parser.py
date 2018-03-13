@@ -453,8 +453,8 @@ class Parser(BaseParser):
     def dummy_predicate_output():
       return {
         'loss': 0.0,
-        'predicate_predictions': 0.0,
-        'predictions': 0.0,
+        'predicate_predictions': 0,
+        'predictions': 0,
         'logits': 0.0,
         # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),
         'count': 0.,

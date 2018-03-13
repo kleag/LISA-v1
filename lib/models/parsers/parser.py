@@ -174,7 +174,7 @@ class Parser(BaseParser):
       dummy_rel_mlp = tf.zeros([batch_size, bucket_size, self.class_mlp_size])
       return tf.constant(0.), dummy_rel_mlp, dummy_rel_mlp
 
-    arc_logits, dep_rel_mlp, head_rel_mlp = dummy_parse_logits()
+    # arc_logits, dep_rel_mlp, head_rel_mlp = dummy_parse_logits()
 
     ###########################################
 
@@ -276,8 +276,8 @@ class Parser(BaseParser):
                   pos_pred_inputs = top_recur
                 if i == self.predicate_layer:
                   predicate_inputs = top_recur
-                # if i == self.parse_layer:
-                #   parse_pred_inputs = top_recur
+                if i == self.parse_layer:
+                  parse_pred_inputs = top_recur
 
 
             # if normalization is done in layer_preprocess, then it should also be done
@@ -306,8 +306,8 @@ class Parser(BaseParser):
           pos_pred_inputs = top_recur
         if self.predicate_layer == self.n_recur - 1:
           predicate_inputs = top_recur
-        # if self.parse_layer == self.n_recur - 1:
-        #   parse_pred_inputs = top_recur
+        if self.parse_layer == self.n_recur - 1:
+          parse_pred_inputs = top_recur
 
     ####### 2D CNN ########
     # if self.cnn2d_layers > 0:
@@ -358,10 +358,15 @@ class Parser(BaseParser):
     #       dep_rel_mlp, head_rel_mlp = self.MLP(conditioned, self.class_mlp_size + self.attn_mlp_size, n_splits=2)
     # else:
 
+    # if arc_logits already computed, return them. else if arc_loss_penalty != 0, compute them, else dummy
+    arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.greater(self.arc_loss_penalty, 0.0),
+                                                    lambda: tf.cond(tf.equal(int(self.full_parse), 1),
+                                                                    lambda: (arc_logits, dep_rel_mlp, head_rel_mlp),
+                                                                    lambda: get_parse_logits(parse_pred_inputs)),
+                                                    lambda: dummy_parse_logits())
 
-
-    # arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.not_equal(self.parse_update_proportion, 0.0),
-    #                                                 lambda: get_parse_logits(),
+    # arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.equal(int(self.full_parse), 1),
+    #                                                 lambda: (arc_logits, dep_rel_mlp, head_rel_mlp),
     #                                                 lambda: dummy_parse_logits())
     # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.rank(arc_logits)], "arc logits shape/rank", summarize=20)
     arc_output = self.output_svd(arc_logits, targets[:,:,1])

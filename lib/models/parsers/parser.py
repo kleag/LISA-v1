@@ -450,7 +450,9 @@ class Parser(BaseParser):
     #   aux_trigger_output = compute_predicates(aux_trigger_inputs, 'SRL-Triggers-Aux', False)
     #   aux_trigger_loss = self.aux_trigger_penalty * aux_trigger_output['loss']
 
-    predicate_output = compute_predicates(predicate_inputs, 'SRL-Predicates')
+    predicate_output = tf.cond(tf.greater(self.predicate_loss_penalty, 0.0),
+                               lambda: compute_predicates(predicate_inputs, 'SRL-Predicates'),
+                               lambda: {'count': 0., 'correct': 0., 'predictions': 0.})
     predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
                                      tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
     if moving_params is None or self.add_predicates_to_input or self.predicate_loss_penalty == 0.0:

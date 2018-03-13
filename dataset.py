@@ -105,7 +105,7 @@ class Dataset(Configurable):
   def _process_buff(self, buff):
     """"""
     
-    words, tags, rels, srls, trigs, domains = self.vocabs
+    words, tags, rels, srls, predicates, domains = self.vocabs
     srl_start_field = srls.conll_idx[0]
     sents = 0
     toks = 0
@@ -140,13 +140,13 @@ class Dataset(Configurable):
           srl_tags = [srls[s][0] for s in srl_fields]
 
           if self.joint_pos_predicates:
-            is_predicate = token[trigs.conll_idx[0]] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
+            is_predicate = token[predicates.conll_idx[0]] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
             tok_predicate_str = str(is_predicate) + '/' + gold_tag
           else:
-            is_predicate = token[trigs.conll_idx] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
+            is_predicate = token[predicates.conll_idx] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
             tok_predicate_str = str(is_predicate)
 
-          buff[i][j] = (word,) + words[word] + tags[auto_tag] + trigs[tok_predicate_str] + domains[domain] + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
+          buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
         # sent.insert(0, ('root', Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, 0, Vocab.ROOT))
     print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
     return buff

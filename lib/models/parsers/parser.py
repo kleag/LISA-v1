@@ -63,14 +63,14 @@ class Parser(BaseParser):
     embed_inputs = self.embed_concat(*inputs_to_embed)
 
     if self.add_predicates_to_input:
-      predicate_inputs = vocabs[4].embedding_lookup(inputs[:, :, 3], moving_params=self.moving_params)
+      predicate_embed_inputs = vocabs[4].embedding_lookup(inputs[:, :, 3], moving_params=self.moving_params)
       # fixed_trigger_emb = np.zeros([num_pred_classes, 1], dtype=np.float32)
       # fixed_trigger_emb[vocabs[4]["True"]] = 1.
       # with tf.variable_scope("Embeddings", reuse=reuse):
       #   fixed_trigger_emb_var = tf.get_variable(name="predicate_emb_lookup", initializer=fixed_trigger_emb, trainable=False)
       # fixed_trigger_lookup = tf.nn.embedding_lookup(fixed_trigger_emb_var, inputs[:, :, 3])
       # inputs_to_embed.append(fixed_trigger_lookup)
-      embed_inputs = tf.concat([embed_inputs, predicate_inputs], axis=2)
+      embed_inputs = tf.concat([embed_inputs, predicate_embed_inputs], axis=2)
     
     top_recur = embed_inputs
 
@@ -428,6 +428,7 @@ class Parser(BaseParser):
     # predicate_targets = tf.where(tf.greater(targets[:, :, 3], self.predicate_true_start_idx), tf.ones([batch_size, bucket_size], dtype=tf.int32),
     #                            tf.zeros([batch_size, bucket_size], dtype=tf.int32))
     predicate_targets = inputs[:, :, 3]
+
     def compute_predicates(predicate_input, name):
       with tf.variable_scope(name, reuse=reuse):
         predicate_classifier_mlp = self.MLP(predicate_input, self.predicate_pred_mlp_size, n_splits=1)

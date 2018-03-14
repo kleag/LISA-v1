@@ -291,10 +291,9 @@ class Network(Configurable):
             #   current_score = correct[self.eval_criterion]
             if self.viterbi_decode or self.viterbi_train:
               correct = self.test(sess, viterbi=True, validate=True)
-              current_score = np.max([correct[self.eval_criterion], current_score])
             else:
               correct = self.test(sess, validate=True)
-              current_score = correct[self.eval_criterion]
+            current_score = correct[self.eval_criterion]
             # las = np.mean(correct["LAS"]) * 100
             # uas = np.mean(correct["UAS"]) * 100
             # print('UAS: %.2f    LAS: %.2f' % (uas, las))

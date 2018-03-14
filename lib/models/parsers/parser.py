@@ -231,6 +231,13 @@ class Parser(BaseParser):
                     if not use_gold_parse:
                       # compute full parse and set it here
                       manual_attn = tf.nn.softmax(arc_logits)
+                this_layer_capsule_heads = self.num_capsule_heads if i > 0 else 0
+                if 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
+                  this_layer_capsule_heads = 1
+                  if use_gold_parse:
+                    manual_attn = tf.transpose(adj, [0, 2, 1])
+                self.print_once("Layer %d capsule heads: %d" % (i, this_layer_capsule_heads))
+
                 # if use_gold_parse:
                 #   if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
                 #     manual_attn = adj
@@ -242,11 +249,9 @@ class Parser(BaseParser):
                 if moving_params is not None and self.hard_attn:
                   hard_attn = True
 
-                this_layer_capsule_heads = self.num_capsule_heads if i > 0 else 0
-                if 'children' in self.multi_layers.keys() and i in self.multi_layers['children'] and \
-                    self.multi_penalties['children'] != 0.:
-                  this_layer_capsule_heads = 1
-                self.print_once("Layer %d capsule heads: %d" % (i, this_layer_capsule_heads))
+                # if 'children' in self.multi_layers.keys() and i in self.multi_layers['children'] and \
+                #     self.multi_penalties['children'] != 0.:
+                #   this_layer_capsule_heads = 1
 
                 # else:
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,

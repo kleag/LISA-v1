@@ -64,12 +64,6 @@ class Parser(BaseParser):
 
     if self.add_predicates_to_input:
       predicate_embed_inputs = vocabs[4].embedding_lookup(inputs[:, :, 3], moving_params=self.moving_params)
-      # fixed_trigger_emb = np.zeros([num_pred_classes, 1], dtype=np.float32)
-      # fixed_trigger_emb[vocabs[4]["True"]] = 1.
-      # with tf.variable_scope("Embeddings", reuse=reuse):
-      #   fixed_trigger_emb_var = tf.get_variable(name="predicate_emb_lookup", initializer=fixed_trigger_emb, trainable=False)
-      # fixed_trigger_lookup = tf.nn.embedding_lookup(fixed_trigger_emb_var, inputs[:, :, 3])
-      # inputs_to_embed.append(fixed_trigger_lookup)
       embed_inputs = tf.concat([embed_inputs, predicate_embed_inputs], axis=2)
     
     top_recur = embed_inputs
@@ -108,16 +102,6 @@ class Parser(BaseParser):
         for line in f:
           tag1, tag2, prob = line.split("\t")
           bilou_constraints[vocabs[3][tag1], vocabs[3][tag2]] = float(prob)
-    # for s_str, s_idx in vocabs[3].iteritems():
-    #   for e_str, e_idx in vocabs[3].iteritems():
-    #     s_bilou = s_str[0]
-    #     e_bilou = e_str[0]
-    #     s_type = s_str[2:]
-    #     e_type = e_str[2:]
-    #     if (s_bilou == 'L' or s_bilou == 'U' or s_bilou == 'O') and (e_bilou == 'O' or e_bilou == 'B' or e_bilou == 'U'):
-    #       bilou_constraints[s_idx, e_idx] = 1.0
-    #     elif (s_bilou == 'B' or s_bilou == 'I') and s_type == e_type and (e_bilou == 'I' or e_bilou == 'L'):
-    #       bilou_constraints[s_idx, e_idx] = 1.0
 
     ###### stuff for multitask attention ######
     multitask_targets = {}
@@ -544,8 +528,9 @@ class Parser(BaseParser):
     rel_loss = self.rel_loss_penalty * rel_output['loss']
 
     # if this is a parse update, then actual parse loss equal to sum of rel loss and arc loss
-    actual_parse_loss = tf.cond(tf.equal(int(self.full_parse), 1), lambda: tf.add(rel_loss, arc_loss), lambda: tf.constant(0.))
+    # actual_parse_loss = tf.cond(tf.equal(int(self.full_parse), 1), lambda: tf.add(rel_loss, arc_loss), lambda: tf.constant(0.))
     # actual_parse_loss = tf.cond(do_parse_update, lambda: tf.add(rel_loss, arc_loss), lambda: tf.constant(0.))
+    parse_combined_loss = rel_loss + arc_loss
 
     # if this is a parse update and the parse proportion is not one, then no srl update. otherwise,
     # srl update equal to sum of srl_loss, predicate_loss
@@ -566,7 +551,7 @@ class Parser(BaseParser):
     output['n_tokens'] = self.n_tokens
     output['accuracy'] = output['n_correct'] / output['n_tokens']
 
-    output['loss'] = srl_combined_loss + actual_parse_loss + multitask_loss_sum + pos_loss
+    output['loss'] = srl_combined_loss + parse_combined_loss + multitask_loss_sum + pos_loss
     # output['loss'] = srl_loss + predicate_loss + actual_parse_loss
     # output['loss'] = actual_srl_loss + arc_loss + rel_loss
 

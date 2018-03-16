@@ -356,11 +356,7 @@ class Parser(BaseParser):
 
     if not self.full_parse and self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.0:
       arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(parse_pred_inputs)
-
-    # arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.equal(int(self.full_parse), 1),
-    #                                                 lambda: (arc_logits, dep_rel_mlp, head_rel_mlp),
-    #                                                 lambda: dummy_parse_logits())
-    # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.rank(arc_logits)], "arc logits shape/rank", summarize=20)
+      
     arc_output = self.output_svd(arc_logits, targets[:,:,1])
     if moving_params is None:
       predictions = targets[:,:,1]

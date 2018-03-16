@@ -682,3 +682,13 @@ class Configurable(object):
   def full_parse(self):
     return self._config.getboolean('Training', 'full_parse')
   argparser.add_argument('--full_parse')
+
+  @property
+  def sampling_schedule(self):
+    return self._config.get('Training', 'sampling_schedule')
+  argparser.add_argument('--sampling_schedule')
+
+  @property
+  def sample_prob(self):
+    return self._config.getfloat('Training', 'sample_prob')
+  argparser.add_argument('--sample_prob')

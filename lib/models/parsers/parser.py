@@ -603,7 +603,7 @@ class Parser(BaseParser):
     output['predicate_correct'] = predicate_output['correct']
     output['predicate_preds'] = predicate_output['predictions']
 
-    output['sample_prob'] = tf.constant(self.get_sample_prob(step))
+    output['sample_prob'] = self.get_sample_prob(step)
 
     output['pos_loss'] = pos_loss
     output['pos_correct'] = pos_correct

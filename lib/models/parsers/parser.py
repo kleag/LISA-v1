@@ -158,7 +158,7 @@ class Parser(BaseParser):
       dummy_rel_mlp = tf.zeros([batch_size, bucket_size, self.class_mlp_size])
       return tf.constant(0.), dummy_rel_mlp, dummy_rel_mlp
 
-    arc_logits, dep_rel_mlp, head_rel_mlp = dummy_parse_logits()
+    # arc_logits, dep_rel_mlp, head_rel_mlp = dummy_parse_logits()
 
     ###########################################
 

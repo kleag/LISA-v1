@@ -1643,7 +1643,7 @@ class NN(Configurable):
     if self.sampling_schedule == 'constant':
       return self.sample_prob
     if self.sampling_schedule == 'sigmoid':
-      return self.sample_prob/(self.sample_prob+tf.exp(step*(1/self.sample_prob)))
+      return self.sample_prob/(self.sample_prob+tf.exp(tf.multiply(step, (1/self.sample_prob))))
 
   # =============================================================
   def check_cycles_svd(self, parse_preds, length):

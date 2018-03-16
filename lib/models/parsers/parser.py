@@ -348,11 +348,14 @@ class Parser(BaseParser):
     # else:
 
     # if arc_logits already computed, return them. else if arc_loss_penalty != 0, compute them, else dummy
-    arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.greater(self.arc_loss_penalty, 0.0),
-                                                    lambda: tf.cond(tf.equal(int(self.full_parse), 1),
-                                                                    lambda: (arc_logits, dep_rel_mlp, head_rel_mlp),
-                                                                    lambda: get_parse_logits(parse_pred_inputs)),
-                                                    lambda: dummy_parse_logits())
+    # arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.greater(self.arc_loss_penalty, 0.0),
+    #                                                 lambda: tf.cond(tf.equal(int(self.full_parse), 1),
+    #                                                                 lambda: (arc_logits, dep_rel_mlp, head_rel_mlp),
+    #                                                                 lambda: get_parse_logits(parse_pred_inputs)),
+    #                                                 lambda: dummy_parse_logits())
+
+
+    arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(parse_pred_inputs)
 
     # arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.equal(int(self.full_parse), 1),
     #                                                 lambda: (arc_logits, dep_rel_mlp, head_rel_mlp),

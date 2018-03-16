@@ -354,8 +354,8 @@ class Parser(BaseParser):
     #                                                                 lambda: get_parse_logits(parse_pred_inputs)),
     #                                                 lambda: dummy_parse_logits())
 
-
-    arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(parse_pred_inputs)
+    if not self.full_parse and self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.0:
+      arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(parse_pred_inputs)
 
     # arc_logits, dep_rel_mlp, head_rel_mlp = tf.cond(tf.equal(int(self.full_parse), 1),
     #                                                 lambda: (arc_logits, dep_rel_mlp, head_rel_mlp),

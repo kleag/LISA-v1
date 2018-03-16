@@ -34,6 +34,7 @@ class Parser(BaseParser):
     vocabs = dataset.vocabs
     inputs = dataset.inputs
     targets = dataset.targets
+    step = dataset.step
 
     num_pos_classes = len(vocabs[1])
     num_rel_classes = len(vocabs[2])
@@ -137,6 +138,9 @@ class Parser(BaseParser):
 
     # whether to condition on gold or predicted parse
     use_gold_parse = self.inject_manual_attn and not ((moving_params is not None) and self.gold_attn_at_train)
+    if use_gold_parse and (moving_params is not None):
+      sample_prob = self.get_sample_prob(step)
+      use_gold_parse = tf.less(tf.random_uniform([]), sample_prob)
 
     ##### Functions for predicting parse, Dozat-style #####
     def get_parse_logits(parse_inputs):
@@ -356,7 +360,7 @@ class Parser(BaseParser):
 
     if not self.full_parse and self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.0:
       arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(parse_pred_inputs)
-      
+
     arc_output = self.output_svd(arc_logits, targets[:,:,1])
     if moving_params is None:
       predictions = targets[:,:,1]

@@ -50,6 +50,7 @@ class Dataset(Configurable):
 
     self.inputs = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')
     self.targets = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='targets')
+    self.step = tf.placeholder_with_default(0, shape=None, name='step')
     self.builder = builder()
   
   #=============================================================

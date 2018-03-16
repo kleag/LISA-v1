@@ -1639,6 +1639,12 @@ class NN(Configurable):
     
     return np.argmax(tag_probs[:,Vocab.ROOT:], axis=1)+Vocab.ROOT
 
+  def get_sample_prob(self, step):
+    if self.sampling_schedule == 'constant':
+      return self.sample_prob
+    if self.sampling_schedule == 'sigmoid':
+      return self.sample_prob/(self.sample_prob+np.exp(step/self.sample_prob))
+
   # =============================================================
   def check_cycles_svd(self, parse_preds, length):
 

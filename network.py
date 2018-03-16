@@ -191,7 +191,7 @@ class Network(Configurable):
 
           feed_dict[self._trainset.step] = n_train_iters
 
-          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, predicate_loss, predicate_count, predicate_correct, pos_loss, pos_correct, multitask_losses, lr = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
+          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, predicate_loss, predicate_count, predicate_correct, pos_loss, pos_correct, multitask_losses, lr, sample_prob = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
           total_train_iters += 1
           train_time += time.time() - start_time
           train_loss += loss
@@ -255,9 +255,9 @@ class Network(Configurable):
             train_pos_loss /= n_train_iters
             train_accuracy = 100 * n_train_correct / n_train_tokens
             train_time = n_train_sents / train_time
-            print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f\n'
+            print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f    Sample prob: %f\n'
                   '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
-                  (total_train_iters, train_loss, train_accuracy, train_time, lr, valid_loss, valid_accuracy, valid_time))
+                  (total_train_iters, train_loss, train_accuracy, train_time, lr, sample_prob, valid_loss, valid_accuracy, valid_time))
             print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\tpos loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_predicate_loss, train_pos_loss))
             multitask_losses_str = ''
             for n, l in train_mul_loss.iteritems():
@@ -803,7 +803,8 @@ class Network(Configurable):
                            train_output['pos_loss'],
                            train_output['pos_correct'],
                            train_output['multitask_losses'],
-                           lr]
+                           lr,
+                           train_output['sample_prob']]
     ops['valid_op'] = [valid_output['loss'],
                        valid_output['n_correct'],
                        valid_output['n_tokens'],

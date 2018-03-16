@@ -85,6 +85,9 @@ class Parser(BaseParser):
     self.print_once("multitask penalties: ", self.multi_penalties)
     self.print_once("multitask layers: ", self.multi_layers)
 
+    self.print_once("sampling schedule: ", self.sampling_schedule)
+
+
     # maps joint predicate/pos indices to pos indices
     preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=np.int32)
     if self.joint_pos_predicates:
@@ -232,7 +235,7 @@ class Parser(BaseParser):
                   #   manual_attn = adj
                   #   # manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)
                   # if self.full_parse:
-                  #   arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
+                    arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
                   #   # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), arc_logits], "arc_logits", summarize=100)
                   #   # if not use_gold_parse:
                   #   #   # compute full parse and set it here
@@ -600,6 +603,7 @@ class Parser(BaseParser):
     output['predicate_correct'] = predicate_output['correct']
     output['predicate_preds'] = predicate_output['predictions']
 
+    output['sample_prob'] = self.get_sample_prob(step)
 
     output['pos_loss'] = pos_loss
     output['pos_correct'] = pos_correct

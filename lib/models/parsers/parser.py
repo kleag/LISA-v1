@@ -140,7 +140,9 @@ class Parser(BaseParser):
     use_gold_parse = self.inject_manual_attn and not ((moving_params is not None) and self.gold_attn_at_train)
     if use_gold_parse and (moving_params is not None):
       sample_prob = self.get_sample_prob(step)
-      use_gold_parse = tf.less(tf.random_uniform([]), sample_prob)
+      use_gold_parse_tensor = tf.less(tf.random_uniform([]), sample_prob)
+    else:
+      use_gold_parse_tensor = tf.equal(int(use_gold_parse), 1)
 
     ##### Functions for predicting parse, Dozat-style #####
     def get_parse_logits(parse_inputs):
@@ -226,15 +228,15 @@ class Parser(BaseParser):
                 hard_attn = False
                 # todo make this into gold_at_train and gold_at_test flags... + scheduled sampling
                 if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
-                  if use_gold_parse:
-                    manual_attn = adj
-                    # manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)
-                  if self.full_parse:
-                    arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
-                    # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), arc_logits], "arc_logits", summarize=100)
-                    if not use_gold_parse:
-                      # compute full parse and set it here
-                      manual_attn = tf.nn.softmax(arc_logits)
+                  # if use_gold_parse:
+                  #   manual_attn = adj
+                  #   # manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)
+                  # if self.full_parse:
+                  #   arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
+                  #   # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), arc_logits], "arc_logits", summarize=100)
+                  #   # if not use_gold_parse:
+                  #   #   # compute full parse and set it here
+                    manual_attn = tf.cond(use_gold_parse_tensor, lambda: adj, lambda: tf.nn.softmax(arc_logits))
                 this_layer_capsule_heads = self.num_capsule_heads if i > 0 else 0
                 if 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
                   this_layer_capsule_heads = 1

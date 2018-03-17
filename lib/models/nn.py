@@ -1641,7 +1641,7 @@ class NN(Configurable):
 
   def get_sample_prob(self, step):
     if self.sampling_schedule == 'constant':
-      return self.sample_prob
+      return tf.constant(self.sample_prob)
     if self.sampling_schedule == 'sigmoid':
       return self.sample_prob/(self.sample_prob+tf.exp(tf.multiply(step, (1/self.sample_prob))))
 

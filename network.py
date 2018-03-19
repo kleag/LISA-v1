@@ -1016,5 +1016,5 @@ if __name__ == '__main__':
         # Actually evaluate on test data
         if args.test_eval:
           start_time = time.time()
-          network.test(sess, network.viterbi_decode, validate=False)
+          network.test(sess, network.viterbi_decode or network.viterbi_train, validate=False)
           print('Parsing took %f seconds' % (time.time() - start_time))

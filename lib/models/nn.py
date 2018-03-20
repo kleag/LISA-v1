@@ -223,14 +223,20 @@ def combine_heads_2d(x):
   return combine_last_two_dimensions(tf.transpose(x, [0, 2, 3, 1, 4]))
 
 
-def combine_heads(x):
+def combine_heads(x, replace=None):
   """Inverse of split_heads.
   Args:
     x: a Tensor with shape [batch, num_heads, length, channels / num_heads]
   Returns:
     a Tensor with shape [batch, length, channels]
   """
-  return combine_last_two_dimensions(tf.transpose(x, [0, 2, 1, 3]))
+  # batch x length x num_heads x channels
+  transposed = tf.transpose(x, [0, 2, 1, 3])
+  if replace is not None:
+    transposed = tf.transpose(transposed, [2, 0, 1, 3])[:-1]
+    transposed = tf.concat([transposed, tf.expand_dims(replace, 0)], axis=0)
+    transposed = tf.transpose(transposed, [1, 2, 0, 3])
+  return combine_last_two_dimensions(transposed)
 
 
 def dot_product_attention(q, k, v,
@@ -385,6 +391,7 @@ def multihead_attention(antecedent,
                         num_capsule_heads,
                         manual_attn=None,
                         hard_attn=False,
+                        replace=None,
                         name=None):
   """Multihead scaled-dot-product attention with input/output transformations.
   Args:
@@ -415,7 +422,7 @@ def multihead_attention(antecedent,
     key_depth_per_head = total_key_depth // num_heads
     q *= key_depth_per_head**-0.5
     x, attn_weights = dot_product_attention(q, k, v, bias, dropout_rate, num_capsule_heads, manual_attn, hard_attn)
-    x = combine_heads(x)
+    x = combine_heads(x, replace)
     params = tf.get_variable("final_proj", [1, 1, total_key_depth, output_depth])
     x = tf.expand_dims(x, 1)
     x = tf.nn.conv2d(x, params, [1, 1, 1, 1], "SAME")
@@ -577,7 +584,7 @@ class NN(Configurable):
 
   # =============================================================
   def transformer(self, inputs, hidden_size, num_heads, attn_dropout, relu_dropout, prepost_dropout, relu_hidden_size,
-                  nonlinearity, reuse, num_capsule_heads, manual_attn=None, hard_attn=False):
+                  nonlinearity, reuse, num_capsule_heads, manual_attn=None, hard_attn=False, replace=None):
     """"""
     # input_size = inputs.get_shape().as_list()[-1]
     lengths = tf.reshape(tf.to_int64(self.sequence_lengths), [-1])
@@ -592,7 +599,7 @@ class NN(Configurable):
 
     with tf.variable_scope("self_attention"):
       x = layer_norm(inputs, reuse)
-      y, attn_weights = multihead_attention(x, mask, hidden_size, hidden_size, hidden_size, num_heads, attn_dropout, num_capsule_heads, manual_attn, hard_attn)
+      y, attn_weights = multihead_attention(x, mask, hidden_size, hidden_size, hidden_size, num_heads, attn_dropout, num_capsule_heads, manual_attn, hard_attn, replace)
       x = tf.add(x, tf.nn.dropout(y, prepost_dropout))
 
     with tf.variable_scope("ffnn"):

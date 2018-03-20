@@ -99,7 +99,6 @@ class Parser(BaseParser):
         pos_idx = vocabs[1][postag]
         preds_to_pos_map[pred_idx] = pos_idx
 
-    # todo these are actually wrong because of nesting
     bilou_constraints = np.zeros((num_srl_classes, num_srl_classes))
     if self.transition_statistics:
       with open(self.transition_statistics, 'r') as f:
@@ -163,11 +162,52 @@ class Parser(BaseParser):
         # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.shape(tf.shape(arc_logits))])
       return arc_logits, dep_rel_mlp, head_rel_mlp
 
+    def get_parse_rel_logits(dep_rels, head_rels, preds):
+      with tf.variable_scope('Rels', reuse=reuse):
+        rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rels, head_rels, num_rel_classes, preds)
+      return rel_logits, rel_logits_cond
+
     def dummy_parse_logits():
       dummy_rel_mlp = tf.zeros([batch_size, bucket_size, self.class_mlp_size])
       return tf.constant(0.), dummy_rel_mlp, dummy_rel_mlp
 
     arc_logits, dep_rel_mlp, head_rel_mlp = dummy_parse_logits()
+
+    dep_targets = targets[:, :, 2]
+    dep_targets_idx = tf.stack([i1, i2, dep_targets], axis=-1)
+    dep_targets_binary = tf.scatter_nd(dep_targets_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])
+
+
+    ######## Predicate detection ########
+    def compute_predicates(predicate_input, predicate_targets, name):
+      with tf.variable_scope(name, reuse=reuse):
+        predicate_classifier_mlp = self.MLP(predicate_input, self.predicate_pred_mlp_size, n_splits=1)
+        with tf.variable_scope('SRL-Predicates-Classifier', reuse=reuse):
+          predicate_classifier = self.MLP(predicate_classifier_mlp, num_pred_classes, n_splits=1)
+        output = self.output_predicates(predicate_classifier, predicate_targets, vocabs[4].predicate_true_start_idx)
+        return output
+
+    # aux_trigger_loss = tf.constant(0.)
+    # if self.train_aux_trigger_layer:
+    #   aux_trigger_output = compute_predicates(aux_trigger_inputs, 'SRL-Triggers-Aux', False)
+    #   aux_trigger_loss = self.aux_trigger_penalty * aux_trigger_output['loss']
+
+    predicate_targets = inputs[:, :, 3]
+    predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
+                                     tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
+    def dummy_predicate_output():
+      return {
+        'loss': 0.0,
+        'predicate_predictions': predicate_targets_binary,
+        'predictions': predicate_targets,
+        'logits': 0.0,
+        # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),
+        'count': 0.,
+        'correct': 0.,
+        'targets': 0,
+      }
+
+    predicate_output = dummy_predicate_output()
 
     ###########################################
 
@@ -263,19 +303,73 @@ class Parser(BaseParser):
                 #   this_layer_capsule_heads = 1
 
                 # else:
+
+
+                # hard conditioning
+                label_cond_embedding = None
+                if i-1 == self.predicate_layer:
+                  # batch_size x bucket_size x num_labels
+                  # todo fix
+                  cond_attn_weights = predicate_targets_binary if moving_params is None else tf.nn.softmax(predicate_output['logits'])
+                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes), [1, 1, num_pred_classes]),
+                                                [batch_size, bucket_size, 1])
+                  # batch_size x bucket_size x num_labels x label_embedding_dim
+                  predicate_embeddings = vocabs[4].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
+
+                  # batch_size x bucket_size
+                  label_cond_embedding = tf.reduce_sum(cond_attn_weights * predicate_embeddings, axis=-1)
+
+                elif i-1 == self.parse_layer:
+                  # batch_size x bucket_size x num_labels
+                  # todo fix
+                  cond_attn_weights = dep_targets_binary if moving_params is None else rel_output['probabilities']
+                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes), [1, 1, num_rel_classes]),
+                                                [batch_size, bucket_size, 1])
+                  # batch_size x bucket_size x num_labels x label_embedding_dim
+                  rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
+
+                  # batch_size x bucket_size
+                  label_cond_embedding = tf.reduce_sum(cond_attn_weights * rel_embeddings, axis=-1)
+
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            self.attn_dropout, self.relu_dropout, self.prepost_dropout,
                                                            self.relu_hidden_size, self.info_func, reuse,
-                                                           this_layer_capsule_heads, manual_attn, hard_attn)
+                                                           this_layer_capsule_heads, manual_attn, hard_attn, label_cond_embedding)
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
 
                 if i == self.pos_layer:
                   pos_pred_inputs = top_recur
                 if i == self.predicate_layer:
-                  predicate_inputs = top_recur
+                  predicate_output = tf.cond(tf.greater(self.predicate_loss_penalty, 0.0),
+                                             lambda: compute_predicates(top_recur, predicate_targets, 'SRL-Predicates'),
+                                             dummy_predicate_output)
+
+                  # todo fix this-scheduled sampling
+                  if moving_params is None or self.add_predicates_to_input or self.predicate_loss_penalty == 0.0:
+                    # gold
+                    predicate_predictions = predicate_targets_binary
+                  else:
+                    # predicted
+                    predicate_predictions = predicate_output['predicate_predictions']
                 if i == self.parse_layer:
-                  parse_pred_inputs = top_recur
+                  if not self.full_parse and self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.0:
+                    arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
+
+                  arc_output = self.output_svd(arc_logits, targets[:, :, 1])
+                  if moving_params is None:
+                    predictions = targets[:, :, 1]
+                  else:
+                    predictions = arc_output['predictions']
+                  parse_probs = arc_output['probabilities']
+
+                  rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
+                                                        lambda: get_parse_rel_logits(dep_rel_mlp, head_rel_mlp, predictions),
+                                                        lambda: (tf.constant(0.), tf.constant(0.)))
+                  rel_output = self.output(rel_logits, dep_targets, num_rel_classes)
+                  rel_output['probabilities'] = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
+                                                        lambda: self.conditional_probabilities(rel_logits_cond),
+                                                        lambda: rel_output['probabilities'])
 
 
             # if normalization is done in layer_preprocess, then it should also be done
@@ -363,30 +457,11 @@ class Parser(BaseParser):
     #                                                                 lambda: get_parse_logits(parse_pred_inputs)),
     #                                                 lambda: dummy_parse_logits())
 
-    if not self.full_parse and self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.0:
-      arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(parse_pred_inputs)
 
-    arc_output = self.output_svd(arc_logits, targets[:,:,1])
-    if moving_params is None:
-      predictions = targets[:,:,1]
-    else:
-      predictions = arc_output['predictions']
-    parse_probs = arc_output['probabilities']
 
     ######## do parse-specific stuff (rels) ########
 
-    def get_parse_rel_logits():
-      with tf.variable_scope('Rels', reuse=reuse):
-        rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, num_rel_classes, predictions)
-      return rel_logits, rel_logits_cond
 
-    rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
-                                          lambda: get_parse_rel_logits(),
-                                          lambda: (tf.constant(0.), tf.constant(0.)))
-    rel_output = self.output(rel_logits, targets[:, :, 2], num_rel_classes)
-    rel_output['probabilities'] = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
-                                          lambda: self.conditional_probabilities(rel_logits_cond),
-                                          lambda: rel_output['probabilities'])
 
     # def compute_rels_output():
     #   with tf.variable_scope('Rels', reuse=reuse):
@@ -428,76 +503,6 @@ class Parser(BaseParser):
           loss = self.multi_penalties['children'] * outputs['loss']
           multitask_losses['children%s' % l] = loss
           multitask_loss_sum += loss
-
-    ######## Predicate detection ########
-    # predicate_targets = tf.where(tf.greater(targets[:, :, 3], self.predicate_true_start_idx), tf.ones([batch_size, bucket_size], dtype=tf.int32),
-    #                            tf.zeros([batch_size, bucket_size], dtype=tf.int32))
-    predicate_targets = inputs[:, :, 3]
-
-    def compute_predicates(predicate_input, name):
-      with tf.variable_scope(name, reuse=reuse):
-        predicate_classifier_mlp = self.MLP(predicate_input, self.predicate_pred_mlp_size, n_splits=1)
-        with tf.variable_scope('SRL-Predicates-Classifier', reuse=reuse):
-          predicate_classifier = self.MLP(predicate_classifier_mlp, num_pred_classes, n_splits=1)
-        output = self.output_predicates(predicate_classifier, predicate_targets, vocabs[4].predicate_true_start_idx)
-        return output
-
-    # aux_trigger_loss = tf.constant(0.)
-    # if self.train_aux_trigger_layer:
-    #   aux_trigger_output = compute_predicates(aux_trigger_inputs, 'SRL-Triggers-Aux', False)
-    #   aux_trigger_loss = self.aux_trigger_penalty * aux_trigger_output['loss']
-
-    predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
-                                     tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
-    def dummy_predicate_output():
-      return {
-        'loss': 0.0,
-        'predicate_predictions': predicate_targets_binary,
-        'predictions': predicate_targets,
-        'logits': 0.0,
-        # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),
-        'count': 0.,
-        'correct': 0.,
-        'targets': 0,
-      }
-
-    predicate_output = tf.cond(tf.greater(self.predicate_loss_penalty, 0.0),
-                               lambda: compute_predicates(predicate_inputs, 'SRL-Predicates'),
-                               dummy_predicate_output)
-
-    if moving_params is None or self.add_predicates_to_input or self.predicate_loss_penalty == 0.0:
-      # gold
-      predicate_predictions = predicate_targets_binary
-    else:
-      # predicted
-      predicate_predictions = predicate_output['predicate_predictions']
-
-    # predicate_predictions = tf.Print(predicate_predictions, [predicate_targets], "predicate_targets", summarize=50)
-    # predicate_predictions = tf.Print(predicate_predictions, [predicate_predictions], "predicate_predictions", summarize=50)
-
-
-    ######## POS tags ########
-    def compute_pos(pos_input, pos_target):
-        with tf.variable_scope('POS-Classifier', reuse=reuse):
-          pos_classifier = self.MLP(pos_input, num_pos_classes, n_splits=1)
-        output = self.output(pos_classifier, pos_target)
-        return output
-
-    pos_target = targets[:,:,0]
-    pos_loss = tf.constant(0.)
-    pos_correct = tf.constant(0.)
-    pos_preds = pos_target
-    if self.train_pos:
-      pos_output = compute_pos(pos_pred_inputs, pos_target)
-      pos_loss = self.pos_penalty * pos_output['loss']
-      pos_correct = pos_output['n_correct']
-      pos_preds = pos_output['predictions']
-    elif self.joint_pos_predicates:
-      pos_preds = tf.squeeze(tf.nn.embedding_lookup(preds_to_pos_map, predicate_output['predictions']), -1)
-      pos_correct = tf.reduce_sum(tf.cast(tf.equal(pos_preds, pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
-    elif self.add_pos_to_input:
-      pos_correct = tf.reduce_sum(tf.cast(tf.equal(inputs[:,:,2], pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
-      pos_preds = inputs[:,:,2]
 
     ######## do SRL-specific stuff (rels) ########
     def compute_srl(srl_target):

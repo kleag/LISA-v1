@@ -505,6 +505,31 @@ class Parser(BaseParser):
           multitask_losses['children%s' % l] = loss
           multitask_loss_sum += loss
 
+    ######## POS tags ########
+    def compute_pos(pos_input, pos_target):
+      with tf.variable_scope('POS-Classifier', reuse=reuse):
+        pos_classifier = self.MLP(pos_input, num_pos_classes, n_splits=1)
+      output = self.output(pos_classifier, pos_target)
+      return output
+
+    pos_target = targets[:, :, 0]
+    pos_loss = tf.constant(0.)
+    pos_correct = tf.constant(0.)
+    pos_preds = pos_target
+    if self.train_pos:
+      pos_output = compute_pos(pos_pred_inputs, pos_target)
+      pos_loss = self.pos_penalty * pos_output['loss']
+      pos_correct = pos_output['n_correct']
+      pos_preds = pos_output['predictions']
+    elif self.joint_pos_predicates:
+      pos_preds = tf.squeeze(tf.nn.embedding_lookup(preds_to_pos_map, predicate_output['predictions']), -1)
+      pos_correct = tf.reduce_sum(
+        tf.cast(tf.equal(pos_preds, pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
+    elif self.add_pos_to_input:
+      pos_correct = tf.reduce_sum(
+        tf.cast(tf.equal(inputs[:, :, 2], pos_target), tf.float32) * tf.squeeze(self.tokens_to_keep3D, -1))
+      pos_preds = inputs[:, :, 2]
+
     ######## do SRL-specific stuff (rels) ########
     def compute_srl(srl_target):
       with tf.variable_scope('SRL-MLP', reuse=reuse):

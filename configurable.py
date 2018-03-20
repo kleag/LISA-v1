@@ -262,6 +262,10 @@ class Configurable(object):
     return self._config.getint('Sizes', 'predicate_embed_size')
   argparser.add_argument('--predicate_embed_size')
   @property
+  def rel_embed_size(self):
+    return self._config.getint('Sizes', 'rel_embed_size')
+  argparser.add_argument('--rel_embed_size')
+  @property
   def recur_size(self):
     return self._config.getint('Sizes', 'recur_size')
   argparser.add_argument('--recur_size')

@@ -275,7 +275,7 @@ class Parser(BaseParser):
                   #   manual_attn = adj
                   #   # manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)
                   # if self.full_parse:
-                    arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
+                  #   arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
                   #   # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), arc_logits], "arc_logits", summarize=100)
                   #   # if not use_gold_parse:
                   #   #   # compute full parse and set it here
@@ -355,8 +355,7 @@ class Parser(BaseParser):
                     # predicted
                     predicate_predictions = predicate_output['predicate_predictions']
                 if i == self.parse_layer:
-                  if not self.full_parse and self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.0:
-                    arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
+                  arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
 
                   arc_output = self.output_svd(arc_logits, targets[:, :, 1])
                   if moving_params is None:

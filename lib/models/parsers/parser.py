@@ -319,7 +319,7 @@ class Parser(BaseParser):
                   # self.print_once("predicate embeddings", predicate_embeddings)
 
                   # batch_size x bucket_size
-                  label_cond_embedding = tf.reduce_sum(tf.multiply(cond_attn_weights, predicate_embeddings), axis=-1)
+                  label_cond_embedding = tf.reduce_sum(tf.multiply(cond_attn_weights, predicate_embeddings), axis=2)
 
                 elif i-1 == self.parse_layer:
                   # batch_size x bucket_size x num_labels
@@ -331,7 +331,7 @@ class Parser(BaseParser):
                   rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
 
                   # batch_size x bucket_size
-                  label_cond_embedding = tf.reduce_sum(cond_attn_weights * rel_embeddings, axis=-1)
+                  label_cond_embedding = tf.reduce_sum(cond_attn_weights * rel_embeddings, axis=2)
 
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            self.attn_dropout, self.relu_dropout, self.prepost_dropout,

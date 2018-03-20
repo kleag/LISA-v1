@@ -311,7 +311,7 @@ class Parser(BaseParser):
                   # batch_size x bucket_size x num_labels
                   # todo fix
                   cond_attn_weights = predicate_targets_binary if moving_params is None else tf.nn.softmax(predicate_output['logits'])
-                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes), [1, 1, num_pred_classes]),
+                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes, dtype=int32), [1, 1, num_pred_classes]),
                                                 [batch_size, bucket_size, 1])
                   # batch_size x bucket_size x num_labels x label_embedding_dim
                   predicate_embeddings = vocabs[4].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
@@ -323,7 +323,7 @@ class Parser(BaseParser):
                   # batch_size x bucket_size x num_labels
                   # todo fix
                   cond_attn_weights = dep_targets_binary if moving_params is None else rel_output['probabilities']
-                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes), [1, 1, num_rel_classes]),
+                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes, dtype=int32), [1, 1, num_rel_classes]),
                                                 [batch_size, bucket_size, 1])
                   # batch_size x bucket_size x num_labels x label_embedding_dim
                   rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)

@@ -310,7 +310,7 @@ class Parser(BaseParser):
                 if i-1 == self.predicate_layer:
                   # batch_size x bucket_size x num_labels
                   # todo fix
-                  cond_attn_weights = tf.cast(predicate_targets_binary, tf.float32) if moving_params is None else tf.nn.softmax(predicate_output['logits'])
+                  cond_attn_weights = tf.expand_dims(tf.cast(predicate_targets_binary, tf.float32), -1) if moving_params is None else tf.nn.softmax(predicate_output['logits'])
                   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes, dtype=tf.int32), [1, 1, num_pred_classes]),
                                                 [batch_size, bucket_size, 1])
                   # batch_size x bucket_size x num_labels x label_embedding_dim
@@ -324,7 +324,7 @@ class Parser(BaseParser):
                 elif i-1 == self.parse_layer:
                   # batch_size x bucket_size x num_labels
                   # todo fix
-                  cond_attn_weights = tf.cast(dep_targets_binary, tf.float32) if moving_params is None else rel_output['probabilities']
+                  cond_attn_weights = tf.expand_dims(tf.cast(dep_targets_binary, tf.float32), -1) if moving_params is None else rel_output['probabilities']
                   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes, dtype=tf.int32), [1, 1, num_rel_classes]),
                                                 [batch_size, bucket_size, 1])
                   # batch_size x bucket_size x num_labels x label_embedding_dim

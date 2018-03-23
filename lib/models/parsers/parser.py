@@ -175,7 +175,7 @@ class Parser(BaseParser):
 
     dep_targets = targets[:, :, 2]
     dep_targets_idx = tf.stack([i1, i2, dep_targets], axis=-1)
-    dep_targets_binary = tf.scatter_nd(dep_targets_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])
+    dep_targets_binary = tf.scatter_nd(dep_targets_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, num_rel_classes])
 
 
     ######## Predicate detection ########

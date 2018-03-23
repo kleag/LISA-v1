@@ -173,10 +173,13 @@ class Parser(BaseParser):
 
     arc_logits, dep_rel_mlp, head_rel_mlp = dummy_parse_logits()
 
+    predicate_targets = inputs[:, :, 3]
     dep_targets = targets[:, :, 2]
     dep_targets_idx = tf.stack([i1, i2, dep_targets], axis=-1)
     dep_targets_binary = tf.scatter_nd(dep_targets_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, num_rel_classes])
 
+    pred_targets_idx = tf.stack([i1, i2, predicate_targets], axis=-1)
+    predicate_targets_binary_full = tf.scatter_nd(pred_targets_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, num_pred_classes])
 
     ######## Predicate detection ########
     def compute_predicates(predicate_input, predicate_targets, name):
@@ -192,7 +195,6 @@ class Parser(BaseParser):
     #   aux_trigger_output = compute_predicates(aux_trigger_inputs, 'SRL-Triggers-Aux', False)
     #   aux_trigger_loss = self.aux_trigger_penalty * aux_trigger_output['loss']
 
-    predicate_targets = inputs[:, :, 3]
     predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
                                      tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
     def dummy_predicate_output():
@@ -310,7 +312,7 @@ class Parser(BaseParser):
                 if i-1 == self.predicate_layer:
                   # batch_size x bucket_size x num_labels
                   # todo fix
-                  cond_attn_weights = tf.expand_dims(tf.cast(predicate_targets_binary, tf.float32), -1) if moving_params is None else tf.nn.softmax(predicate_output['logits'])
+                  cond_attn_weights = tf.expand_dims(tf.cast(predicate_targets_binary_full, tf.float32), -1) if moving_params is None else tf.nn.softmax(predicate_output['logits'])
                   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes, dtype=tf.int32), [1, 1, num_pred_classes]),
                                                 [batch_size, bucket_size, 1])
                   # batch_size x bucket_size x num_labels x label_embedding_dim

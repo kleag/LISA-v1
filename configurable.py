@@ -695,3 +695,8 @@ class Configurable(object):
   def hard_attn(self):
     return self._config.getboolean('Training', 'hard_attn')
   argparser.add_argument('--hard_attn')
+
+  @property
+  def use_elmo(self):
+    return self._config.getboolean('Training', 'use_elmo')
+  argparser.add_argument('--use_elmo')

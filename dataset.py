@@ -221,6 +221,9 @@ class Dataset(Configurable):
         self.inputs: data[:,:maxlen,input_idxs],
         self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
       })
+      if self.use_elmo:
+        from lib.models import ElmoLSTMEncoder
+        feed_dict = ElmoLSTMEncoder.get_feed_dict(feed_dict)
       yield feed_dict, sents
   
   #=============================================================

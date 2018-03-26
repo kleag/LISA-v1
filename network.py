@@ -184,6 +184,7 @@ class Network(Configurable):
         for j, (feed_dict, _) in enumerate(self.train_minibatches()):
           # train_inputs = feed_dict[self._trainset.inputs]
           train_targets = feed_dict[self._trainset.targets]
+
           start_time = time.time()
 
           if profile:

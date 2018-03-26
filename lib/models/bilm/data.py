@@ -147,6 +147,7 @@ class UnicodeCharsVocabulary(Vocabulary):
     def _convert_word_to_char_ids(self, word):
         code = np.zeros([self.max_word_length], dtype=np.int32)
         code[:] = self.pad_char
+        print("word: ", word)
         # word_encoded = word.encode('utf-8', 'ignore')[:(self.max_word_length-2)]
         word_encoded = word[:(self.max_word_length-2)]
 

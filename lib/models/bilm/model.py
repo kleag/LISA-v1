@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import division
 import numpy as np
 import tensorflow as tf
 import h5py
@@ -200,7 +202,7 @@ def _pretrained_initializer(varname, weight_file, embedding_weight_file=None):
 
   # convert the graph name to that in the checkpoint
   varname_in_file = varname[5:]
-  print("varname in file: ", varname_in_file)
+  print("varname in file: ", varname_in_file, varname)
   if varname_in_file.startswith('RNN'):
     varname_in_file = weight_name_map[varname_in_file]
 

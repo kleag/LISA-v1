@@ -52,10 +52,10 @@ class ElmoLSTMEncoder(object):
     # token_map = string_int_maps['token_id_str_map']
     # remove pad tokens
     # todo 0 or 1?
-    tokens_batch = feed_dict[self.dataset.inputs][:, 1]
-    print("feed: ", feed_dict[self.dataset.inputs].shape, feed_dict[self.dataset.inputs][:, 0])
+    tokens_batch = feed_dict[self.dataset.inputs][:, :, 0]
+    # print("feed: ", feed_dict[self.dataset.inputs].shape, feed_dict[self.dataset.inputs][:, 0])
     str_tokens = [[self.vocabs[0][t] for t in sentence] for sentence in tokens_batch]
-    print("str tokens: ", str_tokens)
+    # print("str tokens: ", str_tokens)
     # map text to sentences
     char_ids = self.elmo_batcher.batch_sentences(str_tokens)
     feed_dict[self.elmo_ids_placeholder] = char_ids

@@ -223,7 +223,8 @@ class Dataset(Configurable):
       })
       if self.use_elmo:
         from lib.models import ElmoLSTMEncoder
-        feed_dict = ElmoLSTMEncoder.get_feed_dict(feed_dict)
+        elmo_encoder = ElmoLSTMEncoder(self)
+        feed_dict = elmo_encoder.get_feed_dict(feed_dict)
       yield feed_dict, sents
   
   #=============================================================

@@ -237,6 +237,12 @@ class Dataset(Configurable):
       return super(Dataset, self).n_bkts
     else:
       return super(Dataset, self).n_valid_bkts
+
+  # =============================================================
+  def max_batch_size(self):
+    m = np.max([d.shape[0] for d in self._data])
+    print("Max batch size: %d" % m)
+    return m
   
   #=============================================================
   def __getitem__(self, key):

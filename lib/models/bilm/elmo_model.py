@@ -33,7 +33,7 @@ class ElmoLSTMEncoder(object):
                                                             name='elmo_characters'
                                                             )
     # todo max batch size set wrong
-    self.elmo = BidirectionalLanguageModel(options_file, weight_file, max_batch_size=dataset.train_batch_size)
+    self.elmo = BidirectionalLanguageModel(options_file, weight_file, max_batch_size=dataset.max_batch_size())
     self.elmo_ops = self.elmo(self.elmo_ids_placeholder)
 
     # super(ElmoLSTMEncoder, self).__init__(text_batch, e1_dist_batch, e2_dist_batch, seq_len_batch, lstm_dim,

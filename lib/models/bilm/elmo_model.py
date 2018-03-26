@@ -57,12 +57,10 @@ class ElmoLSTMEncoder(object):
     feed_dict[self.elmo_ids_placeholder] = char_ids
     return feed_dict
 
-  def embed_text(self, reuse=False):
-    with tf.variable_scope('elmo', reuse=reuse):
-      elmo_embeddings = self.elmo_ops
-      # learned weighted average over the elmo layers
-      elmo_embeddings = weight_layers('elmo_input', elmo_embeddings, l2_coef=0.0)['weighted_op']
-      # elmo_embeddings = tf.nn.dropout(elmo_embeddings, self.word_dropout_keep)
+  def embed_text(self):
+    # learned weighted average over the elmo layers
+    elmo_embeddings = weight_layers('elmo_input', self.elmo_ops, l2_coef=0.0)['weighted_op']
+    # elmo_embeddings = tf.nn.dropout(elmo_embeddings, self.word_dropout_keep)
 
     # e1_pos, e2_pos = self.get_position_embeddings(e1_dist_batch, e2_dist_batch, position_embeddings)
     # token_embeds = tf.concat(axis=2, values=[elmo_embeddings, e1_pos, e2_pos])

@@ -50,7 +50,8 @@ class Dataset(Configurable):
 
     if self.use_elmo:
       from lib.models import ElmoLSTMEncoder
-      self.elmo_encoder = ElmoLSTMEncoder(self)
+      with tf.variable_scope(tf.get_variable_scope(), reuse=(self.name != "Trainset")):
+        self.elmo_encoder = ElmoLSTMEncoder(self)
 
     self.inputs = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')
     self.targets = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='targets')

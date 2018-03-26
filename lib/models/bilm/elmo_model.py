@@ -53,6 +53,7 @@ class ElmoLSTMEncoder(object):
     # remove pad tokens
     # todo 0 or 1?
     tokens_batch = feed_dict[self.dataset.inputs][:, 1]
+    print("feed: ", feed_dict[self.dataset.inputs][:, 0])
     str_tokens = [[self.vocabs[0][t] for t in sentence] for sentence in tokens_batch]
     print("str tokens: ", str_tokens)
     # map text to sentences

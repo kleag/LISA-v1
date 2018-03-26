@@ -50,6 +50,7 @@ class Parser(BaseParser):
     self.moving_params = moving_params
 
     if self.use_elmo:
+      print("using elmo w/ reuse = ", reuse)
       from lib.models.bilm import ElmoLSTMEncoder
       elmo_encoder = ElmoLSTMEncoder(dataset)
       word_inputs = elmo_encoder.embed_text(reuse=reuse)

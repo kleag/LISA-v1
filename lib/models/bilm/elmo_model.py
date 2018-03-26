@@ -3,13 +3,12 @@ from __future__ import absolute_import
 import json
 import numpy as np
 import tensorflow as tf
-from configurable import Configurable
 from lib.models.bilm.data import ElmoBatcher
 from lib.models.bilm.model import BidirectionalLanguageModel
 from lib.models.bilm.elmo import weight_layers
 
 
-class ElmoLSTMEncoder(Configurable):
+class ElmoLSTMEncoder(object):
   # def __init__(self, text_batch, e1_dist_batch, e2_dist_batch, seq_len_batch, lstm_dim, embed_dim, position_dim,
   #              token_dim, bidirectional, peephole, max_pool, word_dropout_keep, lstm_dropout_keep,
   #              final_dropout_keep, FLAGS, entity_index=100, filterwidth=3, pos_encode_batch=None):
@@ -17,7 +16,7 @@ class ElmoLSTMEncoder(Configurable):
     # todo don't hardcode these
     options_file = 'elmo_model/elmo_2x4096_512_2048cnn_2xhighway_options.json'
     weight_file = 'elmo_model/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5'
-    vocab_file = '%s/token.txt' % self.word_file
+    vocab_file = '%s/token.txt' % dataset.word_file
     with open(options_file, 'r') as fin:
       options = json.load(fin)
     max_word_length = options['char_cnn']['max_characters_per_token']
@@ -32,7 +31,7 @@ class ElmoLSTMEncoder(Configurable):
                                                             name='elmo_characters'
                                                             )
     # todo max batch size set wrong
-    self.elmo = BidirectionalLanguageModel(options_file, weight_file, max_batch_size=self.train_batch_size)
+    self.elmo = BidirectionalLanguageModel(options_file, weight_file, max_batch_size=dataset.train_batch_size)
     self.elmo_ops = self.elmo(self.elmo_ids_placeholder)
 
     # super(ElmoLSTMEncoder, self).__init__(text_batch, e1_dist_batch, e2_dist_batch, seq_len_batch, lstm_dim,
@@ -40,7 +39,7 @@ class ElmoLSTMEncoder(Configurable):
     #                                       word_dropout_keep, lstm_dropout_keep, final_dropout_keep, FLAGS,
     #                                       entity_index,
     #                                       pos_encode_batch=pos_encode_batch)
-    super(ElmoLSTMEncoder, self).__init__()
+    # super(ElmoLSTMEncoder, self).__init__(*args, **kwargs)
     self.model_type = 'elmo'
 
     self.vocabs = dataset.vocabs

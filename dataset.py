@@ -48,6 +48,11 @@ class Dataset(Configurable):
     self._data = None
     self.rebucket()
 
+    if self.use_elmo:
+      from lib.models import ElmoLSTMEncoder
+      with tf.variable_scope(tf.get_variable_scope(), reuse=(self.name != "Trainset")):
+        self.elmo_encoder = ElmoLSTMEncoder(self)
+
     self.inputs = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')
     self.targets = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='targets')
     self.builder = builder()
@@ -221,6 +226,8 @@ class Dataset(Configurable):
         self.inputs: data[:,:maxlen,input_idxs],
         self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
       })
+      if self.use_elmo:
+        feed_dict = self.elmo_encoder.get_feed_dict(feed_dict)
       yield feed_dict, sents
   
   #=============================================================
@@ -230,6 +237,12 @@ class Dataset(Configurable):
       return super(Dataset, self).n_bkts
     else:
       return super(Dataset, self).n_valid_bkts
+
+  # =============================================================
+  def max_batch_size(self):
+    m = np.max([b._data.shape[0] for b in self._metabucket._buckets])
+    print("Max batch size: %d" % m)
+    return m
   
   #=============================================================
   def __getitem__(self, key):

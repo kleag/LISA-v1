@@ -182,6 +182,7 @@ class Network(Configurable):
         for j, (feed_dict, _) in enumerate(self.train_minibatches()):
           # train_inputs = feed_dict[self._trainset.inputs]
           train_targets = feed_dict[self._trainset.targets]
+
           start_time = time.time()
 
           if profile:
@@ -954,5 +955,5 @@ if __name__ == '__main__':
         # Actually evaluate on test data
         if args.test_eval:
           start_time = time.time()
-          network.test(sess, network.viterbi_decode, validate=False)
+          network.test(sess, network.viterbi_decode or network.viterbi_train, validate=False)
           print('Parsing took %f seconds' % (time.time() - start_time))

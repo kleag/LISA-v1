@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
- 
 # Copyright 2016 Timothy Dozat
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nn import NN
-import rnn
-from parsers import *
-from bilm import *
+from elmo_model import ElmoLSTMEncoder
+from data import ElmoBatcher
+from model import BidirectionalLanguageModel
+from elmo import weight_layers

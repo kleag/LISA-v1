@@ -54,6 +54,7 @@ class ElmoLSTMEncoder(object):
     # todo 0 or 1?
     tokens_batch = feed_dict[self.dataset.inputs][:, 1]
     str_tokens = [[self.vocabs[0][t] for t in sentence] for sentence in tokens_batch]
+    print("str tokens: ", str_tokens)
     # map text to sentences
     char_ids = self.elmo_batcher.batch_sentences(str_tokens)
     feed_dict[self.elmo_ids_placeholder] = char_ids

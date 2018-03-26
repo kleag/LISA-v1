@@ -14,8 +14,10 @@ class ElmoLSTMEncoder(object):
   #              final_dropout_keep, FLAGS, entity_index=100, filterwidth=3, pos_encode_batch=None):
   def __init__(self, dataset):
     # todo don't hardcode these
-    options_file = '/iesl/canvas/strubell/Parser/elmo_model/elmo_2x4096_512_2048cnn_2xhighway_options.json'
-    weight_file = '/iesl/canvas/strubell/Parser/elmo_model/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5'
+    # options_file = '/iesl/canvas/strubell/Parser/elmo_model/elmo_2x4096_512_2048cnn_2xhighway_options.json'
+    # weight_file = '/iesl/canvas/strubell/Parser/elmo_model/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5'
+    options_file = 'elmo_model/elmo_2x4096_512_2048cnn_2xhighway_options.json'
+    weight_file = 'elmo_model/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5'
     vocab_file = dataset.word_file
     with open(options_file, 'r') as fin:
       options = json.load(fin)

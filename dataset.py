@@ -48,6 +48,10 @@ class Dataset(Configurable):
     self._data = None
     self.rebucket()
 
+    if self.elmo:
+      from lib.models import ElmoLSTMEncoder
+      self.elmo_encoder = ElmoLSTMEncoder(self)
+
     self.inputs = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')
     self.targets = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='targets')
     self.builder = builder()
@@ -222,8 +226,6 @@ class Dataset(Configurable):
         self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
       })
       if self.use_elmo:
-        from lib.models import ElmoLSTMEncoder
-        elmo_encoder = ElmoLSTMEncoder(self)
         feed_dict = elmo_encoder.get_feed_dict(feed_dict)
       yield feed_dict, sents
   

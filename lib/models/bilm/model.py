@@ -201,9 +201,8 @@ def _pretrained_initializer(varname, weight_file, embedding_weight_file=None):
         root + '/LSTMCell/W_P_0'
 
   # convert the graph name to that in the checkpoint
+  # TODO NOTE this is hard-coded, and will break if you change the scope
   varname_in_file = varname[5:]
-  # varname_in_file = varname[10:]
-  print("varname in file: ", varname_in_file, varname)
   if varname_in_file.startswith('RNN'):
     varname_in_file = weight_name_map[varname_in_file]
 

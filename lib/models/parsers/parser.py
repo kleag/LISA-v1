@@ -51,7 +51,8 @@ class Parser(BaseParser):
 
     if self.use_elmo:
       print("using elmo w/ reuse = ", reuse)
-      with tf.variable_scope('elmo', reuse=reuse):
+      with tf.variable_scope(tf.get_variable_scope(), reuse=reuse):
+      # with tf.variable_scope('elmo', reuse=reuse):
         from lib.models.bilm import ElmoLSTMEncoder
         elmo_encoder = ElmoLSTMEncoder(dataset)
         word_inputs = elmo_encoder.embed_text()

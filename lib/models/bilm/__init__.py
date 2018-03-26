@@ -13,3 +13,6 @@
 # limitations under the License.
 
 from elmo_model import ElmoLSTMEncoder
+from data import ElmoBatcher
+from model import BidirectionalLanguageModel
+from elmo import weight_layers

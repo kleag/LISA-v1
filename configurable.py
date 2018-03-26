@@ -686,3 +686,13 @@ class Configurable(object):
   def use_elmo(self):
     return self._config.getboolean('Training', 'use_elmo')
   argparser.add_argument('--use_elmo')
+
+  @property
+  def sampling_schedule(self):
+    return self._config.get('Training', 'sampling_schedule')
+  argparser.add_argument('--sampling_schedule')
+
+  @property
+  def sample_prob(self):
+    return self._config.getfloat('Training', 'sample_prob')
+  argparser.add_argument('--sample_prob')

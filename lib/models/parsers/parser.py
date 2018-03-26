@@ -34,6 +34,7 @@ class Parser(BaseParser):
     vocabs = dataset.vocabs
     inputs = dataset.inputs
     targets = dataset.targets
+    step = dataset.step
 
     num_pos_classes = len(vocabs[1])
     num_rel_classes = len(vocabs[2])
@@ -92,6 +93,9 @@ class Parser(BaseParser):
     self.print_once("multitask penalties: ", self.multi_penalties)
     self.print_once("multitask layers: ", self.multi_layers)
 
+    self.print_once("sampling schedule: ", self.sampling_schedule)
+
+
     # maps joint predicate/pos indices to pos indices
     preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=np.int32)
     if self.joint_pos_predicates:
@@ -145,6 +149,11 @@ class Parser(BaseParser):
 
     # whether to condition on gold or predicted parse
     use_gold_parse = self.inject_manual_attn and not ((moving_params is not None) and self.gold_attn_at_train)
+    if use_gold_parse and (moving_params is not None):
+      sample_prob = self.get_sample_prob(step)
+      use_gold_parse_tensor = tf.less(tf.random_uniform([]), sample_prob)
+    else:
+      use_gold_parse_tensor = tf.equal(int(use_gold_parse), 1)
 
     ##### Functions for predicting parse, Dozat-style #####
     def get_parse_logits(parse_inputs):
@@ -230,15 +239,15 @@ class Parser(BaseParser):
                 hard_attn = False
                 # todo make this into gold_at_train and gold_at_test flags... + scheduled sampling
                 if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
-                  if use_gold_parse:
-                    manual_attn = adj
-                    # manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)
-                  if self.full_parse:
+                  # if use_gold_parse:
+                  #   manual_attn = adj
+                  #   # manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)
+                  # if self.full_parse:
                     arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(top_recur)
-                    # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), arc_logits], "arc_logits", summarize=100)
-                    if not use_gold_parse:
-                      # compute full parse and set it here
-                      manual_attn = tf.nn.softmax(arc_logits)
+                  #   # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), arc_logits], "arc_logits", summarize=100)
+                  #   # if not use_gold_parse:
+                  #   #   # compute full parse and set it here
+                    manual_attn = tf.cond(use_gold_parse_tensor, lambda: adj, lambda: tf.nn.softmax(arc_logits))
                 this_layer_capsule_heads = self.num_capsule_heads if i > 0 else 0
                 if 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
                   this_layer_capsule_heads = 1
@@ -364,7 +373,7 @@ class Parser(BaseParser):
 
     if not self.full_parse and self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.0:
       arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(parse_pred_inputs)
-      
+
     arc_output = self.output_svd(arc_logits, targets[:,:,1])
     if moving_params is None:
       predictions = targets[:,:,1]
@@ -602,6 +611,7 @@ class Parser(BaseParser):
     output['predicate_correct'] = predicate_output['correct']
     output['predicate_preds'] = predicate_output['predictions']
 
+    output['sample_prob'] = self.get_sample_prob(step)
 
     output['pos_loss'] = pos_loss
     output['pos_correct'] = pos_correct

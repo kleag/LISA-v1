@@ -50,7 +50,7 @@ class Parser(BaseParser):
     self.moving_params = moving_params
 
     if self.use_elmo:
-      from lib.bilm import ElmoLSTMEncoder
+      from lib.models.bilm import ElmoLSTMEncoder
       word_inputs = ElmoLSTMEncoder.embed_text()
     else:
       word_inputs, pret_inputs = vocabs[0].embedding_lookup(inputs[:,:,0], inputs[:,:,1], moving_params=self.moving_params)

@@ -200,6 +200,7 @@ def _pretrained_initializer(varname, weight_file, embedding_weight_file=None):
 
   # convert the graph name to that in the checkpoint
   varname_in_file = varname[5:]
+  print("varname in file: ", varname_in_file)
   if varname_in_file.startswith('RNN'):
     varname_in_file = weight_name_map[varname_in_file]
 

@@ -64,9 +64,11 @@ for lr in ${lrs[@]}; do
                                                                 multitask_layer=""
                                                                 orig_parents_layer=$parents_layer
                                                                 full_parse="True"
+                                                                penalty="1.0"
                                                                 if [[ "$parents_layer" == "no" ]]; then
                                                                     parents_layer=""
                                                                     full_parse="False"
+                                                                    penalty="0.0"
                                                                 fi
                                                                 multitask_layer=${parents_layer}
 
@@ -105,6 +107,8 @@ for lr in ${lrs[@]}; do
                                                                 --eval_srl True \
                                                                 --eval_parse $full_parse \
                                                                 --full_parse $full_parse \
+                                                                --rel_loss_penalty $penalty \
+                                                                --arc_loss_penalty $penalty \
                                                                 --sampling_schedule $sampling_sched \
                                                                 --sample_prob $sample_prob \
                                                                 --save True \

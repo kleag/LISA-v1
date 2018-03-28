@@ -63,8 +63,10 @@ for lr in ${lrs[@]}; do
                                                                 fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$predicate_layer-$ss"
                                                                 multitask_layer=""
                                                                 orig_parents_layer=$parents_layer
+                                                                full_parse="True"
                                                                 if [[ "$parents_layer" == "no" ]]; then
                                                                     parents_layer=""
+                                                                    full_parse="False"
                                                                 fi
                                                                 multitask_layer=${parents_layer}
 
@@ -101,8 +103,8 @@ for lr in ${lrs[@]}; do
                                                                 --multitask_penalties \"parents:$parents_penalty\"
                                                                 --eval_by_domain False \
                                                                 --eval_srl True \
-                                                                --eval_parse True \
-                                                                --full_parse True \
+                                                                --eval_parse $full_parse \
+                                                                --full_parse $full_parse \
                                                                 --sampling_schedule $sampling_sched \
                                                                 --sample_prob $sample_prob \
                                                                 --save True \

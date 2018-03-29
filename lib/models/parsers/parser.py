@@ -310,20 +310,20 @@ class Parser(BaseParser):
 
                 # hard conditioning
                 label_cond_embedding = None
-                # if i-1 == self.predicate_layer:
-                #   # batch_size x bucket_size x num_labels
-                #   # todo fix
-                #   cond_attn_weights = tf.expand_dims(tf.cast(predicate_targets_binary_full, tf.float32) if moving_params is None else tf.nn.softmax(predicate_output['logits']), -1)
-                #   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes, dtype=tf.int32), [1, 1, num_pred_classes]),
-                #                                 [batch_size, bucket_size, 1])
-                #   # batch_size x bucket_size x num_labels x label_embedding_dim
-                #   predicate_embeddings = vocabs[4].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
-                #   # self.print_once("all labels each token", all_labels_each_token)
-                #   # self.print_once("predicate embeddings", predicate_embeddings)
-                #
-                #   # batch_size x bucket_size
-                #   label_cond_embedding = tf.reduce_sum(tf.multiply(cond_attn_weights, predicate_embeddings), axis=2)
-                #
+                if i-1 == self.predicate_layer:
+                  # batch_size x bucket_size x num_labels
+                  # todo fix
+                  cond_attn_weights = tf.expand_dims(tf.cast(predicate_targets_binary_full, tf.float32) if moving_params is None else tf.nn.softmax(predicate_output['logits']), -1)
+                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes, dtype=tf.int32), [1, 1, num_pred_classes]),
+                                                [batch_size, bucket_size, 1])
+                  # batch_size x bucket_size x num_labels x label_embedding_dim
+                  predicate_embeddings = vocabs[4].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
+                  # self.print_once("all labels each token", all_labels_each_token)
+                  # self.print_once("predicate embeddings", predicate_embeddings)
+
+                  # batch_size x bucket_size
+                  label_cond_embedding = tf.reduce_sum(tf.multiply(cond_attn_weights, predicate_embeddings), axis=2)
+
                 # elif i-1 == self.parse_layer:
                 #   # batch_size x bucket_size x num_labels
                 #   # todo fix

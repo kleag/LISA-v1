@@ -178,6 +178,7 @@ class Parser(BaseParser):
     dep_targets_idx = tf.stack([i1, i2, dep_targets], axis=-1)
     dep_targets_binary = tf.scatter_nd(dep_targets_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, num_rel_classes])
 
+    dep_targets_binary = tf.Print(dep_targets_binary, [tf.shape(dep_targets_binary)],"dep targest binary shape", summarize=10)
     pred_targets_idx = tf.stack([i1, i2, predicate_targets], axis=-1)
     predicate_targets_binary_full = tf.scatter_nd(pred_targets_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, num_pred_classes])
 
@@ -333,6 +334,7 @@ class Parser(BaseParser):
                   rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
 
                   # batch_size x bucket_size
+                  # [116,9,44,9,1] vs. [116,9,44,64]
                   label_cond_embedding = tf.reduce_sum(cond_attn_weights * rel_embeddings, axis=2)
 
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,

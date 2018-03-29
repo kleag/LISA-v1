@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=8
+num_gpus=4
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -30,7 +30,7 @@ relu_hidden_sizes="256"
 
 parents_penalties="1.0"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:4 no"
+parents_layers="parents:4"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 children_layers="no" #children:1 children:2 no"
 predicate_layers="1 2"
@@ -38,7 +38,7 @@ scheduled_sampling="constant=1.0" # sigmoid=65000 constant=0.0"
 
 reps="2"
 
-# 2*2*2 = 8
+# 2*2 = 4
 
 # array to hold all the commands we'll distribute
 declare -a commands
@@ -107,7 +107,7 @@ for lr in ${lrs[@]}; do
                                                                 --eval_srl True \
                                                                 --eval_parse $full_parse \
                                                                 --full_parse $full_parse \
-                                                                --rel_loss_penalty $penalty \
+                                                                --rel_loss_penalty 0.0 \
                                                                 --arc_loss_penalty $penalty \
                                                                 --sampling_schedule $sampling_sched \
                                                                 --sample_prob $sample_prob \

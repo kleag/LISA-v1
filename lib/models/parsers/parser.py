@@ -140,7 +140,7 @@ class Parser(BaseParser):
 
     # whether to condition on gold or predicted parse
     use_gold_parse = self.inject_manual_attn and not ((moving_params is not None) and self.gold_attn_at_train)
-    if use_gold_parse and (moving_params is not None):
+    if use_gold_parse and (moving_params is None):
       sample_prob = self.get_sample_prob(step)
       use_gold_parse_tensor = tf.less(tf.random_uniform([]), sample_prob)
     else:
@@ -181,13 +181,16 @@ class Parser(BaseParser):
     pred_targets_idx = tf.stack([i1, i2, predicate_targets], axis=-1)
     predicate_targets_binary_full = tf.scatter_nd(pred_targets_idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, num_pred_classes])
 
+    predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
+                                     tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
+
     ######## Predicate detection ########
-    def compute_predicates(predicate_input, predicate_targets, name):
+    def compute_predicates(predicate_input, targets, name):
       with tf.variable_scope(name, reuse=reuse):
         predicate_classifier_mlp = self.MLP(predicate_input, self.predicate_pred_mlp_size, n_splits=1)
         with tf.variable_scope('SRL-Predicates-Classifier', reuse=reuse):
           predicate_classifier = self.MLP(predicate_classifier_mlp, num_pred_classes, n_splits=1)
-        output = self.output_predicates(predicate_classifier, predicate_targets, vocabs[4].predicate_true_start_idx)
+        output = self.output_predicates(predicate_classifier, targets, vocabs[4].predicate_true_start_idx)
         return output
 
     # aux_trigger_loss = tf.constant(0.)
@@ -195,8 +198,6 @@ class Parser(BaseParser):
     #   aux_trigger_output = compute_predicates(aux_trigger_inputs, 'SRL-Triggers-Aux', False)
     #   aux_trigger_loss = self.aux_trigger_penalty * aux_trigger_output['loss']
 
-    predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
-                                     tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
     def dummy_predicate_output():
       return {
         'loss': 0.0,
@@ -246,7 +247,7 @@ class Parser(BaseParser):
 
         # if layer is set to -2, these are used
         pos_pred_inputs = top_recur
-        predicate_inputs = top_recur
+        # predicate_inputs = top_recur
 
         # Project for Tranformer / residual LSTM input
         if self.n_recur > 0:
@@ -260,8 +261,8 @@ class Parser(BaseParser):
         # if layer is set to -1, these are used
         if self.pos_layer == -1:
           pos_pred_inputs = top_recur
-        if self.predicate_layer == -1:
-          predicate_inputs = top_recur
+        # if self.predicate_layer == -1:
+        #   predicate_inputs = top_recur
 
         ##### Transformer #######
         if self.dist_model == 'transformer':
@@ -559,7 +560,6 @@ class Parser(BaseParser):
         return srl_output
     srl_targets = targets[:, :, 3:]
     if self.role_loss_penalty == 0:
-      # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))
       srl_output = {
         'loss': tf.constant(0.),
         'probabilities':  tf.constant(0.), # tf.zeros([num_triggers, bucket_size, num_srl_classes]),

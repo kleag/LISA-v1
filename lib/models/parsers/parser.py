@@ -334,6 +334,8 @@ class Parser(BaseParser):
                   rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
 
                   cond_attn_weights = tf.Print( cond_attn_weights, [tf.shape( cond_attn_weights)], "cond attn weights shape", summarize=10)
+                  cond_attn_weights = tf.Print( cond_attn_weights, [tf.shape(rel_logits_cond)], "rel logits cond shape", summarize=10)
+
 
                   # batch_size x bucket_size
                   # [116,9,44,9,1] vs. [116,9,44,64]

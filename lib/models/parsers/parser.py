@@ -310,33 +310,33 @@ class Parser(BaseParser):
 
                 # hard conditioning
                 label_cond_embedding = None
-                if i-1 == self.predicate_layer:
-                  # batch_size x bucket_size x num_labels
-                  # todo fix
-                  cond_attn_weights = tf.expand_dims(tf.cast(predicate_targets_binary_full, tf.float32) if moving_params is None else tf.nn.softmax(predicate_output['logits']), -1)
-                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes, dtype=tf.int32), [1, 1, num_pred_classes]),
-                                                [batch_size, bucket_size, 1])
-                  # batch_size x bucket_size x num_labels x label_embedding_dim
-                  predicate_embeddings = vocabs[4].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
-                  # self.print_once("all labels each token", all_labels_each_token)
-                  # self.print_once("predicate embeddings", predicate_embeddings)
-
-                  # batch_size x bucket_size
-                  label_cond_embedding = tf.reduce_sum(tf.multiply(cond_attn_weights, predicate_embeddings), axis=2)
-
-                elif i-1 == self.parse_layer:
-                  # batch_size x bucket_size x num_labels
-                  # todo fix
-                  cond_attn_weights = tf.expand_dims(tf.cast(dep_targets_binary, tf.float32), -1) if moving_params is None else tf.nn.softmax(rel_logits)
-                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes, dtype=tf.int32), [1, 1, num_rel_classes]),
-                                                [batch_size, bucket_size, 1])
-                  # batch_size x bucket_size x num_labels x label_embedding_dim
-                  rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
-
-
-                  # batch_size x bucket_size
-                  # [116,9,44,9,1] vs. [116,9,44,64]
-                  label_cond_embedding = tf.reduce_sum(cond_attn_weights * rel_embeddings, axis=2)
+                # if i-1 == self.predicate_layer:
+                #   # batch_size x bucket_size x num_labels
+                #   # todo fix
+                #   cond_attn_weights = tf.expand_dims(tf.cast(predicate_targets_binary_full, tf.float32) if moving_params is None else tf.nn.softmax(predicate_output['logits']), -1)
+                #   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes, dtype=tf.int32), [1, 1, num_pred_classes]),
+                #                                 [batch_size, bucket_size, 1])
+                #   # batch_size x bucket_size x num_labels x label_embedding_dim
+                #   predicate_embeddings = vocabs[4].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
+                #   # self.print_once("all labels each token", all_labels_each_token)
+                #   # self.print_once("predicate embeddings", predicate_embeddings)
+                #
+                #   # batch_size x bucket_size
+                #   label_cond_embedding = tf.reduce_sum(tf.multiply(cond_attn_weights, predicate_embeddings), axis=2)
+                #
+                # elif i-1 == self.parse_layer:
+                #   # batch_size x bucket_size x num_labels
+                #   # todo fix
+                #   cond_attn_weights = tf.expand_dims(tf.cast(dep_targets_binary, tf.float32), -1) if moving_params is None else tf.nn.softmax(rel_logits)
+                #   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes, dtype=tf.int32), [1, 1, num_rel_classes]),
+                #                                 [batch_size, bucket_size, 1])
+                #   # batch_size x bucket_size x num_labels x label_embedding_dim
+                #   rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
+                #
+                #
+                #   # batch_size x bucket_size
+                #   # [116,9,44,9,1] vs. [116,9,44,64]
+                #   label_cond_embedding = tf.reduce_sum(cond_attn_weights * rel_embeddings, axis=2)
 
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            self.attn_dropout, self.relu_dropout, self.prepost_dropout,
@@ -542,18 +542,18 @@ class Parser(BaseParser):
         predicate_mlp, role_mlp = predicate_role_mlp[:,:,:self.predicate_mlp_size], predicate_role_mlp[:, :, self.predicate_mlp_size:]
 
       with tf.variable_scope('SRL-Arcs', reuse=reuse):
-        # gather just the triggers
+        # gather just the predicates
         # predicate_predictions: batch x seq_len
-        # gathered_predicates: num_triggers_in_batch x 1 x self.trigger_mlp_size
+        # gathered_predicates: num_predicates_in_batch x 1 x self.trigger_mlp_size
         # role mlp: batch x seq_len x self.role_mlp_size
         # gathered roles: need a (bucket_size x self.role_mlp_size) role representation for each trigger,
-        # i.e. a (num_triggers_in_batch x bucket_size x self.role_mlp_size) tensor
+        # i.e. a (num_predicates_in_batch x bucket_size x self.role_mlp_size) tensor
         predicate_gather_indices = tf.where(tf.equal(predicate_predictions, 1))
         gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
         tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
         gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
 
-        # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
+        # now multiply them together to get (num_predicates_in_batch x bucket_size x num_srl_classes) tensor of scores
         srl_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_srl_classes)
         srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
         srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, predicate_predictions, transition_params if self.viterbi_train else None)

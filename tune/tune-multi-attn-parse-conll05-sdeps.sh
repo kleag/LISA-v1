@@ -22,8 +22,8 @@ epsilons="1e-12"
 warmup_steps="4000"
 batch_sizes="5000"
 
-trans_layers="6 8 10" # 3
-cnn_layers="0 2"
+trans_layers="10" # 3
+cnn_layers="2"
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
 head_sizes="64"
@@ -62,7 +62,7 @@ for lr in ${lrs[@]}; do
                                                         for predicate_layer in ${predicate_layers[@]}; do
                                                             for ss in ${scheduled_sampling[@]}; do
                                                                 for rep in `seq $reps`; do
-                                                                    if [[ "$cnn_layer" != "2" || "$trans_layer" != "10" ]]; then
+#                                                                    if [[ "$cnn_layer" != "2" || "$trans_layer" != "10" ]]; then
                                                                         fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$cnn_layer-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$predicate_layer-$ss"
                                                                         multitask_layer=""
                                                                         orig_parents_layer=$parents_layer
@@ -70,7 +70,7 @@ for lr in ${lrs[@]}; do
                                                                             parents_layer=""
                                                                         fi
 
-                                                                        partition="titanx-long"
+                                                                        partition="m40-long"
 #                                                                        if [[ $i -le 10 ]]; then
 #                                                                            partition="m40-long"
 #                                                                        fi
@@ -111,7 +111,7 @@ for lr in ${lrs[@]}; do
                                                                         &> $OUT_LOG/train-$fname_append.log")
                                                                         i=$((i + 1))
                                                                         parents_layer=$orig_parents_layer
-                                                                    fi
+#                                                                    fi
                                                                 done
                                                             done
                                                         done

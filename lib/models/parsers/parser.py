@@ -311,7 +311,7 @@ class Parser(BaseParser):
                 # hard conditioning
                 label_cond_embedding = None
                 if i-1 == self.predicate_layer:
-                  # batch_size x bucket_size x num_labels
+                  # batch_size x bucket_size x num_labels x 1
                   # todo fix
                   cond_attn_weights = tf.expand_dims(tf.cast(predicate_targets_binary_full, tf.float32) if moving_params is None else tf.nn.softmax(predicate_output['logits']), -1)
                   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes, dtype=tf.int32), [1, 1, num_pred_classes]),

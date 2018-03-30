@@ -233,8 +233,11 @@ def combine_heads(x, replace=None):
   # batch x length x num_heads x channels
   transposed = tf.transpose(x, [0, 2, 1, 3])
   if replace is not None:
+    # num_heads x batch x length x channels, remove last head
     transposed = tf.transpose(transposed, [2, 0, 1, 3])[:-1]
+    # replace last head with this representation
     transposed = tf.concat([transposed, tf.expand_dims(replace, 0)], axis=0)
+    # transpose back to batch x length x heads x channels
     transposed = tf.transpose(transposed, [1, 2, 0, 3])
   return combine_last_two_dimensions(transposed)
 

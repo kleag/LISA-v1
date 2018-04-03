@@ -40,7 +40,7 @@ else
 fi
 
 # WSJ test
-python network.py \
+python $DOZAT_ROOT/network.py \
     --load \
     --test \
     --test_eval \
@@ -55,7 +55,7 @@ python network.py \
     --gold_test_parse_file $wsj_test_parse_file
 
 # Brown test
-python network.py \
+python $DOZAT_ROOT/network.py \
     --load \
     --test \
     --test_eval \

@@ -30,7 +30,7 @@ if [[ "$parse_config" == "dm" || "$parse_config" == "gold" ]]; then
     gold_attn_at_train="False"
     inject_manual_attn="True"
     if [[ "$parse_config" == "dm" ]]; then
-    echo "Doing D&M eval"
+        echo "Doing D&M eval"
         valid_file=$dm_valid_file
         wsj_test_file=$dm_wsj_test_file
         brown_test_file=$dm_brown_test_file
@@ -59,16 +59,16 @@ python $DOZAT_ROOT/network.py \
     --gold_test_parse_file $wsj_test_parse_file
 
 # Brown test
-python $DOZAT_ROOT/network.py \
-    --load \
-    --test \
-    --test_eval \
-    --load_dir $model_dir \
-    --config_file $model_dir/config.cfg \
-    --gold_attn_at_train $gold_attn_at_train \
-    --inject_manual_attn $inject_manual_attn \
-    --valid_file $valid_file \
-    --test_file $brown_test_file \
-    --gold_test_props_file $brown_test_props_file \
-    --gold_dev_parse_file $valid_parse_file \
-    --gold_test_parse_file $brown_test_parse_file
+#python $DOZAT_ROOT/network.py \
+#    --load \
+#    --test \
+#    --test_eval \
+#    --load_dir $model_dir \
+#    --config_file $model_dir/config.cfg \
+#    --gold_attn_at_train $gold_attn_at_train \
+#    --inject_manual_attn $inject_manual_attn \
+#    --valid_file $valid_file \
+#    --test_file $brown_test_file \
+#    --gold_test_props_file $brown_test_props_file \
+#    --gold_dev_parse_file $valid_parse_file \
+#    --gold_test_parse_file $brown_test_parse_file

@@ -8,16 +8,16 @@ parse_config=$2
 data_dir=$DATA_DIR/conll05st-release
 
 valid_file=$data_dir/dev-set.gz.parse.sdeps.combined.bio
-valid_props_file=$data_dir/conll05st-release/conll2005-test-wsj-gold-props.txt
+valid_props_file=$data_dir/conll2005-test-wsj-gold-props.txt
 valid_parse_file=$data_dir/dev-set.conll
 
 # WSJ test
-wsj_test_file=$data_dir/conll05st-release/test.wsj.gz.parse.sdeps.combined.bio
+wsj_test_file=$data_dir/test.wsj.gz.parse.sdeps.combined.bio
 wsj_test_props_file=$data_dir/conll2005-test-wsj-gold-props.txt
 wsj_test_parse_file=$data_dir/test.wsj.conll
 
 # Brown test
-brown_test_file=$data_dir/conll05st-release/test.brown.gz.parse.sdeps.combined.bio
+brown_test_file=$data_dir/test.brown.gz.parse.sdeps.combined.bio
 brown_test_props_file=$data_dir/conll2005-test-brown-gold-props.txt
 brown_test_parse_file=$data_dir/test.brown.conll
 

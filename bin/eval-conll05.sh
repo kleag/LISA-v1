@@ -30,11 +30,15 @@ if [[ "$parse_config" == "dm" || "$parse_config" == "gold" ]]; then
     gold_attn_at_train="False"
     inject_manual_attn="True"
     if [[ "$parse_config" == "dm" ]]; then
+    echo "Doing D&M eval"
         valid_file=$dm_valid_file
         wsj_test_file=$dm_wsj_test_file
         brown_test_file=$dm_brown_test_file
+    else
+        echo "Doing Gold eval"
     fi
 else
+    echo "Doing regular eval"
     gold_attn_at_train="True"
     inject_manual_attn="False"
 fi

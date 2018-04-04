@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=27
+num_gpus=4
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -22,20 +22,20 @@ epsilons="1e-12"
 warmup_steps="4000"
 batch_sizes="5000"
 
-trans_layers="4 5 6" # 3
+trans_layers="6" # 3
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
 head_sizes="64"
 relu_hidden_sizes="256"
 
-parents_penalties="1.0"
+parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:1 parents:2 parents:3"
+parents_layers="parents:3 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 children_layers="no" #children:1 children:2 no"
-predicate_layers="-2 -1 1"
+predicate_layers="1"
 
-reps="1"
+reps="2"
 
 # 3*3*3 = 27
 
@@ -73,7 +73,7 @@ for lr in ${lrs[@]}; do
 #                                                            fi
 
                                                             commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                            --config_file config/trans-conll05-bio-manualattn-sdeps-bilinear.cfg \
+                                                            --config_file config/trans-conll05-bio-manualattn-sdeps.cfg \
                                                             --save_dir $OUT_LOG/scores-$fname_append \
                                                             --save_every 500 \
                                                             --train_iters 5000000 \
@@ -91,11 +91,11 @@ for lr in ${lrs[@]}; do
                                                             --epsilon $epsilon \
                                                             --predicate_layer $predicate_layer \
                                                             --multitask_layers \"$multitask_layer\" \
-                                                            --multitask_penalties \"parents:$parents_penalty;children:$parents_penalty\"
+                                                            --multitask_penalties \"parents:$parents_penalty\"
                                                             --eval_by_domain False \
                                                             --eval_srl True \
                                                             --eval_parse True \
-                                                            --full_parse True \
+                                                            --full_parse False \
                                                             --save True \
                                                             &> $OUT_LOG/train-$fname_append.log")
                                                             i=$((i + 1))

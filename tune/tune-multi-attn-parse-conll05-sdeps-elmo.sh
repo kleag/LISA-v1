@@ -22,7 +22,7 @@ epsilons="1e-12"
 warmup_steps="4000"
 batch_sizes="5000"
 
-trans_layers="4" # 3
+trans_layers="6" # 3
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
 head_sizes="64"
@@ -30,10 +30,10 @@ relu_hidden_sizes="256"
 
 parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:1 parents:2"
+parents_layers="parents:3"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 children_layers="no" #children:1 children:2 no"
-trigger_layers="1"
+trigger_layers="1 2"
 
 reps="2"
 

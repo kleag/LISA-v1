@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=8
+num_gpus=6
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -22,7 +22,7 @@ epsilons="1e-12"
 warmup_steps="4000"
 batch_sizes="5000"
 
-trans_layers="6" # 3
+trans_layers="4" # 3
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
 head_sizes="64"
@@ -30,14 +30,14 @@ relu_hidden_sizes="256"
 
 parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:3 no"
+parents_layers="parents:1 parents:2 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 children_layers="no" #children:1 children:2 no"
-trigger_layers="1 2"
+trigger_layers="1"
 
 reps="2"
 
-# 2*2 = 4
+# 2*3 = 6
 
 # array to hold all the commands we'll distribute
 declare -a commands

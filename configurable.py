@@ -696,3 +696,8 @@ class Configurable(object):
   def sample_prob(self):
     return self._config.getfloat('Training', 'sample_prob')
   argparser.add_argument('--sample_prob')
+
+  @property
+  def max_test_batch_size(self):
+    return self._config.getint('Training', 'max_test_batch_size')
+  argparser.add_argument('--max_test_batch_size')

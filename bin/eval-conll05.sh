@@ -40,7 +40,7 @@ if [[ "$parse_config" == "dm" || "$parse_config" == "gold" ]]; then
 else
     echo "Doing regular eval"
     gold_attn_at_train="True"
-    inject_manual_attn="False"
+    inject_manual_attn="True"
 fi
 
 # WSJ test

@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=18
+num_gpus=4
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -30,14 +30,14 @@ relu_hidden_sizes="256"
 
 parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:0 parents:1 parents:2"
+parents_layers="parents:1 parents:2"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 children_layers="no" #children:1 children:2 no"
-trigger_layers="-2 -1 1"
+trigger_layers="1"
 
 reps="2"
 
-# 3*3*2 = 18
+# 2*2 = 4
 
 # array to hold all the commands we'll distribute
 declare -a commands
@@ -67,15 +67,6 @@ for lr in ${lrs[@]}; do
                                                                 else
                                                                     multitask_layer=$parents_layer
                                                                 fi
-                                                                orig_children_layer=$children_layer
-                                                                if [[ "$children_layer" == "no" ]]; then
-                                                                    children_layer=""
-                                                                else
-                                                                    if [[ "$multitask_layer" != "" ]]; then
-                                                                        multitask_layer="$multitask_layer;"
-                                                                    fi
-                                                                    multitask_layer="$multitask_layer$children_layer"
-                                                                fi
 
                                                                 partition="titanx-long"
                                                                 if [[ $i -le 10 ]]; then
@@ -83,7 +74,7 @@ for lr in ${lrs[@]}; do
                                                                 fi
 
                                                                 commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                --config_file config/trans-conll05-bio-manualattn-sdeps.cfg \
+                                                                --config_file config/trans-conll05-bio-manualattn-sdeps-elmo.cfg \
                                                                 --save_dir $OUT_LOG/scores-$fname_append \
                                                                 --save_every 500 \
                                                                 --train_iters 5000000 \
@@ -101,14 +92,14 @@ for lr in ${lrs[@]}; do
                                                                 --epsilon $epsilon \
                                                                 --trigger_layer $trigger_layer \
                                                                 --multitask_layers \"$multitask_layer\" \
-                                                                --multitask_penalties \"parents:$parents_penalty;children:$parents_penalty\"
+                                                                --multitask_penalties \"parents:$parents_penalty\"
                                                                 --eval_by_domain False \
                                                                 --eval_srl True \
+                                                                --use_elmo True \
                                                                 --save True \
                                                                 &> $OUT_LOG/train-$fname_append.log")
                                                                 i=$((i + 1))
                                                                 parents_layer=$orig_parents_layer
-                                                                children_layer=$orig_children_layer
                                                             done
                                                         done
                                                     done

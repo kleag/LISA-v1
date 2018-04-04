@@ -68,10 +68,10 @@ for lr in ${lrs[@]}; do
                                                                     multitask_layer=$parents_layer
                                                                 fi
 
-                                                                partition="titanx-long"
-                                                                if [[ $i -le 10 ]]; then
-                                                                    partition="m40-long"
-                                                                fi
+                                                                partition="m40-long"
+#                                                                if [[ $i -le 10 ]]; then
+#                                                                    partition="m40-long"
+#                                                                fi
 
                                                                 commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
                                                                 --config_file config/trans-conll05-bio-manualattn-sdeps-elmo.cfg \

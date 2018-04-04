@@ -89,13 +89,12 @@ for lr in ${lrs[@]}; do
                                                             --mu $mu \
                                                             --nu $nu \
                                                             --epsilon $epsilon \
-                                                            --predicate_layer $predicate_layer \
+                                                            --trigger_layer $predicate_layer \
                                                             --multitask_layers \"$multitask_layer\" \
                                                             --multitask_penalties \"parents:$parents_penalty\"
                                                             --eval_by_domain False \
                                                             --eval_srl True \
                                                             --eval_parse True \
-                                                            --full_parse False \
                                                             --save True \
                                                             &> $OUT_LOG/train-$fname_append.log")
                                                             i=$((i + 1))

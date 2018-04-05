@@ -48,6 +48,7 @@ python $DOZAT_ROOT/network.py \
     --load \
     --test \
     --load_dir $model_dir \
+    --save_dir tmp \
     --config_file $model_dir/config.cfg \
     --gold_attn_at_train $gold_attn_at_train \
     --inject_manual_attn $inject_manual_attn \

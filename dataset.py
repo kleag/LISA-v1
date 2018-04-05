@@ -240,9 +240,8 @@ class Dataset(Configurable):
 
   # =============================================================
   def max_batch_size(self):
-    m = np.max([b._data.shape[0] for b in self._metabucket._buckets])
-    print("Max batch size: %d" % m)
-    return m
+    return self.max_test_batch_size if self.name == "Testset" else \
+      np.max([b._data.shape[0] for b in self._metabucket._buckets])
   
   #=============================================================
   def __getitem__(self, key):

@@ -700,3 +700,8 @@ class Configurable(object):
   def use_elmo(self):
     return self._config.getboolean('Training', 'use_elmo')
   argparser.add_argument('--use_elmo')
+
+  @property
+  def max_test_batch_size(self):
+    return self._config.getint('Training', 'max_test_batch_size')
+  argparser.add_argument('--max_test_batch_size')

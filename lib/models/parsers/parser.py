@@ -128,7 +128,6 @@ class Parser(BaseParser):
       with open(self.transition_statistics, 'r') as f:
         for line in f:
           tag1, tag2, prob = line.split("\t")
-          print(tag1, tag2, prob)
           bilou_constraints[vocabs[3][tag1], vocabs[3][tag2]] = float(prob)
     # for s_str, s_idx in vocabs[3].iteritems():
     #   for e_str, e_idx in vocabs[3].iteritems():

@@ -151,6 +151,7 @@ class Vocab(Configurable):
       str2idx[word] = cur_idx
       idx2str[cur_idx] = word
       cur_idx += 1
+    print(len(str2idx), " things indexed")
     return str2idx, idx2str
   
   #=============================================================
@@ -285,6 +286,7 @@ class Vocab(Configurable):
     
     counts = Counter()
     with open(self.vocab_file, 'r') as f:
+      print("reading vocab: ", self.name)
       for line_num, line in enumerate(f):
         line = line.strip().split('\t')
         if line:
@@ -294,7 +296,9 @@ class Vocab(Configurable):
             self.add(counts, line[0], line[1])
           else:
             raise ValueError('The vocab file is misformatted at line %d' % (line_num+1))
+
     self._counts = counts
+    print("counts: ", len(counts))
     self._str2idx, self._idx2str = self.index_vocab_joint(counts) if self.joint_pos_predicates and self.name == "Trigs" else self.index_vocab(counts)
     return
   

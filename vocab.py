@@ -286,7 +286,7 @@ class Vocab(Configurable):
     
     counts = Counter()
     with open(self.vocab_file, 'r') as f:
-      print("reading vocab: ", self.name)
+      print("reading vocab: ", self.name, self.vocab_file)
       for line_num, line in enumerate(f):
         line = line.strip().split('\t')
         print(line)

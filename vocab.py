@@ -289,6 +289,7 @@ class Vocab(Configurable):
       print("reading vocab: ", self.name)
       for line_num, line in enumerate(f):
         line = line.strip().split('\t')
+        print(line)
         if line:
           if len(line) == 1:
             line.insert(0, '')

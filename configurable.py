@@ -692,3 +692,8 @@ class Configurable(object):
   def sample_prob(self):
     return self._config.getfloat('Training', 'sample_prob')
   argparser.add_argument('--sample_prob')
+
+  @property
+  def ff_kernel(self):
+    return self._config.getint('Training', 'ff_kernel')
+  argparser.add_argument('--ff_kernel')

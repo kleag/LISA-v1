@@ -140,8 +140,8 @@ class Parser(BaseParser):
 
     # whether to condition on gold or predicted parse
     use_gold_parse = self.inject_manual_attn and not ((moving_params is not None) and self.gold_attn_at_train)
+    sample_prob = self.get_sample_prob(step)
     if use_gold_parse and (moving_params is None):
-      sample_prob = self.get_sample_prob(step)
       use_gold_parse_tensor = tf.less(tf.random_uniform([]), sample_prob)
     else:
       use_gold_parse_tensor = tf.equal(int(use_gold_parse), 1)
@@ -169,7 +169,7 @@ class Parser(BaseParser):
 
     def dummy_parse_logits():
       dummy_rel_mlp = tf.zeros([batch_size, bucket_size, self.class_mlp_size])
-      return tf.constant(0.), dummy_rel_mlp, dummy_rel_mlp
+      return tf.zeros([batch_size, bucket_size, bucket_size]), dummy_rel_mlp, dummy_rel_mlp
 
     arc_logits, dep_rel_mlp, head_rel_mlp = dummy_parse_logits()
 
@@ -340,7 +340,7 @@ class Parser(BaseParser):
 
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            self.attn_dropout, self.relu_dropout, self.prepost_dropout,
-                                                           self.relu_hidden_size, self.info_func, reuse,
+                                                           self.relu_hidden_size, self.info_func, self.ff_kernel, reuse,
                                                            this_layer_capsule_heads, manual_attn, hard_attn, label_cond_embedding)
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
@@ -638,7 +638,7 @@ class Parser(BaseParser):
     output['predicate_correct'] = predicate_output['correct']
     output['predicate_preds'] = predicate_output['predictions']
 
-    output['sample_prob'] = self.get_sample_prob(step)
+    output['sample_prob'] = sample_prob
 
     output['pos_loss'] = pos_loss
     output['pos_correct'] = pos_correct

@@ -437,12 +437,12 @@ def conv_hidden_relu(inputs,
                      hidden_size,
                      output_size,
                      dropout,
-                     nonlinearity):
+                     nonlinearity,
+                     kernel):
   """Hidden layer with RELU activation followed by linear projection."""
   with tf.variable_scope("conv_hidden_relu", [inputs]):
     inputs = tf.expand_dims(inputs, 1)
     in_size = inputs.get_shape().as_list()[-1]
-    kernel = 3
     params1 = tf.get_variable("ff1", [1, 1, in_size, hidden_size])
     params2 = tf.get_variable("ff2", [1, kernel, hidden_size, hidden_size])
     params3 = tf.get_variable("ff3", [1, 1, hidden_size, output_size])
@@ -587,7 +587,7 @@ class NN(Configurable):
 
   # =============================================================
   def transformer(self, inputs, hidden_size, num_heads, attn_dropout, relu_dropout, prepost_dropout, relu_hidden_size,
-                  nonlinearity, reuse, num_capsule_heads, manual_attn=None, hard_attn=False, replace=None):
+                  nonlinearity, kernel, reuse, num_capsule_heads, manual_attn=None, hard_attn=False, replace=None):
     """"""
     # input_size = inputs.get_shape().as_list()[-1]
     lengths = tf.reshape(tf.to_int64(self.sequence_lengths), [-1])
@@ -607,7 +607,7 @@ class NN(Configurable):
 
     with tf.variable_scope("ffnn"):
       x = layer_norm(x, reuse)
-      y = conv_hidden_relu(x, relu_hidden_size, hidden_size, relu_dropout, nonlinearity)
+      y = conv_hidden_relu(x, relu_hidden_size, hidden_size, relu_dropout, nonlinearity, kernel)
       x = tf.add(x, tf.nn.dropout(y, prepost_dropout))
 
     return x, attn_weights
@@ -1653,6 +1653,7 @@ class NN(Configurable):
     if self.sampling_schedule == 'constant':
       return tf.constant(self.sample_prob)
     if self.sampling_schedule == 'sigmoid':
+      #   y = k / (k + np.exp(x / k))
       return self.sample_prob/(self.sample_prob+tf.exp(tf.multiply(step, (1/self.sample_prob))))
 
   # =============================================================

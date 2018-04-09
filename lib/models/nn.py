@@ -1644,9 +1644,7 @@ class NN(Configurable):
       return tf.constant(self.sample_prob)
     if self.sampling_schedule == 'sigmoid':
       #   y = k / (k + np.exp(x / k))
-      actual = self.sample_prob/(self.sample_prob+tf.exp(tf.multiply(step, (1/self.sample_prob))))
-      actual = tf.Print(actual, [step, self.sample_prob, actual], "step")
-      return actual
+      return self.sample_prob/(self.sample_prob+tf.exp(tf.multiply(step, (1/self.sample_prob))))
 
   # =============================================================
   def check_cycles_svd(self, parse_preds, length):

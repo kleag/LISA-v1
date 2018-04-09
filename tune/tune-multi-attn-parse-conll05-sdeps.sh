@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=4
+num_gpus=8
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -34,12 +34,12 @@ parents_penalties="0.1"
 parents_layers="parents:2" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 predicate_layers="1"
-scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
-use_full_parse="True False"
+scheduled_sampling="constant=0.0 constant=1.0 sigmoid=64000 sigmoid=32000"
+use_full_parse="False"
 
 reps="2"
 
-# 2*2=4
+# 2*4 = 8
 
 # array to hold all the commands we'll distribute
 declare -a commands

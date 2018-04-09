@@ -217,7 +217,6 @@ class Network(Configurable):
           n_train_srl_correct += srl_correct
           n_train_srl_count += srl_count
           n_train_iters += 1
-          total_train_iters += 1
           self.history['train_loss'].append(loss)
           self.history['train_accuracy'].append(100 * n_correct / n_tokens)
           if total_train_iters == 1 or total_train_iters % validate_every == 0:

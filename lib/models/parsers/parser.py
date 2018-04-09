@@ -141,8 +141,8 @@ class Parser(BaseParser):
 
     # whether to condition on gold or predicted parse
     use_gold_parse = self.inject_manual_attn and not ((moving_params is not None) and self.gold_attn_at_train)
+    sample_prob = self.get_sample_prob(step)
     if use_gold_parse and (moving_params is None):
-      sample_prob = self.get_sample_prob(step)
       use_gold_parse_tensor = tf.less(tf.random_uniform([]), sample_prob)
     else:
       use_gold_parse_tensor = tf.equal(int(use_gold_parse), 1)
@@ -603,7 +603,7 @@ class Parser(BaseParser):
     output['predicate_correct'] = predicate_output['correct']
     output['predicate_preds'] = predicate_output['predictions']
 
-    output['sample_prob'] = self.get_sample_prob(step)
+    output['sample_prob'] = sample_prob
 
     output['pos_loss'] = pos_loss
     output['pos_correct'] = pos_correct

@@ -1645,7 +1645,7 @@ class NN(Configurable):
     if self.sampling_schedule == 'sigmoid':
       #   y = k / (k + np.exp(x / k))
       actual = self.sample_prob/(self.sample_prob+tf.exp(tf.multiply(step, (1/self.sample_prob))))
-      actual = tf.Print(step, [step, self.sample_prob, actual], "step")
+      actual = tf.Print(actual, [step, self.sample_prob, actual], "step")
       return actual
 
   # =============================================================

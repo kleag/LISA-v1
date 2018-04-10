@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=8
+num_gpus=4
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -29,10 +29,7 @@ head_sizes="64"
 relu_hidden_sizes="256"
 
 parents_penalties="0.1"
-#grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:1 parents:2"
-#grandparents_layers="grandparents:2 grandparents:3 no"
-children_layers="no" #children:1 children:2 no"
+parents_layers="no"
 trigger_layers="-2 1"
 
 reps="2"
@@ -56,10 +53,9 @@ for lr in ${lrs[@]}; do
                                         for batch_size in ${batch_sizes[@]}; do
                                             for parents_penalty in ${parents_penalties[@]}; do
                                                 for parents_layer in ${parents_layers[@]}; do
-                                                    for children_layer in ${children_layers[@]}; do
                                                         for trigger_layer in ${trigger_layers[@]}; do
                                                             for rep in `seq $reps`; do
-                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$children_layer-$trigger_layer"
+                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$trigger_layer"
                                                                 multitask_layer=""
                                                                 orig_parents_layer=$parents_layer
                                                                 if [[ "$parents_layer" == "no" ]]; then
@@ -99,7 +95,6 @@ for lr in ${lrs[@]}; do
                                                         done
                                                     done
                                                 done
-                                            done
                                         done
                                     done
                                 done

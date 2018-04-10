@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=8
+num_gpus=4
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -34,8 +34,8 @@ parents_penalties="0.1"
 parents_layers="parents:2" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 predicate_layers="1"
-scheduled_sampling="constant=0.0 constant=1.0 sigmoid=64000 sigmoid=32000"
-use_full_parse="False"
+scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
+use_full_parse="True False"
 
 reps="2"
 
@@ -78,7 +78,7 @@ for lr in ${lrs[@]}; do
 
                                                                             rel_loss_penalty=0.0
                                                                             arc_loss_penalty=0.0
-                                                                            if [[ "$use_full_parse" == "True" ]]; then
+                                                                            if [[ "$full_parse" == "True" ]]; then
                                                                                 rel_loss_penalty=1.0
                                                                                 arc_loss_penalty=1.0
                                                                             fi

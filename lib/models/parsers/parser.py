@@ -333,7 +333,7 @@ class Parser(BaseParser):
                   # batch_size x bucket_size x num_labels
                   # todo fix
 
-                  cond_attn_weights = tf.expand_dims(tf.cast(dep_targets_binary, tf.float32), -1) if moving_params is None else tf.nn.softmax(rel_logits)
+                  cond_attn_weights = tf.expand_dims(tf.cast(dep_targets_binary, tf.float32), -1) if moving_params is None else tf.nn.softmax(tf.squeeze(rel_logits, -1))
                   cond_attn_weights = tf.Print(cond_attn_weights, [tf.shape(rel_logits),  dep_targets_binary, tf.nn.softmax(rel_logits)], summarize=500)
                   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes, dtype=tf.int32), [1, 1, num_rel_classes]),
                                                 [batch_size, bucket_size, 1])

@@ -164,14 +164,18 @@ class Parser(BaseParser):
 
     def get_parse_rel_logits(dep_rels, head_rels, preds):
       with tf.variable_scope('Rels', reuse=reuse):
-        rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rels, head_rels, num_rel_classes, preds)
-      return rel_logits, rel_logits_cond
+        rel_log, rel_log_cond = self.conditional_bilinear_classifier(dep_rels, head_rels, num_rel_classes, preds)
+      return rel_log, rel_log_cond
 
     def dummy_parse_logits():
       dummy_rel_mlp = tf.zeros([batch_size, bucket_size, self.class_mlp_size])
       return tf.zeros([batch_size, bucket_size, bucket_size]), dummy_rel_mlp, dummy_rel_mlp
 
+    def dummy_rel_logits():
+      return tf.constant(0.), tf.constant(0.)
+
     arc_logits, dep_rel_mlp, head_rel_mlp = dummy_parse_logits()
+    rel_logits, rel_logits_cond = dummy_rel_logits()
 
     predicate_targets = inputs[:, :, 3]
     dep_targets = targets[:, :, 2]
@@ -324,19 +328,21 @@ class Parser(BaseParser):
                   # batch_size x bucket_size
                   label_cond_embedding = tf.reduce_sum(tf.multiply(cond_attn_weights, predicate_embeddings), axis=2)
 
-                # elif i-1 == self.parse_layer:
-                #   # batch_size x bucket_size x num_labels
-                #   # todo fix
-                #   cond_attn_weights = tf.expand_dims(tf.cast(dep_targets_binary, tf.float32), -1) if moving_params is None else tf.nn.softmax(rel_logits)
-                #   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes, dtype=tf.int32), [1, 1, num_rel_classes]),
-                #                                 [batch_size, bucket_size, 1])
-                #   # batch_size x bucket_size x num_labels x label_embedding_dim
-                #   rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
-                #
-                #
-                #   # batch_size x bucket_size
-                #   # [116,9,44,9,1] vs. [116,9,44,64]
-                #   label_cond_embedding = tf.reduce_sum(cond_attn_weights * rel_embeddings, axis=2)
+                ###### THIS IS BROKEN #######
+                elif i-1 == self.parse_layer:
+                  # batch_size x bucket_size x num_labels
+                  # todo fix
+                  cond_attn_weights = tf.expand_dims(tf.cast(dep_targets_binary, tf.float32), -1) if moving_params is None else tf.nn.softmax(rel_logits)
+                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes, dtype=tf.int32), [1, 1, num_rel_classes]),
+                                                [batch_size, bucket_size, 1])
+                  # batch_size x bucket_size x num_labels x label_embedding_dim
+                  rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
+
+
+                  # batch_size x bucket_size
+                  # [116,9,44,9,1] vs. [116,9,44,64]
+                  label_cond_embedding = tf.reduce_sum(cond_attn_weights * rel_embeddings, axis=2)
+                #############################
 
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            self.attn_dropout, self.relu_dropout, self.prepost_dropout,
@@ -371,7 +377,7 @@ class Parser(BaseParser):
 
                   rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
                                                         lambda: get_parse_rel_logits(dep_rel_mlp, head_rel_mlp, predictions),
-                                                        lambda: (tf.constant(0.), tf.constant(0.)))
+                                                        lambda: dummy_rel_logits())
                   rel_output = self.output(rel_logits, dep_targets, num_rel_classes)
                   rel_output['probabilities'] = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
                                                         lambda: self.conditional_probabilities(rel_logits_cond),

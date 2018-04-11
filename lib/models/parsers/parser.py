@@ -324,19 +324,19 @@ class Parser(BaseParser):
                   # batch_size x bucket_size
                   label_cond_embedding = tf.reduce_sum(tf.multiply(cond_attn_weights, predicate_embeddings), axis=2)
 
-                elif i-1 == self.parse_layer:
-                  # batch_size x bucket_size x num_labels
-                  # todo fix
-                  cond_attn_weights = tf.expand_dims(tf.cast(dep_targets_binary, tf.float32), -1) if moving_params is None else tf.nn.softmax(rel_logits)
-                  all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes, dtype=tf.int32), [1, 1, num_rel_classes]),
-                                                [batch_size, bucket_size, 1])
-                  # batch_size x bucket_size x num_labels x label_embedding_dim
-                  rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
-
-
-                  # batch_size x bucket_size
-                  # [116,9,44,9,1] vs. [116,9,44,64]
-                  label_cond_embedding = tf.reduce_sum(cond_attn_weights * rel_embeddings, axis=2)
+                # elif i-1 == self.parse_layer:
+                #   # batch_size x bucket_size x num_labels
+                #   # todo fix
+                #   cond_attn_weights = tf.expand_dims(tf.cast(dep_targets_binary, tf.float32), -1) if moving_params is None else tf.nn.softmax(rel_logits)
+                #   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes, dtype=tf.int32), [1, 1, num_rel_classes]),
+                #                                 [batch_size, bucket_size, 1])
+                #   # batch_size x bucket_size x num_labels x label_embedding_dim
+                #   rel_embeddings = vocabs[2].embedding_lookup(all_labels_each_token, moving_params=self.moving_params)
+                #
+                #
+                #   # batch_size x bucket_size
+                #   # [116,9,44,9,1] vs. [116,9,44,64]
+                #   label_cond_embedding = tf.reduce_sum(cond_attn_weights * rel_embeddings, axis=2)
 
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            self.attn_dropout, self.relu_dropout, self.prepost_dropout,

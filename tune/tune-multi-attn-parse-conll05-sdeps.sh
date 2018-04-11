@@ -72,7 +72,7 @@ for lr in ${lrs[@]}; do
                                                                                     parents_layer=""
                                                                                 else
                                                                                     parents_layer="parents:$orig_parents_layer"
-                                                                                    parse_layer=$((parents_layer - 1))
+                                                                                    parse_layer=$((orig_parents_layer - 1))
                                                                                 fi
 
                                                                                 partition="titanx-long"
@@ -93,7 +93,7 @@ for lr in ${lrs[@]}; do
 
 
                                                                                 commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                                --config_file config/trans-conll05-bio-manualattn-sdeps-bilinear.cfg \
+                                                                                --config_file config/trans-conll05-bio-manualattn-sdeps-bilinear-cond.cfg \
                                                                                 --save_dir $OUT_LOG/scores-$fname_append \
                                                                                 --save_every 500 \
                                                                                 --train_iters 5000000 \

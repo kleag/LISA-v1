@@ -257,7 +257,7 @@ class Network(Configurable):
             print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f    Sample prob: %f\n'
                   '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
                   (total_train_iters, train_loss, train_accuracy, train_time, lr, sample_prob, valid_loss, valid_accuracy, valid_time))
-            print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\tpos loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_predicate_loss, train_pos_loss))
+            print('\tparse loss: %f\trel loss: %f\tsrl loss: %f\tpred loss: %f\tpos loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_predicate_loss, train_pos_loss))
             multitask_losses_str = ''
             for n, l in train_mul_loss.iteritems():
               train_mul_loss[n] = l/n_train_iters

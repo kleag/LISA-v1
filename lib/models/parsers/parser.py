@@ -143,8 +143,16 @@ class Parser(BaseParser):
     sample_prob = self.get_sample_prob(step)
     if use_gold_parse and (moving_params is None):
       use_gold_parse_tensor = tf.less(tf.random_uniform([]), sample_prob)
+      use_gold_deps_tensor = tf.less(tf.random_uniform([]), sample_prob)
     else:
       use_gold_parse_tensor = tf.equal(int(use_gold_parse), 1)
+      use_gold_deps_tensor = tf.equal(int(use_gold_parse), 1)
+
+    use_gold_predicates = (moving_params is None) or self.add_predicates_to_input
+    if use_gold_predicates and not self.add_predicates_to_input:
+      use_gold_predicates_tensor = tf.less(tf.random_uniform([]), sample_prob)
+    else:
+      use_gold_predicates_tensor = tf.equal(int(use_gold_parse), 1)
 
     ##### Functions for predicting parse, Dozat-style #####
     def get_parse_logits(parse_inputs):
@@ -317,7 +325,9 @@ class Parser(BaseParser):
                 if i-1 == self.predicate_layer:
                   # batch_size x bucket_size x num_labels x 1
                   # todo fix
-                  cond_attn_weights = tf.expand_dims(tf.cast(predicate_targets_binary_full, tf.float32) if moving_params is None else tf.nn.softmax(predicate_output['logits']), -1)
+                  cond_attn_weights = tf.expand_dims(tf.cond(use_gold_predicates_tensor,
+                                                             lambda: tf.cast(predicate_targets_binary_full, tf.float32),
+                                                             lambda: tf.nn.softmax(predicate_output['logits'])), -1)
                   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_pred_classes, dtype=tf.int32), [1, 1, num_pred_classes]),
                                                 [batch_size, bucket_size, 1])
                   # batch_size x bucket_size x num_labels x label_embedding_dim
@@ -333,7 +343,9 @@ class Parser(BaseParser):
                   # batch_size x bucket_size x num_labels
                   # todo fix
 
-                  cond_attn_weights = tf.expand_dims(tf.cast(dep_targets_binary, tf.float32) if moving_params is None else tf.nn.softmax(tf.squeeze(rel_logits, -1)), -1)
+                  cond_attn_weights = tf.expand_dims(tf.cond(use_gold_deps_tensor,
+                                              lambda: tf.cast(dep_targets_binary, tf.float32),
+                                              lambda: tf.nn.softmax(tf.squeeze(rel_logits, -1))), -1)
                   # cond_attn_weights = tf.Print(cond_attn_weights, [tf.shape(rel_logits),  dep_targets_binary, tf.nn.softmax(tf.squeeze(rel_logits, -1))], summarize=500)
                   all_labels_each_token = tf.tile(tf.reshape(tf.range(num_rel_classes, dtype=tf.int32), [1, 1, num_rel_classes]),
                                                 [batch_size, bucket_size, 1])

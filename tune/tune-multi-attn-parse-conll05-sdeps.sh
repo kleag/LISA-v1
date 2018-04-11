@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=4
+num_gpus=8
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -34,8 +34,8 @@ parents_penalties="0.1"
 parents_layers="parents:2" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 predicate_layers="1"
-scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
-use_full_parse="True False"
+scheduled_sampling="constant=1.0 constant=0.0 sigmoid=64000 sigmoid=32000"
+use_full_parse="False"
 
 reps="2"
 
@@ -65,7 +65,6 @@ for lr in ${lrs[@]}; do
                                                                     for rep in `seq $reps`; do
     #                                                                    if [[ "$cnn_layer" != "2" || "$trans_layer" != "10" ]]; then
                                                                             fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$cnn_layer-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$predicate_layer-$ss-$full_parse"
-                                                                            multitask_layer=""
                                                                             orig_parents_layer=$parents_layer
                                                                             if [[ "$parents_layer" == "no" ]]; then
                                                                                 parents_layer=""

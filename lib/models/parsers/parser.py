@@ -230,7 +230,7 @@ class Parser(BaseParser):
                 manual_attn = None
                 hard_attn = False
                 # todo make this into gold_at_train and gold_at_test flags... + scheduled sampling
-                if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
+                if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents'] and (use_gold_parse_tensor or self.full_parse):
                   # if use_gold_parse:
                   #   manual_attn = adj
                   #   # manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)

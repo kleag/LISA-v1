@@ -1,8 +1,8 @@
 from __future__ import print_function
 
 
-conll12_fname = "~/research/data/conll-2012-new/conll2012-train.txt"
-semlink_fname = "~/research/data/semlink-1.2.2c/semlink-wsj.txt"
+conll12_fname = "/home/strubell/research/data/conll-2012-new/conll2012-train.txt"
+semlink_fname = "/home/strubell/research/data/semlink-1.2.2c/semlink-wsj.txt"
 
 semlink_map = {}
 with open(semlink_fname, 'r') as semlink_file:

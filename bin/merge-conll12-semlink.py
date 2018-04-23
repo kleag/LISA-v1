@@ -18,7 +18,8 @@ with open(semlink_fname, 'r') as semlink_file:
 
       # value is predicate + args
       args = split_line[10:]
-      stripped_args = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]) if a not in remove_list else '', args)
+      stripped_args = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]), args)
+      stripped_removed_args = [a for a in stripped_args if a not in remove_list]
       value = (split_line[7].split('.')[0], ' '.join(stripped_args))
       if key not in semlink_map:
         semlink_map[key] = []

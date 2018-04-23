@@ -33,11 +33,13 @@ with open(semlink_fname, 'r') as semlink_file:
         arg_mapping_counts[arg] += 1
         if '=' in arg:
           pb_arg, vn_arg = arg.split('=')
-          if pb_arg not in arg_mappings:
-            arg_mappings[pb_arg] = {}
-          if vn_arg not in arg_mappings[pb_arg]:
-            arg_mappings[pb_arg][vn_arg] = 0
-          arg_mappings[pb_arg][vn_arg] += 1
+        else:
+          pb_arg, vn_arg = arg, arg
+        if pb_arg not in arg_mappings:
+          arg_mappings[pb_arg] = {}
+        if vn_arg not in arg_mappings[pb_arg]:
+          arg_mappings[pb_arg][vn_arg] = 0
+        arg_mappings[pb_arg][vn_arg] += 1
 
       value = (split_line[7].split('.')[0], ' '.join(stripped_removed_args))
       if key not in semlink_map:

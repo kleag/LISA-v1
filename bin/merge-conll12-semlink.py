@@ -7,6 +7,7 @@ semlink_fname = "/home/strubell/research/data/semlink-1.2.2c/semlink-wsj.txt"
 remove_list = ['rel', 'LINK-SLC']
 
 semlink_map = {}
+arg_mapping_counts = []
 with open(semlink_fname, 'r') as semlink_file:
   for line in semlink_file:
     line = line.strip()
@@ -21,11 +22,18 @@ with open(semlink_fname, 'r') as semlink_file:
       # take just the verbnet senses
       stripped_args = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]).split(';')[0], args)
       stripped_removed_args = [a for a in stripped_args if a not in remove_list]
+
+      # update mapping counts
+      for arg in stripped_removed_args:
+        if arg not in arg_mapping_counts:
+          arg_mapping_counts[arg] = 0
+        arg_mapping_counts[arg] += 1
+
       value = (split_line[7].split('.')[0], ' '.join(stripped_removed_args))
       if key not in semlink_map:
         semlink_map[key] = []
       semlink_map[key].append(value)
-print(semlink_map)
+print(arg_mapping_counts)
 
 with open(conll12_fname, 'r') as conll12_file:
   # want to scan conll12 file until we find a sentence that is in semlink,

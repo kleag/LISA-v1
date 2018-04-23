@@ -4,10 +4,11 @@ from __future__ import print_function
 conll12_fname = "/home/strubell/research/data/conll-2012-new/conll2012-train.txt"
 semlink_fname = "/home/strubell/research/data/semlink-1.2.2c/semlink-wsj.txt"
 
-remove_list = ['rel', 'LINK-SLC', 'LINK-PSV']
+remove_list = ['rel', 'LINK-SLC', 'LINK-PSV', 'LINK-PRO']
 
 semlink_map = {}
 arg_mapping_counts = {}
+arg_mappings = {}
 proposition_count = 0
 with open(semlink_fname, 'r') as semlink_file:
   for line in semlink_file:
@@ -30,6 +31,11 @@ with open(semlink_fname, 'r') as semlink_file:
         if arg not in arg_mapping_counts:
           arg_mapping_counts[arg] = 0
         arg_mapping_counts[arg] += 1
+        if '=' in arg:
+          pb_arg, vn_arg = arg.split('=')
+          if pb_arg not in arg_mappings:
+            arg_mappings[pb_arg] = []
+          arg_mappings[pb_arg].append(vn_arg)
 
       value = (split_line[7].split('.')[0], ' '.join(stripped_removed_args))
       if key not in semlink_map:
@@ -38,6 +44,7 @@ with open(semlink_fname, 'r') as semlink_file:
 
 print("Loaded %d semlink propositions" % proposition_count)
 print(arg_mapping_counts)
+print(arg_mappings)
 
 with open(conll12_fname, 'r') as conll12_file:
   # want to scan conll12 file until we find a sentence that is in semlink,

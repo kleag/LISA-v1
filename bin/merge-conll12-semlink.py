@@ -20,7 +20,7 @@ with open(semlink_fname, 'r') as semlink_file:
       args = split_line[10:]
       stripped_args = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]), args)
       stripped_removed_args = [a for a in stripped_args if a not in remove_list]
-      value = (split_line[7].split('.')[0], ' '.join(stripped_args))
+      value = (split_line[7].split('.')[0], ' '.join(stripped_removed_args))
       if key not in semlink_map:
         semlink_map[key] = []
       semlink_map[key].append(value)

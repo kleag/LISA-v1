@@ -4,7 +4,7 @@ from __future__ import print_function
 conll12_fname = "/home/strubell/research/data/conll-2012-new/conll2012-train.txt"
 semlink_fname = "/home/strubell/research/data/semlink-1.2.2c/semlink-wsj.txt"
 
-remove_list = ['rel', 'LINK-SLC']
+remove_list = ['rel', 'LINK-SLC', 'LINK-PSV']
 
 semlink_map = {}
 arg_mapping_counts = {}
@@ -22,7 +22,7 @@ with open(semlink_fname, 'r') as semlink_file:
       # value is predicate + args
       args = split_line[10:]
       # take just the verbnet senses
-      stripped_args = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]).split(';')[0], args)
+      stripped_args = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]).split(';')[0].replace('-DSP', ''), args)
       stripped_removed_args = [a for a in stripped_args if a not in remove_list]
 
       # update mapping counts

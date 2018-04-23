@@ -4,6 +4,8 @@ from __future__ import print_function
 conll12_fname = "/home/strubell/research/data/conll-2012-new/conll2012-train.txt"
 semlink_fname = "/home/strubell/research/data/semlink-1.2.2c/semlink-wsj.txt"
 
+remove_list = ['rel', 'LINK-SLC']
+
 semlink_map = {}
 with open(semlink_fname, 'r') as semlink_file:
   for line in semlink_file:
@@ -16,7 +18,7 @@ with open(semlink_fname, 'r') as semlink_file:
 
       # value is predicate + args
       args = split_line[10:]
-      stripped_args = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]) if a != "rel" else '', args)
+      stripped_args = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]) if a not in remove_list else '', args)
       value = (split_line[7].split('.')[0], ' '.join(stripped_args))
       if key not in semlink_map:
         semlink_map[key] = []

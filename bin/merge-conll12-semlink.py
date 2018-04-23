@@ -7,11 +7,13 @@ semlink_fname = "/home/strubell/research/data/semlink-1.2.2c/semlink-wsj.txt"
 remove_list = ['rel', 'LINK-SLC']
 
 semlink_map = {}
-arg_mapping_counts = []
+arg_mapping_counts = {}
+proposition_count = 0
 with open(semlink_fname, 'r') as semlink_file:
   for line in semlink_file:
     line = line.strip()
     if line:
+      proposition_count += 1
       split_line = line.split()
 
       # key is doc name without ending + sentence number
@@ -33,6 +35,8 @@ with open(semlink_fname, 'r') as semlink_file:
       if key not in semlink_map:
         semlink_map[key] = []
       semlink_map[key].append(value)
+
+print("Loaded %d semlink propositions" % proposition_count)
 print(arg_mapping_counts)
 
 with open(conll12_fname, 'r') as conll12_file:

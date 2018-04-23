@@ -45,7 +45,7 @@ with open(semlink_fname, 'r') as semlink_file:
       semlink_map[key].append(value)
 
 print("Loaded %d semlink propositions" % proposition_count)
-print(arg_mapping_counts)
+# print(arg_mapping_counts)
 for arg in arg_mappings:
   print("%s: %s" % (arg, arg_mappings[arg]))
 

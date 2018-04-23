@@ -11,9 +11,13 @@ with open(semlink_fname, 'r') as semlink_file:
     if line:
       split_line = line.split()
 
-      # key is doc name without ending
+      # key is doc name without ending + sentence number
       key = (split_line[0].split('.')[0], split_line[1])
-      value = (split_line[7], ' '.join(split_line[10:]))
+
+      # value is predicate + args
+      args = split_line[10:]
+      stripped_args = map(lambda a: a.split('*')[-1].split('-')[-1], args)
+      value = (split_line[7].split('.')[0], ' '.join(stripped_args))
       if key not in semlink_map:
         semlink_map[key] = []
       semlink_map[key].append(value)

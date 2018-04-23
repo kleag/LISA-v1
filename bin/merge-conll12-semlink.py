@@ -46,7 +46,8 @@ with open(semlink_fname, 'r') as semlink_file:
 
 print("Loaded %d semlink propositions" % proposition_count)
 print(arg_mapping_counts)
-print(arg_mappings)
+for arg in arg_mappings:
+  print("%s: %s" % (arg, arg_mappings[arg]))
 
 with open(conll12_fname, 'r') as conll12_file:
   # want to scan conll12 file until we find a sentence that is in semlink,

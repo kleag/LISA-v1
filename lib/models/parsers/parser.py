@@ -204,7 +204,9 @@ class Parser(BaseParser):
 
         # if layer is set to -2, these are used
         pos_pred_inputs = top_recur
+        self.print_once("Setting pos_pred_inputs to: %s" % top_recur.name)
         predicate_inputs = top_recur
+        self.print_once("Setting predicate_inputs to: %s" % top_recur.name)
 
         # Project for Tranformer / residual LSTM input
         if self.n_recur > 0:
@@ -218,8 +220,10 @@ class Parser(BaseParser):
         # if layer is set to -1, these are used
         if self.pos_layer == -1:
           pos_pred_inputs = top_recur
+          self.print_once("Setting pos_pred_inputs to: %s" % top_recur.name)
         if self.predicate_layer == -1:
           predicate_inputs = top_recur
+          self.print_once("Setting predicate_inputs to: %s" % top_recur.name)
 
         ##### Transformer #######
         if self.dist_model == 'transformer':
@@ -272,11 +276,13 @@ class Parser(BaseParser):
 
                 if i == self.pos_layer:
                   pos_pred_inputs = top_recur
+                  self.print_once("Setting pos_pred_inputs to: %s" % top_recur.name)
                 if i == self.predicate_layer:
                   predicate_inputs = top_recur
+                  self.print_once("Setting predicate_inputs to: %s" % top_recur.name)
                 if i == self.parse_layer:
                   parse_pred_inputs = top_recur
-
+                  self.print_once("Setting parse_pred_inputs to: %s" % top_recur.name)
 
             # if normalization is done in layer_preprocess, then it should also be done
             # on the output, since the output can grow very large, being the sum of
@@ -302,10 +308,14 @@ class Parser(BaseParser):
 
         if self.pos_layer == self.n_recur - 1:
           pos_pred_inputs = top_recur
+          self.print_once("Setting pos_pred_inputs to: %s" % top_recur.name)
         if self.predicate_layer == self.n_recur - 1:
           predicate_inputs = top_recur
+          self.print_once("Setting predicate_inputs to: %s" % top_recur.name)
         if self.parse_layer == self.n_recur - 1:
           parse_pred_inputs = top_recur
+          self.print_once("Setting parse_pred_inputs to: %s" % top_recur.name)
+
 
     ####### 2D CNN ########
     # if self.cnn2d_layers > 0:

@@ -106,7 +106,7 @@ for lr in ${lrs[@]}; do
                                                     --epsilon $epsilon \
                                                     --eval_by_domain False \
                                                     --eval_srl True \
-                                                    --save True \
+                                                    --save False \
                                                     &> $OUT_LOG/train-$fname_append.log")
                                                     i=$((i + 1))
                                                 done

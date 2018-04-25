@@ -26,11 +26,12 @@ with open(semlink_fname, 'r') as semlink_file:
       args = split_line[10:]
       # take just the verbnet senses
       stripped_args_vn = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]).split(';')[0].replace('-DSP', ''), args)
+
+      # verbnet and framenet senses
       stripped_args_fn = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]).replace('-DSP', ''), args)
 
-
       # want to replace all ARG[0-9A]-[az]+ with ARG[0-9A]
-      stripped_args = map(lambda a: arg_re.sub(r'\1', a), stripped_args_fn)
+      stripped_args = map(lambda a: arg_re.sub(r'\1', a), stripped_args_vn)
 
       stripped_removed_args = [a for a in stripped_args if a not in remove_list]
 

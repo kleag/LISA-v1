@@ -29,6 +29,8 @@ num_heads="8" #4 8"
 head_sizes="25"
 relu_hidden_sizes="800"
 
+predicate_mlp_sizes="200 100"
+
 reps="5"
 
 # 5*2*2*3*4*5 = 1200
@@ -81,34 +83,39 @@ for lr in ${lrs[@]}; do
                                     for head_size in ${head_sizes[@]}; do
                                         for relu_hidden_size in ${relu_hidden_sizes[@]}; do
                                             for batch_size in ${batch_sizes[@]}; do
-                                                for rep in `seq $reps`; do
-                                                    fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$cnn_layer-$trans_layer-$num_head-$head_size-$relu_hidden_size"
+                                                for predicate_mlp_size in ${predicate_mlp_sizes[@]}; do
+                                                    for rep in `seq $reps`; do
+                                                        fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$cnn_layer-$trans_layer-$num_head-$head_size-$relu_hidden_size-$predicate_mlp_size"
 
-                                                    partition="qnd"
+                                                        partition="qnd"
 
-                                                    commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                    --config_file config/trans-conll05-bio-goldtrigs-tan.cfg \
-                                                    --save_dir $OUT_LOG/scores-$fname_append \
-                                                    --save_every 500 \
-                                                    --train_iters 5000000 \
-                                                    --train_batch_size $batch_size \
-                                                    --test_batch_size $batch_size \
-                                                    --warmup_steps $warmup_steps \
-                                                    --learning_rate $lr \
-                                                    --cnn_dim $cnn_dim \
-                                                    --cnn_layers $cnn_layer \
-                                                    --n_recur $trans_layer \
-                                                    --num_heads $num_head \
-                                                    --head_size $head_size \
-                                                    --relu_hidden_size $relu_hidden_size \
-                                                    --mu $mu \
-                                                    --nu $nu \
-                                                    --epsilon $epsilon \
-                                                    --eval_by_domain False \
-                                                    --eval_srl True \
-                                                    --save False \
-                                                    &> $OUT_LOG/train-$fname_append.log")
-                                                    i=$((i + 1))
+                                                        commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
+                                                        --config_file config/trans-conll05-bio-goldtrigs-tan.cfg \
+                                                        --save_dir $OUT_LOG/scores-$fname_append \
+                                                        --save_every 500 \
+                                                        --train_iters 5000000 \
+                                                        --train_batch_size $batch_size \
+                                                        --test_batch_size $batch_size \
+                                                        --warmup_steps $warmup_steps \
+                                                        --learning_rate $lr \
+                                                        --cnn_dim $cnn_dim \
+                                                        --cnn_layers $cnn_layer \
+                                                        --n_recur $trans_layer \
+                                                        --num_heads $num_head \
+                                                        --head_size $head_size \
+                                                        --relu_hidden_size $relu_hidden_size \
+                                                        --predicate_mlp_size $predicate_mlp_size \
+                                                        --predicate_pred_mlp_size $predicate_mlp_size \
+                                                        --role_mlp_size $predicate_mlp_size \
+                                                        --mu $mu \
+                                                        --nu $nu \
+                                                        --epsilon $epsilon \
+                                                        --eval_by_domain False \
+                                                        --eval_srl True \
+                                                        --save False \
+                                                        &> $OUT_LOG/train-$fname_append.log")
+                                                        i=$((i + 1))
+                                                    done
                                                 done
                                             done
                                         done

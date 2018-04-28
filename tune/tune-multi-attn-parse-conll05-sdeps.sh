@@ -32,9 +32,9 @@ relu_hidden_sizes="256"
 parents_penalties="0.1 1.0"
 dep_penalties="0.1 1.0 0.0"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:4" # this is 0-indexed
+parents_layers="parents:3" # this is 0-indexed
 #grandparents_layers="grandparents:2 grandparents:3 no"
-predicate_layers="1" # also 0-indexed
+predicate_layers="2" # also 0-indexed
 scheduled_sampling="constant=1.0 sigmoid=64000" # sigmoid=32000"
 use_full_parse="True"
 

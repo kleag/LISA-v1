@@ -22,7 +22,7 @@ epsilons="1e-12"
 warmup_steps="4000"
 batch_sizes="5000"
 
-trans_layers="4" # "10 8 6" # 3
+trans_layers="6" # "10 8 6" # 3
 cnn_layers="2"
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
@@ -30,12 +30,13 @@ head_sizes="64"
 relu_hidden_sizes="256"
 
 parents_penalties="0.1"
+parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
 parents_layers="parents:2" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 predicate_layers="1"
-scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
-use_full_parse="True False"
+scheduled_sampling="constant=1.0 sigmoid=64000" # sigmoid=32000"
+use_full_parse="True"
 
 reps="2"
 

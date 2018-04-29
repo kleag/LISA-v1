@@ -164,6 +164,7 @@ class Dataset(Configurable):
         srl_start_idx = 8
         srl_part = sent[:, srl_start_idx:]
         rest_part = sent[:, :srl_start_idx]
+        print("orig sent", sent)
         if predicate_indices:
           for j, p_idx in enumerate(predicate_indices):
             # should be sent_len x sent_elements
@@ -172,6 +173,7 @@ class Dataset(Configurable):
             correct_srls = srl_part[:, j]
             new_sent = np.concatenate([rest_part, np.expand_dims(correct_srls, -1)], axis=1)
             buff2.append(new_sent)
+            print("new sent:", new_sent)
             examples += 1
       else:
         buff2.append(sent)

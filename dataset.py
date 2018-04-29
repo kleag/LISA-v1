@@ -173,7 +173,8 @@ class Dataset(Configurable):
             rest_part[p_idx, is_predicate_idx] = predicates["True"][0]
             correct_srls = srl_part[:, k]
             new_sent = np.concatenate([rest_part, np.expand_dims(correct_srls, -1)], axis=1)
-            buff2.append((new_sent[0],) + map(int, new_sent[1:]))
+            new_sent_conv = (new_sent[0],) + tuple(map(int, new_sent[1:]))
+            buff2.append(new_sent_conv)
             # print("new sent:", new_sent)
             # print("new preds:", map(lambda x: srls[int(x)], new_sent[:, -1]))
             examples += 1

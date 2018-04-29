@@ -165,7 +165,6 @@ class Dataset(Configurable):
         srl_part = sent[:, srl_start_idx:]
         rest_part = sent[:, :srl_start_idx]
         print("orig sent (%d):" % len(predicate_indices), sent[:, :8+len(predicate_indices)])
-        print("orig preds:", sent[:, srl_start_idx:])
         print("orig preds:", [map(lambda x: srls[int(x)], t) for t in sent[:, srl_start_idx:srl_start_idx+len(predicate_indices)]])
         if predicate_indices:
           for k, p_idx in enumerate(predicate_indices):
@@ -176,7 +175,6 @@ class Dataset(Configurable):
             new_sent = np.concatenate([rest_part, np.expand_dims(correct_srls, -1)], axis=1)
             buff2.append(new_sent)
             print("new sent:", new_sent)
-            print("new preds:", new_sent[:, -1])
             print("new preds:", map(lambda x: srls[int(x)], new_sent[:, -1]))
             examples += 1
       else:

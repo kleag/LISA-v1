@@ -702,3 +702,8 @@ class Configurable(object):
   def one_example_per_predicate(self):
     return self._config.getboolean('Training', 'one_example_per_predicate')
   argparser.add_argument('--one_example_per_predicate')
+
+  @property
+  def srl_simple_tagging(self):
+    return self._config.getboolean('Training', 'srl_simple_tagging')
+  argparser.add_argument('--srl_simple_tagging')

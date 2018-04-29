@@ -153,7 +153,7 @@ class Dataset(Configurable):
           if is_predicate:
             predicate_indices.append(j)
 
-          buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
+          buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
 
       # Expand sentences into one example per predicate
       if self.one_example_per_predicate:
@@ -161,7 +161,7 @@ class Dataset(Configurable):
         # should be sent_len x sent_elements
         sent = np.array(buff[i])
         is_predicate_idx = 4
-        srl_start_idx = 9
+        srl_start_idx = 10
         srl_part = sent[:, srl_start_idx:]
         rest_part = sent[:, :srl_start_idx]
         # print("orig sent (%d):" % len(predicate_indices), sent[:, :8+len(predicate_indices)])

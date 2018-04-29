@@ -397,6 +397,20 @@ class Network(Configurable):
       if parens_count != 0:
         return False
     return True
+
+  def merge_preds(self, all_preds, all_sents, dataset):
+    # want a sentences x tokens x fields array
+    data_merged = []
+    for bkt_idx, idx in dataset._metabucket.data:
+      data = dataset._metabucket[bkt_idx].data[idx]
+      preds = all_preds[bkt_idx][idx]
+      words = all_sents[bkt_idx][idx]
+      for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+        sent_id = pred[6]
+        print(sent_id, word)
+
+
+
     
   #=============================================================
   # TODO make this work if lines_per_buff isn't set to 0
@@ -463,6 +477,8 @@ class Network(Configurable):
           all_predictions.append([])
           all_sents.append([])
 
+    all_preds_sents_merged = self.merge_preds(all_predictions, all_sents, dataset)
+
     correct = {'UAS': 0., 'LAS': 0., 'parse_eval': '', 'F1': 0.}
     srl_acc = 0.0
     if self.eval_parse:
@@ -498,16 +514,16 @@ class Network(Configurable):
           sent_len = len(words)
           if self.eval_single_token_sents or sent_len > 1:
             for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-              head = pred[7] + 1
+              head = pred[8] + 1
               tok_id = i + 1
-              assert self.tags[datum[5]] == self.tags[pred[6]]
+              assert self.tags[datum[5]] == self.tags[pred[7]]
               tup = (
                 tok_id,  # id
                 word,  # form
-                self.tags[pred[6]],  # gold tag
+                self.tags[pred[7]],  # gold tag
                 # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
                 str(head if head != tok_id else 0),  # pred head
-                self.rels[pred[8]] # pred label
+                self.rels[pred[9]] # pred label
               )
               f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
             f.write('\n')
@@ -541,16 +557,16 @@ class Network(Configurable):
                 if self.eval_single_token_sents or sent_len > 1:
                   for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
                     domain = self._vocabs[5][pred[5]]
-                    head = pred[7] + 1
+                    head = pred[8] + 1
                     tok_id = i + 1
                     if domain == d:
                       tup = (
                         tok_id,  # id
                         word,  # form
-                        self.tags[pred[6]],  # gold tag
+                        self.tags[pred[7]],  # gold tag
                         # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
                         str(head if head != tok_id else 0),  # pred head
-                        self.rels[pred[8]]  # pred label
+                        self.rels[pred[9]]  # pred label
                       )
                       f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
                   if domain == d:
@@ -581,10 +597,10 @@ class Network(Configurable):
           data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
-          num_gold_srls = preds[0, 12]
-          num_pred_srls = preds[0, 13]
-          srl_preds = preds[:, 14+num_pred_srls+num_gold_srls:]
-          srl_golds = preds[:, 14+num_pred_srls:14+num_gold_srls+num_pred_srls]
+          num_gold_srls = preds[0, 13]
+          num_pred_srls = preds[0, 14]
+          srl_preds = preds[:, 15+num_pred_srls+num_gold_srls:]
+          srl_golds = preds[:, 15+num_pred_srls:15+num_gold_srls+num_pred_srls]
           srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           # todo if you want golds in here get it from the props file
@@ -623,12 +639,12 @@ class Network(Configurable):
           data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
-          num_gold_srls = preds[0, 12]
-          num_pred_srls = preds[0, 13]
+          num_gold_srls = preds[0, 13]
+          num_pred_srls = preds[0, 14]
           srl_preds = preds[:, 14+num_gold_srls+num_pred_srls:]
-          predicate_indices = preds[:, 14:14+num_pred_srls]
+          predicate_indices = preds[:, 15:15+num_pred_srls]
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-          for i, (datum, word) in enumerate(zip(data, words)):
+          for i, word in enumerate(words):
             pred = srl_preds_str[i] if srl_preds_str else []
             word_str = word if i in predicate_indices else '-'
             fields = (word_str,) + tuple(pred)
@@ -664,10 +680,10 @@ class Network(Configurable):
                 data = dataset._metabucket[bkt_idx].data[idx]
                 preds = all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
-                num_gold_srls = preds[0, 12]
-                num_pred_srls = preds[0, 13]
+                num_gold_srls = preds[0, 13]
+                num_pred_srls = preds[0, 14]
                 srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
-                predicate_indices = preds[:, 14:14 + num_pred_srls]
+                predicate_indices = preds[:, 15:15 + num_pred_srls]
                 srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
                 domain = '-'
                 for i, (datum, word, p) in enumerate(zip(data, words, preds)):

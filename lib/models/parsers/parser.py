@@ -532,6 +532,13 @@ class Parser(BaseParser):
         srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
         srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, predicate_predictions, transition_params if self.viterbi_train else None)
         return srl_output
+
+    def compute_srl_simple(srl_target):
+      with tf.variable_scope('SRL-MLP', reuse=reuse):
+        srl_logits = self.MLP(top_recur, num_srl_classes, n_splits=1)
+        srl_output = self.output(srl_logits, srl_target)
+        return srl_output
+
     srl_targets = targets[:, :, 3:]
     if self.role_loss_penalty == 0:
       # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))
@@ -544,7 +551,7 @@ class Parser(BaseParser):
         'count':  tf.constant(0.)
       }
     else:
-      srl_output = compute_srl(srl_targets)
+      srl_output = tf.cond(tf.equal(int(self.srl_simple_tagging), 1), lambda: compute_srl_simple(srl_targets), lambda: compute_srl(srl_targets))
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

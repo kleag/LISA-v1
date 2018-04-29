@@ -539,6 +539,7 @@ class Parser(BaseParser):
         srl_output = self.output(srl_logits, srl_target)
         srl_output = {f: srl_output[f] for f in ['loss', 'probabilities', 'predictions', 'correct', 'count']}
         srl_output['logits'] = srl_logits
+        srl_output['transition_params'] = tf.constant(0.)
         return srl_output
 
     srl_targets = targets[:, :, 3:]

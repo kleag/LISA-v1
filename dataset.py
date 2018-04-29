@@ -164,7 +164,7 @@ class Dataset(Configurable):
         srl_start_idx = 8
         srl_part = sent[:, srl_start_idx:]
         rest_part = sent[:, :srl_start_idx]
-        print("orig sent:", sent[:8+len(predicate_indices)])
+        print("orig sent (%d):" % len(predicate_indices), sent[:8+len(predicate_indices)])
         if predicate_indices:
           for j, p_idx in enumerate(predicate_indices):
             # should be sent_len x sent_elements

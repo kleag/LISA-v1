@@ -1037,6 +1037,7 @@ class NN(Configurable):
       'n_correct': n_correct,
       'n_tokens': self.n_tokens,
       'accuracy': accuracy,
+      'count': self.n_tokens,
       'loss': loss
     }
 

@@ -534,7 +534,7 @@ class Parser(BaseParser):
         return srl_output
 
     def compute_srl_simple(srl_target):
-      with tf.variable_scope('SRL-MLP', reuse=reuse):
+      with tf.variable_scope('SRL-MLP-Simple', reuse=reuse):
         srl_logits = self.MLP(top_recur, num_srl_classes, n_splits=1)
         srl_output = self.output(srl_logits, srl_target)
         return srl_output

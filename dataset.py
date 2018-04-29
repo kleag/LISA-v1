@@ -110,6 +110,8 @@ class Dataset(Configurable):
     srl_start_field = srls.conll_idx[0]
     sents = 0
     toks = 0
+    examples = 0
+    buff2 = []
     for i, sent in enumerate(buff):
       # if not self.conll2012 or (self.conll2012 and len(list(sent)) > 1):
       # print(sent, len(sent))
@@ -117,6 +119,7 @@ class Dataset(Configurable):
       sent_len = len(sent)
       num_fields = len(sent[0])
       srl_take_indices = [idx for idx in range(srl_start_field, srl_start_field + sent_len) if idx < num_fields - 1 and (self.train_on_nested or np.all(['/' not in sent[j][idx] for j in range(sent_len)]))]
+      predicate_indices = []
       for j, token in enumerate(sent):
         toks += 1
         if self.conll:
@@ -147,10 +150,36 @@ class Dataset(Configurable):
             is_predicate = token[predicates.conll_idx] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
             tok_predicate_str = str(is_predicate)
 
+          if is_predicate:
+            predicate_indices.append(j)
+
           buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
-        # sent.insert(0, ('root', Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, 0, Vocab.ROOT))
-    print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
-    return buff
+
+      # Expand sentences into one example per predicate
+      if self.one_example_per_predicate:
+        # grab the sent
+        # should be sent_len x sent_elements
+        sent = np.array(buff[i])
+        is_predicate_idx = 4
+        srl_start_idx = 8
+        srl_part = sent[:, srl_start_idx:]
+        rest_part = sent[:, :srl_start_idx]
+        if predicate_indices:
+          for j, p_idx in enumerate(predicate_indices):
+            # should be sent_len x sent_elements
+            rest_part[:, is_predicate_idx] = predicates["False"][0]
+            rest_part[p_idx, is_predicate_idx] = predicates["True"][0]
+            correct_srls = srl_part[:, j]
+            new_sent = np.concatenate([rest_part, np.expand_dims(correct_srls, -1)], axis=1)
+            buff2.append(new_sent)
+            examples += 1
+      else:
+        buff2.append(sent)
+        examples += 1
+    print("Loaded %d sentences with %d tokens, %d examples (%s)" % (sents, toks, examples, self.name))
+    return buff2
+    # print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
+    # return buff
   
   #=============================================================
   def reset(self, sizes):

@@ -537,6 +537,8 @@ class Parser(BaseParser):
       with tf.variable_scope('SRL-MLP-Simple', reuse=reuse):
         srl_logits = self.MLP(top_recur, num_srl_classes, n_splits=1)
         srl_output = self.output(srl_logits, srl_target)
+        srl_output = {srl_output[f] for f in ['loss', 'probabilities', 'predictions', 'correct', 'count']}
+        srl_output['logits'] = srl_logits
         return srl_output
 
     srl_targets = targets[:, :, 3:]

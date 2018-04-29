@@ -173,12 +173,12 @@ class Dataset(Configurable):
             rest_part[p_idx, is_predicate_idx] = predicates["True"][0]
             correct_srls = srl_part[:, k]
             new_sent = np.concatenate([rest_part, np.expand_dims(correct_srls, -1)], axis=1)
-            buff2.append(new_sent)
+            buff2.append((new_sent[0],) + map(int, new_sent[1:]))
             # print("new sent:", new_sent)
             # print("new preds:", map(lambda x: srls[int(x)], new_sent[:, -1]))
             examples += 1
       else:
-        buff2.append(sent)
+        buff2.append((sent[0],) + map(int, sent[1:]))
         examples += 1
     print("Loaded %d sentences with %d tokens, %d examples (%s)" % (sents, toks, examples, self.name))
     return buff2

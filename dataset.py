@@ -161,7 +161,7 @@ class Dataset(Configurable):
         # should be sent_len x sent_elements
         sent = np.array(buff[i])
         is_predicate_idx = 4
-        srl_start_idx = 8
+        srl_start_idx = 9
         srl_part = sent[:, srl_start_idx:]
         rest_part = sent[:, :srl_start_idx]
         print("orig sent (%d):" % len(predicate_indices), sent[:, :8+len(predicate_indices)])

@@ -408,7 +408,7 @@ class Network(Configurable):
     merged_indices = []
     examples = 0
     sentences = 0
-    predicate_idx = 15
+    predicate_idx = 4
 
     # for each example
     for bkt_idx, idx in dataset._metabucket.data:

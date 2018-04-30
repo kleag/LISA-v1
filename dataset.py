@@ -161,7 +161,7 @@ class Dataset(Configurable):
         # should be sent_len x sent_elements
         sent = np.array(buff[i])
         is_predicate_idx = 3
-        srl_start_idx = 10
+        srl_start_idx = 9
         word_part = sent[:, 0].astype('O')
         srl_part = sent[:, srl_start_idx:].astype(np.int32)
         rest_part = sent[:, 1:srl_start_idx].astype(np.int32)

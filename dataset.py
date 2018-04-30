@@ -179,6 +179,10 @@ class Dataset(Configurable):
             # print("new sent:", new_sent)
             # print("new preds:", map(lambda x: srls[int(x)], new_sent[:, -1]))
             examples += 1
+        else:
+           new_sent = np.concatenate([np.expand_dims(word_part, -1), rest_part], axis=1)
+           buff2.append(new_sent)
+           examples += 1
       # else:
       #   buff2.append(np.concatenate[np.expand_dims(word_part, -1), rest_part, srl_part], axis=1) #(sent[0],) + map(int, sent[1:]))
       #   examples += 1

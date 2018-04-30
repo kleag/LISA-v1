@@ -404,9 +404,11 @@ class Network(Configurable):
     current_sentid = -1
     current_sent_shared = None
     current_srls = []
+    current_predicates = None
     merged_indices = []
     examples = 0
     sentences = 0
+    predicate_idx = 15
 
     # for each example
     for bkt_idx, idx in dataset._metabucket.data:
@@ -424,11 +426,14 @@ class Network(Configurable):
           #   merged_srls = np.expand_dims(merged_srls, -1)
           # print("merged srls", len(merged_srls.shape), merged_srls.shape, merged_srls)
           # print("current shared", current_sent_shared.shape, current_sent_shared)
+          current_sent_shared[:, predicate_idx] = current_predicates
           merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=1)
           preds_merged.append(merged_sent)
         current_sent_shared = preds[:, :-1]
         current_srls = []
+        current_predicates = np.zeros(current_sent_shared.shape[0])
       current_srls.append(np.expand_dims(preds[:, -1], -1))
+      current_predicates += np.where(preds[:, predicate_idx] > self._vocabs[4].predicate_true_start_idx).astype(np.int32)
 
     # deal with last one
     merged_srls = np.concatenate(current_srls, axis=-1)

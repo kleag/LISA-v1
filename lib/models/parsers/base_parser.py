@@ -46,8 +46,8 @@ class BaseParser(NN):
     """"""
     
     for tokens, golds, parse_preds, rel_preds in zip(inputs, targets, predictions[0], predictions[1]):
-      print("tokens", tokens)
-      print("golds", golds)
+      # print("tokens", tokens)
+      # print("golds", golds)
       for l, (token, gold, parse, rel) in enumerate(zip(tokens, golds, parse_preds, rel_preds)):
         if token[0] > 0:
           word = vocabs[0][token[0]]

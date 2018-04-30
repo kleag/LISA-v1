@@ -459,6 +459,9 @@ class Parser(BaseParser):
 
     predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
                                      tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
+
+    predicate_targets_binary = tf.Print(predicate_targets_binary, [predicate_targets], "predicate targets", summarize=200)
+
     def dummy_predicate_output():
       return {
         'loss': 0.0,

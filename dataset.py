@@ -181,11 +181,12 @@ class Dataset(Configurable):
       # else:
       #   buff2.append(np.concatenate[np.expand_dims(word_part, -1), rest_part, srl_part], axis=1) #(sent[0],) + map(int, sent[1:]))
       #   examples += 1
-        print("Loaded %d sentences with %d tokens, %d examples (%s)" % (sents, toks, examples, self.name))
-        return buff2
-
-    print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
-    return buff
+    if self.one_example_per_predicate:
+      print("Loaded %d sentences with %d tokens, %d examples (%s)" % (sents, toks, examples, self.name))
+      return buff2
+    else:
+      print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
+      return buff
   
   #=============================================================
   def reset(self, sizes):

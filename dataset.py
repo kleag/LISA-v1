@@ -160,6 +160,7 @@ class Dataset(Configurable):
         # grab the sent
         # should be sent_len x sent_elements
         sent = np.array(buff[i])
+        print(sent)
         is_predicate_idx = 3
         srl_start_idx = 9
         word_part = sent[:, 0].astype('O')

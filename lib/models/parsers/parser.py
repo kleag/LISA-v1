@@ -523,6 +523,7 @@ class Parser(BaseParser):
         # gathered roles: need a (bucket_size x self.role_mlp_size) role representation for each trigger,
         # i.e. a (num_triggers_in_batch x bucket_size x self.role_mlp_size) tensor
         predicate_gather_indices = tf.where(tf.equal(predicate_predictions, 1))
+        predicate_gather_indices = tf.Print(predicate_gather_indices, [tf.shape(predicate_gather_indices), tf.shape(predicate_predictions)], "predicate gather shape", summarize=10)
         gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
         tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
         gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)

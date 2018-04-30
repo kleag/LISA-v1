@@ -1257,7 +1257,12 @@ class NN(Configurable):
       # batch*num_targets x seq_len
       trigger_counts = tf.reduce_sum(trigger_predictions, -1)
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
+
+      srl_targets_indices = tf.Print(srl_targets_indices, [tf.shape(srl_targets_transposed), tf.shape(srl_targets_indices)], summarize=10)
+
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
+
+
 
       if transition_params is not None:
         seq_lens = tf.reduce_sum(mask, 1)

@@ -417,7 +417,7 @@ class Network(Configurable):
         sentences += 1
         current_sentid = this_sent_id
         merged_indices.append((bkt_idx, idx))
-        if current_sent_shared:
+        if current_sent_shared is not None:
           # merge and add to merged list
           merged_srls = np.concatenate(current_srls, axis=-1)
           merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=-1)

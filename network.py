@@ -428,7 +428,7 @@ class Network(Configurable):
           preds_merged.append(merged_sent)
         current_sent_shared = preds[:, :-1]
         current_srls = []
-      current_srls.append(preds[:, -1])
+      current_srls.append(np.expand_dims(preds[:, -1], -1))
 
     # deal with last one
     merged_srls = np.concatenate(current_srls, axis=-1)

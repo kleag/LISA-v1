@@ -1223,7 +1223,7 @@ class NN(Configurable):
 
     # logits are triggers_in_batch x num_classes x seq_len
     # targets are batch x seq_len x num_targets
-    # trigger_label_indices are batch x seq_len (1/0)
+    # trigger_predictions are batch x seq_len (1/0)
 
     # transpose to triggers_in_batch x seq_len x num_classes
     # logits_transposed = tf.transpose(logits, [0, 2, 1])
@@ -1258,7 +1258,7 @@ class NN(Configurable):
       trigger_counts = tf.reduce_sum(trigger_predictions, -1)
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
 
-      srl_targets_indices = tf.Print(srl_targets_indices, [batch_size, bucket_size, tf.shape(logits_transposed), tf.shape(srl_targets_transposed), tf.shape(srl_targets_indices)], summarize=10)
+      srl_targets_indices = tf.Print(srl_targets_indices, [batch_size, bucket_size, tf.shape(logits_transposed), tf.shape(targets), tf.shape(srl_targets_transposed), tf.shape(srl_targets_indices)], summarize=10)
 
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
 

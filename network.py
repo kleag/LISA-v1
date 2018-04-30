@@ -398,18 +398,36 @@ class Network(Configurable):
         return False
     return True
 
-  def merge_preds(self, all_preds, all_sents, dataset):
+  def merge_preds(self, all_preds, dataset):
     # want a sentences x tokens x fields array
-    data_merged = []
+    preds_merged = []
+    current_sentid = -1
+    current_sent_shared = None
+    current_srls = []
+    merged_indices = []
+
+    # for each example
     for bkt_idx, idx in dataset._metabucket.data:
-      data = dataset._metabucket[bkt_idx].data[idx]
       preds = all_preds[bkt_idx][idx]
-      words = all_sents[bkt_idx][idx]
-      for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-        sent_id = pred[6]
-        print(sent_id, word)
+      this_sent_id = preds[0, 6]
+      if this_sent_id != current_sentid:
+        current_sentid = this_sent_id
+        merged_indices.append((bkt_idx, idx))
+        if current_sent_shared:
+          # merge and add to merged list
+          merged_srls = np.concatenate(current_srls, axis=-1)
+          merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=-1)
+          preds_merged.append(merged_sent)
+        current_sent_shared = preds[:, :-1]
+        current_srls = []
+      current_srls.append(preds[:, -1])
 
+    # deal with last one
+    merged_srls = np.concatenate(current_srls, axis=-1)
+    merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=-1)
+    preds_merged.append(merged_sent)
 
+    return preds_merged, merged_indices
 
     
   #=============================================================
@@ -477,7 +495,11 @@ class Network(Configurable):
           all_predictions.append([])
           all_sents.append([])
 
-    all_preds_sents_merged = self.merge_preds(all_predictions, all_sents, dataset)
+    if self.add_predicates_to_input:
+      all_predictions, data_indices = self.merge_preds(all_predictions, dataset)
+    else:
+      data_indices = dataset._metabucket.data
+      all_predictions = [p for s in all_predictions for p in s]
 
     correct = {'UAS': 0., 'LAS': 0., 'parse_eval': '', 'F1': 0.}
     srl_acc = 0.0
@@ -502,9 +524,9 @@ class Network(Configurable):
       # write predicted parse
       parse_pred_fname = os.path.join(self.save_dir, "parse_preds.tsv")
       with open(parse_pred_fname, 'w') as f:
-        for bkt_idx, idx in dataset._metabucket.data:
+        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           data = dataset._metabucket[bkt_idx].data[idx]
-          preds = all_predictions[bkt_idx][idx]
+          preds = all_predictions[p_idx]
           words = all_sents[bkt_idx][idx]
           # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
           # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
@@ -548,9 +570,9 @@ class Network(Configurable):
             domain_gold_fname = os.path.join(parse_gold_fname_path, d + '_' + parse_gold_fname_end)
             domain_fname = os.path.join(self.save_dir, '%s_parse_preds.tsv' % d)
             with open(domain_fname, 'w') as f:
-              for bkt_idx, idx in dataset._metabucket.data:
+              for p_idx, (bkt_idx, idx) in enumerate(data_indices):
                 data = dataset._metabucket[bkt_idx].data[idx]
-                preds = all_predictions[bkt_idx][idx]
+                preds = all_predictions[p_idx]
                 words = all_sents[bkt_idx][idx]
                 domain = '-'
                 sent_len = len(words)
@@ -591,11 +613,11 @@ class Network(Configurable):
       # save SRL gold output for debugging purposes
       srl_sanity_fname = os.path.join(self.save_dir, 'srl_sanity.tsv')
       with open(srl_sanity_fname, 'w') as f, open(filename, 'r') as orig_f:
-        for bkt_idx, idx in dataset._metabucket.data:
+        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           # for each word, if predicate print word, otherwise -
           # then all the SRL labels
           data = dataset._metabucket[bkt_idx].data[idx]
-          preds = all_predictions[bkt_idx][idx]
+          preds = all_predictions[p_idx]
           words = all_sents[bkt_idx][idx]
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
@@ -633,11 +655,10 @@ class Network(Configurable):
       # save SRL output
       srl_preds_fname = os.path.join(self.save_dir, 'srl_preds.tsv')
       with open(srl_preds_fname, 'w') as f:
-        for bkt_idx, idx in dataset._metabucket.data:
+        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           # for each word, if predicate print word, otherwise -
           # then all the SRL labels
-          data = dataset._metabucket[bkt_idx].data[idx]
-          preds = all_predictions[bkt_idx][idx]
+          preds = all_predictions[p_idx]
           words = all_sents[bkt_idx][idx]
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
@@ -674,11 +695,11 @@ class Network(Configurable):
             domain_gold_fname = os.path.join(srl_gold_fname_path, d + '_' + srl_gold_fname_end)
             domain_fname = os.path.join(self.save_dir, '%s_srl_preds.tsv' % d)
             with open(domain_fname, 'w') as f:
-              for bkt_idx, idx in dataset._metabucket.data:
+              for p_idx, (bkt_idx, idx) in enumerate(data_indices):
                 # for each word, if predicate print word, otherwise -
                 # then all the SRL labels
                 data = dataset._metabucket[bkt_idx].data[idx]
-                preds = all_predictions[bkt_idx][idx]
+                preds = all_predictions[p_idx]
                 words = all_sents[bkt_idx][idx]
                 num_gold_srls = preds[0, 13]
                 num_pred_srls = preds[0, 14]

@@ -433,7 +433,7 @@ class Network(Configurable):
         current_srls = []
         current_predicates = np.zeros(current_sent_shared.shape[0])
       current_srls.append(np.expand_dims(preds[:, -1], -1))
-      current_predicates += np.where(preds[:, predicate_idx] > self._vocabs[4].predicate_true_start_idx).astype(np.int32)
+      current_predicates += (preds[:, predicate_idx] > self._vocabs[4].predicate_true_start_idx).astype(np.int32)
 
     # deal with last one
     merged_srls = np.concatenate(current_srls, axis=-1)

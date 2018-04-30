@@ -171,8 +171,8 @@ class Dataset(Configurable):
         if predicate_indices:
           for k, p_idx in enumerate(predicate_indices):
             # should be sent_len x sent_elements
-            rest_part[:, is_predicate_idx] = predicates["False"][0]
-            rest_part[p_idx, is_predicate_idx] = predicates["True"][0]
+            rest_part[:, is_predicate_idx-1] = predicates["False"][0]
+            rest_part[p_idx, is_predicate_idx-1] = predicates["True"][0]
             correct_srls = srl_part[:, k]
             new_sent = np.concatenate([np.expand_dims(word_part, -1), rest_part, np.expand_dims(correct_srls, -1)], axis=1)
             buff2.append(new_sent)

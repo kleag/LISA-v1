@@ -420,6 +420,8 @@ class Network(Configurable):
         if current_sent_shared is not None:
           # merge and add to merged list
           merged_srls = np.concatenate(current_srls, axis=-1)
+          print("merged srls", merged_srls)
+          print("current shared", current_sent_shared)
           merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=-1)
           preds_merged.append(merged_sent)
         current_sent_shared = preds[:, :-1]

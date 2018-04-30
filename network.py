@@ -405,12 +405,16 @@ class Network(Configurable):
     current_sent_shared = None
     current_srls = []
     merged_indices = []
+    examples = 0
+    sentences = 0
 
     # for each example
     for bkt_idx, idx in dataset._metabucket.data:
+      examples += 1
       preds = all_preds[bkt_idx][idx]
       this_sent_id = preds[0, 6]
       if this_sent_id != current_sentid:
+        sentences += 1
         current_sentid = this_sent_id
         merged_indices.append((bkt_idx, idx))
         if current_sent_shared:
@@ -427,6 +431,7 @@ class Network(Configurable):
     merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=-1)
     preds_merged.append(merged_sent)
 
+    print("Merged %d examples into %d/%d sentences" % (examples, len(preds_merged), sentences))
     return preds_merged, merged_indices
 
     

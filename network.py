@@ -619,9 +619,9 @@ class Network(Configurable):
             # gold_pred = srl_golds_str[i] if srl_golds_str else []
             bio_pred = srl_preds_bio[i] if srl_preds_bio else []
             word_str = word
-            tag0_str = self.tags[pred[6]] # gold tag
-            tag1_str = self.tags[pred[8]] # auto tag
-            tag2_str = self.tags[pred[11]] # predicted tag
+            tag0_str = self.tags[pred[7]] # gold tag
+            tag1_str = self.tags[pred[3]] # auto tag
+            tag2_str = self.tags[pred[12]] # predicted tag
             # gold_pred = word if np.any(["(V*" in p for p in gold_pred]) else '-'
             pred_pred = word if np.any(["(V*" in p for p in orig_pred]) else '-'
             # fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (gold_pred,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)

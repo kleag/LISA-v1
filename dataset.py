@@ -183,7 +183,7 @@ class Dataset(Configurable):
       #   examples += 1
         print("Loaded %d sentences with %d tokens, %d examples (%s)" % (sents, toks, examples, self.name))
         return buff2
-      
+
     print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
     return buff
   

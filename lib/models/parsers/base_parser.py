@@ -46,6 +46,8 @@ class BaseParser(NN):
     """"""
     
     for tokens, golds, parse_preds, rel_preds in zip(inputs, targets, predictions[0], predictions[1]):
+      print("tokens", tokens)
+      print("golds", golds)
       for l, (token, gold, parse, rel) in enumerate(zip(tokens, golds, parse_preds, rel_preds)):
         if token[0] > 0:
           word = vocabs[0][token[0]]
@@ -184,8 +186,6 @@ class BaseParser(NN):
       # print("pred_trigger_indices", pred_trigger_indices)
       # print("s_pred", s_pred.shape, s_pred)
 
-
-
       if len(s_pred.shape) == 1:
         s_pred = np.expand_dims(s_pred, -1)
       sent[:,15+num_pred_srls+num_gold_srls:] = s_pred
@@ -246,6 +246,7 @@ class BaseParser(NN):
   #=============================================================
   @property
   def input_idxs(self):
+    # word, word, auto_tag, predicate t/f, domain, sent id
     return (0, 1, 2, 3, 4, 5)
   @property
   def target_idxs(self):

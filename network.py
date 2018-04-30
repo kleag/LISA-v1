@@ -433,7 +433,7 @@ class Network(Configurable):
         current_srls = []
         current_predicates = np.zeros(current_sent_shared.shape[0])
       current_srls.append(np.expand_dims(preds[:, -1], -1))
-      if current_sent_shared.shape[1] > 15:
+      if current_sent_shared.shape[1] > 14:
         current_predicates += (preds[:, predicate_idx] > self._vocabs[4].predicate_true_start_idx).astype(np.int32)
 
     # deal with last one

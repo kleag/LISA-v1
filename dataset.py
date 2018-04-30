@@ -175,7 +175,7 @@ class Dataset(Configurable):
             correct_srls = srl_part[:, k]
             new_sent = np.concatenate([np.expand_dims(word_part, -1), rest_part, np.expand_dims(correct_srls, -1)], axis=1)
             buff2.append(new_sent)
-            # print("new sent:", new_sent)
+            print("new sent:", new_sent)
             # print("new preds:", map(lambda x: srls[int(x)], new_sent[:, -1]))
             examples += 1
       # else:

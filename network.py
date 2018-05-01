@@ -418,8 +418,11 @@ class Network(Configurable):
       if this_sent_id != current_sentid:
         sentences += 1
         current_sentid = this_sent_id
+        print("processing sent %d" % current_sentid)
+        print("should have %d preds" % preds[0, 12])
         merged_indices.append((bkt_idx, idx))
         if current_sent_shared is not None:
+          print("last sent had: %d preds" % len(current_srls))
           # merge and add to merged list
           merged_srls = np.concatenate(current_srls, axis=-1)
           # if len(merged_srls.shape) == 1:

@@ -540,10 +540,11 @@ class Parser(BaseParser):
     def compute_srl_simple(srl_target):
       with tf.variable_scope('SRL-MLP-Simple', reuse=reuse):
         srl_logits = self.MLP(top_recur, num_srl_classes, n_splits=1)
-        srl_output = self.output(srl_logits, srl_target)
-        srl_output = {f: srl_output[f] for f in ['loss', 'probabilities', 'predictions', 'correct', 'count']}
+        output = self.output(srl_logits, srl_target)
+        srl_output = {f: output[f] for f in ['loss', 'probabilities', 'predictions', 'correct', 'count']}
         srl_output['logits'] = srl_logits
         srl_output['transition_params'] = tf.constant(0.)
+        srl_output['correct'] = output['n_correct']
         return srl_output
 
     srl_targets = targets[:, :, 3:]

@@ -430,14 +430,14 @@ class Network(Configurable):
           #   merged_srls = np.expand_dims(merged_srls, -1)
           # print("merged srls", len(merged_srls.shape), merged_srls.shape, merged_srls)
           # print("current shared", current_sent_shared.shape, current_sent_shared)
-          if preds.shape[1] > 14:
+          if preds.shape[1] > 16:
             current_sent_shared[:, predicate_idx] = current_predicates
           merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=1)
           preds_merged.append(merged_sent)
-        current_sent_shared = preds[:, :15]
+        current_sent_shared = preds[:, :16]
         current_srls = []
         current_predicates = np.zeros(current_sent_shared.shape[0])
-      if preds.shape[1] > 14:
+      if preds.shape[1] > 16:
         # print(current_sent_shared)
         current_srls.append(np.expand_dims(preds[:, -1], -1))
         current_predicates += (preds[:, predicate_idx] > self._vocabs[4].predicate_true_start_idx).astype(np.int32)

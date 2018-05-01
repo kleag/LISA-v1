@@ -692,9 +692,9 @@ class Network(Configurable):
             # print("predicate indices", predicate_indices)
           else:
             predicate_indices = preds[:, 15:15+num_pred_srls]
-          # print("predicate indices", predicate_indices)
+          print("predicate indices", predicate_indices)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-          # print("srl_preds_str", srl_preds_str)
+          print("srl_preds_str", srl_preds_str)
           for i, word in enumerate(words):
             pred = srl_preds_str[i] if srl_preds_str else []
             word_str = word if i in predicate_indices else '-'

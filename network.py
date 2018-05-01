@@ -685,7 +685,10 @@ class Network(Configurable):
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
           srl_preds = preds[:, 14+num_gold_srls+num_pred_srls:]
-          predicate_indices = preds[:, 15:15+num_pred_srls]
+          if self.one_example_per_predicate:
+            predicate_indices = np.where(preds[:, 4] == 1)
+          else:
+            predicate_indices = preds[:, 15:15+num_pred_srls]
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           for i, word in enumerate(words):
             pred = srl_preds_str[i] if srl_preds_str else []

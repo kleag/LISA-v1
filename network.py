@@ -434,7 +434,7 @@ class Network(Configurable):
             current_sent_shared[:, predicate_idx] = current_predicates
           merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=1)
           preds_merged.append(merged_sent)
-        current_sent_shared = preds[:, :-2]
+        current_sent_shared = preds[:, :15]
         current_srls = []
         current_predicates = np.zeros(current_sent_shared.shape[0])
       if preds.shape[1] > 14:

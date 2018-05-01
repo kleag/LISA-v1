@@ -430,7 +430,7 @@ class Network(Configurable):
           # print("merged srls", len(merged_srls.shape), merged_srls.shape, merged_srls)
           # print("current shared", current_sent_shared.shape, current_sent_shared)
           if current_srls:
-            merged_srls = np.concatenate(current_srls, axis=-1) if current_srls else
+            merged_srls = np.concatenate(current_srls, axis=-1)
             current_sent_shared[:, predicate_idx] = current_predicates
             merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=1)
           else:

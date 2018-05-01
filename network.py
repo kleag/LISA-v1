@@ -424,7 +424,7 @@ class Network(Configurable):
         if current_sent_shared is not None:
           # print("last sent had: %d/%d preds" % (len(current_srls), np.sum(current_predicates)))
           # merge and add to merged list
-          merged_srls = np.concatenate(current_srls, axis=-1)
+          merged_srls = np.concatenate(current_srls, axis=-1) if current_srls else []
           # print(merged_srls)
           # if len(merged_srls.shape) == 1:
           #   merged_srls = np.expand_dims(merged_srls, -1)

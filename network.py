@@ -415,17 +415,17 @@ class Network(Configurable):
       examples += 1
       preds = all_preds[bkt_idx][idx]
       this_sent_id = preds[0, 6]
-      print("preds", preds)
+      # print("preds", preds)
       if this_sent_id != current_sentid:
         sentences += 1
         current_sentid = this_sent_id
-        print("processing sent %d" % current_sentid)
+        # print("processing sent %d" % current_sentid)
         merged_indices.append((bkt_idx, idx))
         if current_sent_shared is not None:
-          print("last sent had: %d/%d preds" % (len(current_srls), np.sum(current_predicates)))
+          # print("last sent had: %d/%d preds" % (len(current_srls), np.sum(current_predicates)))
           # merge and add to merged list
           merged_srls = np.concatenate(current_srls, axis=-1)
-          print(merged_srls)
+          # print(merged_srls)
           # if len(merged_srls.shape) == 1:
           #   merged_srls = np.expand_dims(merged_srls, -1)
           # print("merged srls", len(merged_srls.shape), merged_srls.shape, merged_srls)

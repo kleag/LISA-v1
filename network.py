@@ -446,8 +446,12 @@ class Network(Configurable):
         # print("predicates", (preds[:, predicate_idx] > self._vocabs[4].predicate_true_start_idx).astype(np.int32))
 
     # deal with last one
-    merged_srls = np.concatenate(current_srls, axis=-1)
-    merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=-1)
+    current_sent_shared[:, predicate_idx] = current_predicates
+    if current_srls:
+      merged_srls = np.concatenate(current_srls, axis=-1)
+      merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=1)
+    else:
+      merged_sent = current_sent_shared
     preds_merged.append(merged_sent)
 
     print("Merged %d examples into %d/%d sentences" % (examples, len(preds_merged), sentences))

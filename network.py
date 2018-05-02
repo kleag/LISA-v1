@@ -694,7 +694,7 @@ class Network(Configurable):
             predicate_indices = preds[:, 15:15+num_pred_srls]
           # print("predicate indices", predicate_indices)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-          if not predicate_indices:
+          if len(predicate_indices) == 0:
             print("srl_preds_str", srl_preds_str)
             print("srl_preds", srl_preds)
             print("preds", preds)

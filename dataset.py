@@ -105,6 +105,8 @@ class Dataset(Configurable):
   #=============================================================
   def _process_buff(self, buff):
     """"""
+
+    tmp_f = open("debug_data_%s" % self.name, 'w')
     
     words, tags, rels, srls, predicates, domains = self.vocabs
     srl_start_field = srls.conll_idx[0]
@@ -178,6 +180,10 @@ class Dataset(Configurable):
             buff2.append(new_sent)
             # print("new sent:", new_sent)
             # print("new preds:", map(lambda x: srls[int(x)], new_sent[:, -1]))
+            tokens_str = ' '.join(word_part)
+            labels_str = ' '.join(map(lambda x: srls[x][0], correct_srls))
+            # idx, tokens, labels
+            print("%d %s ||| %s" % (p_idx, tokens_str, labels_str), file=tmp_f)
             examples += 1
         else:
            new_sent = np.concatenate([np.expand_dims(word_part, -1), rest_part], axis=1)
@@ -186,6 +192,7 @@ class Dataset(Configurable):
       # else:
       #   buff2.append(np.concatenate[np.expand_dims(word_part, -1), rest_part, srl_part], axis=1) #(sent[0],) + map(int, sent[1:]))
       #   examples += 1
+    f.close()
     if self.one_example_per_predicate:
       print("Loaded %d sentences with %d tokens, %d examples (%s)" % (sents, toks, examples, self.name))
       return buff2
@@ -250,8 +257,8 @@ class Dataset(Configurable):
       data = self[bkt_idx].data[bkt_mb]
       sents = self[bkt_idx].sents[bkt_mb]
       maxlen = np.max(np.sum(np.greater(data[:,:,0], 0), axis=1))
-      np.set_printoptions(threshold=np.nan)
 
+      # np.set_printoptions(threshold=np.nan)
       # print("maxlen", maxlen)
       # print("maxlen+max(target_idxs)", maxlen+max(target_idxs))
       # print("data.shape[2]", data.shape[2])

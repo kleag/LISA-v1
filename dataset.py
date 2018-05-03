@@ -181,7 +181,7 @@ class Dataset(Configurable):
             # print("new sent:", new_sent)
             # print("new preds:", map(lambda x: srls[int(x)], new_sent[:, -1]))
             tokens_str = ' '.join(word_part)
-            labels_str = ' '.join(map(lambda x: srls[x][0], correct_srls))
+            labels_str = ' '.join(map(lambda x: srls[x], correct_srls))
             # idx, tokens, labels
             print("%d %s ||| %s" % (p_idx, tokens_str, labels_str), file=tmp_f)
             examples += 1

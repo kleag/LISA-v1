@@ -558,8 +558,10 @@ class Parser(BaseParser):
         'correct':  tf.constant(0.),
         'count':  tf.constant(0.)
       }
+    elif self.srl_simple_tagging:
+      srl_output = compute_srl_simple(srl_targets)
     else:
-      srl_output = tf.cond(tf.equal(int(self.srl_simple_tagging), 1), lambda: compute_srl_simple(srl_targets), lambda: compute_srl(srl_targets))
+      srl_output = compute_srl(srl_targets)
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

@@ -113,6 +113,7 @@ class Dataset(Configurable):
     sents = 0
     toks = 0
     examples = 0
+    total_predicates = 0
     buff2 = []
     for i, sent in enumerate(buff):
       # if not self.conll2012 or (self.conll2012 and len(list(sent)) > 1):
@@ -180,10 +181,11 @@ class Dataset(Configurable):
             buff2.append(new_sent)
             # print("new sent:", new_sent)
             # print("new preds:", map(lambda x: srls[int(x)], new_sent[:, -1]))
-            tokens_str = ' '.join(word_part)
-            labels_str = ' '.join(map(lambda x: srls[x], correct_srls))
-            # idx, tokens, labels
-            print("%d %s ||| %s" % (p_idx, tokens_str, labels_str), file=tmp_f)
+            # tokens_str = ' '.join(word_part)
+            # labels_str = ' '.join(map(lambda x: srls[x], correct_srls))
+            ## idx, tokens, labels
+            # print("%d %s ||| %s" % (p_idx, tokens_str, labels_str), file=tmp_f)
+            total_predicates += 1
             examples += 1
         else:
            new_sent = np.concatenate([np.expand_dims(word_part, -1), rest_part], axis=1)
@@ -194,7 +196,7 @@ class Dataset(Configurable):
       #   examples += 1
     tmp_f.close()
     if self.one_example_per_predicate:
-      print("Loaded %d sentences with %d tokens, %d examples (%s)" % (sents, toks, examples, self.name))
+      print("Loaded %d sentences with %d tokens, %d examples (%d predicates) (%s)" % (sents, toks, examples, total_predicates, self.name))
       return buff2
     else:
       print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))

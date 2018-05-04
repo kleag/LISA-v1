@@ -566,7 +566,7 @@ class Network(Configurable):
             for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
               head = pred[8] + 1
               tok_id = i + 1
-              assert self.tags[datum[5]] == self.tags[pred[7]]
+              assert self.tags[datum[6]] == self.tags[pred[7]]
               tup = (
                 tok_id,  # id
                 word,  # form

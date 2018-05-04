@@ -106,7 +106,7 @@ class Dataset(Configurable):
   def _process_buff(self, buff):
     """"""
 
-    tmp_f = open("debug_data_%s" % self.name, 'w')
+    # tmp_f = open("debug_data_%s" % self.name, 'w')
     
     words, tags, rels, srls, predicates, domains = self.vocabs
     srl_start_field = srls.conll_idx[0]
@@ -194,7 +194,7 @@ class Dataset(Configurable):
       # else:
       #   buff2.append(np.concatenate[np.expand_dims(word_part, -1), rest_part, srl_part], axis=1) #(sent[0],) + map(int, sent[1:]))
       #   examples += 1
-    tmp_f.close()
+    # tmp_f.close()
     if self.one_example_per_predicate:
       print("Loaded %d sentences with %d tokens, %d examples (%d predicates) (%s)" % (sents, toks, examples, total_predicates, self.name))
       return buff2

@@ -707,3 +707,8 @@ class Configurable(object):
   def srl_simple_tagging(self):
     return self._config.getboolean('Training', 'srl_simple_tagging')
   argparser.add_argument('--srl_simple_tagging')
+
+  @property
+  def label_smoothing(self):
+    return self._config.getfloat('Training', 'label_smoothing')
+  argparser.add_argument('--label_smoothing')

@@ -1231,6 +1231,7 @@ class NN(Configurable):
     original_shape = tf.shape(targets)
     batch_size = original_shape[0]
     bucket_size = original_shape[1]
+    num_labels = original_shape[2]
 
     # need to repeat each of these once for each target in the sentence
     # mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]),
@@ -1272,7 +1273,12 @@ class NN(Configurable):
                                                                               transition_params=transition_params)
         loss = tf.reduce_mean(-log_likelihood)
       else:
-        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
+        if self.label_smoothing > 0:
+          srl_targets_onehot = tf.one_hot(srl_targets, num_labels)
+          cross_entropy = tf.losses.softmax_cross_entropy(logits=logits_transposed, onehot_labels=srl_targets_onehot,
+                                                          label_smoothing=self.label_smoothing)
+        else:
+          cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
         cross_entropy *= mask
         loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
       correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))

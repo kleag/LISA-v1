@@ -704,6 +704,7 @@ class Network(Configurable):
           print("srl_preds_str", srl_preds_str)
           print("srl_preds", srl_preds)
           print("preds", preds)
+          print("words", words)
           # print("srl_preds_str", srl_preds_str)
           for i, word in enumerate(words):
             pred = srl_preds_str[i] if srl_preds_str else []

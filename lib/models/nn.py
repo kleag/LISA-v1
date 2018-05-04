@@ -1232,7 +1232,7 @@ class NN(Configurable):
     batch_size = original_shape[0]
     bucket_size = original_shape[1]
     num_labels = original_shape[2]
-    num_labels = tf.Print(num_labels, [num_labels], "num_labels")
+    num_labels = tf.Print(num_labels, [num_labels, original_shape], "num_labels")
 
     # need to repeat each of these once for each target in the sentence
     # mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]),

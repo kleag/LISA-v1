@@ -705,6 +705,7 @@ class Network(Configurable):
           #   print("preds", preds)
           # print("srl_preds_str", srl_preds_str)
           for i, word in enumerate(words):
+            print(srl_preds_str)
             pred = srl_preds_str[i] if srl_preds_str else []
             word_str = word if i in predicate_indices else '-'
             fields = (word_str,) + tuple(pred)

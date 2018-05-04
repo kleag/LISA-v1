@@ -554,7 +554,7 @@ class Network(Configurable):
       with open(parse_pred_fname, 'w') as f:
         for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           data = dataset._metabucket[bkt_idx].data[idx]
-          preds = all_predictions[p_idx]
+          preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
           # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
           # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
@@ -600,7 +600,7 @@ class Network(Configurable):
             with open(domain_fname, 'w') as f:
               for p_idx, (bkt_idx, idx) in enumerate(data_indices):
                 data = dataset._metabucket[bkt_idx].data[idx]
-                preds = all_predictions[p_idx]
+                preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
                 domain = '-'
                 sent_len = len(words)

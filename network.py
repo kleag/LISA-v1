@@ -688,6 +688,7 @@ class Network(Configurable):
           # then all the SRL labels
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
+          print("preds", preds)
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
           srl_preds = preds[:, 14+num_gold_srls+num_pred_srls:]
@@ -703,7 +704,6 @@ class Network(Configurable):
           print("predicate inds", predicate_indices)
           print("srl_preds_str", srl_preds_str)
           print("srl_preds", srl_preds)
-          print("preds", preds)
           print("words", words)
           # print("srl_preds_str", srl_preds_str)
           for i, word in enumerate(words):

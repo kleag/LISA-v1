@@ -527,7 +527,7 @@ class Network(Configurable):
       all_predictions, data_indices = self.merge_preds(all_predictions, dataset)
     else:
       data_indices = dataset._metabucket.data
-      all_predictions = [p for s in all_predictions for p in s]
+      # all_predictions = [p for s in all_predictions for p in s]
 
     correct = {'UAS': 0., 'LAS': 0., 'parse_eval': '', 'F1': 0.}
     srl_acc = 0.0
@@ -686,7 +686,7 @@ class Network(Configurable):
         for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           # for each word, if predicate print word, otherwise -
           # then all the SRL labels
-          preds = all_predictions[p_idx]
+          preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]

@@ -1275,7 +1275,7 @@ class NN(Configurable):
       else:
         if self.label_smoothing > 0:
           srl_targets_onehot = tf.one_hot(srl_targets, num_labels)
-          srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(srl_targets_onehot)], summarize=20)
+          srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(srl_targets_onehot), tf.shape(srl_targets)], summarize=20)
           cross_entropy = tf.losses.softmax_cross_entropy(logits=logits_transposed, onehot_labels=srl_targets_onehot,
                                                           label_smoothing=self.label_smoothing)
         else:

@@ -645,7 +645,7 @@ class Network(Configurable):
           # for each word, if predicate print word, otherwise -
           # then all the SRL labels
           data = dataset._metabucket[bkt_idx].data[idx]
-          preds = all_predictions[p_idx]
+          preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
@@ -688,7 +688,6 @@ class Network(Configurable):
           # then all the SRL labels
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
-          print("preds", preds)
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
           srl_preds = preds[:, 14+num_gold_srls+num_pred_srls:]
@@ -740,7 +739,7 @@ class Network(Configurable):
                 # for each word, if predicate print word, otherwise -
                 # then all the SRL labels
                 data = dataset._metabucket[bkt_idx].data[idx]
-                preds = all_predictions[p_idx]
+                preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
                 num_gold_srls = preds[0, 13]
                 num_pred_srls = preds[0, 14]

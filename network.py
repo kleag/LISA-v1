@@ -690,11 +690,12 @@ class Network(Configurable):
           words = all_sents[bkt_idx][idx]
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
-          srl_preds = preds[:, 14+num_gold_srls+num_pred_srls:]
           if self.one_example_per_predicate:
+            srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
             predicate_indices = np.where(preds[:, 4] == 1)[0]
             # print("predicate indices", predicate_indices)
           else:
+            srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
             predicate_indices = preds[:, 15:15+num_pred_srls]
           # print("predicate indices", predicate_indices)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))

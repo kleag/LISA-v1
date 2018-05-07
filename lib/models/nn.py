@@ -1275,7 +1275,7 @@ class NN(Configurable):
       else:
         if self.label_smoothing > 0:
           srl_targets_onehot = tf.one_hot(indices=srl_targets, depth=num_labels, axis=-1)
-          # srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(logits_transposed), tf.shape(srl_targets), tf.shape(srl_targets_onehot)], "srl logits", summarize=200)
+          srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(logits_transposed), tf.shape(srl_targets), tf.shape(srl_targets_onehot)], "srl logits", summarize=200)
           # srl_targets_onehot = tf.Print(srl_targets_onehot, [logits_transposed], "srl logits", summarize=200)
           #
           # srl_targets_onehot = tf.Print(srl_targets_onehot, [srl_targets], "srl targets", summarize=200)
@@ -1283,10 +1283,10 @@ class NN(Configurable):
 
           orig_logits_shape = tf.shape(logits_transposed)
           loss = tf.losses.softmax_cross_entropy(logits=tf.reshape(logits_transposed, [-1, num_labels]),
-                                                          onehot_labels=tf.reshape(srl_targets_onehot, [-1, num_labels]),
-                                                          weights=tf.reshape(mask, [-1]),
-                                                          label_smoothing=self.label_smoothing,
-                                                          reduction=tf.losses.Reduction.SUM_BY_NONZERO_WEIGHTS)
+                                                 onehot_labels=tf.reshape(srl_targets_onehot, [-1, num_labels]),
+                                                 weights=tf.reshape(mask, [-1]),
+                                                 label_smoothing=self.label_smoothing,
+                                                 reduction=tf.losses.Reduction.SUM_BY_NONZERO_WEIGHTS)
           # cross_entropy = tf.Print(cross_entropy, [cross_entropy], "cross entropy", summarize=200)
           # cross_entropy = tf.reshape(cross_entropy, [orig_logits_shape[0], orig_logits_shape[1]])
 

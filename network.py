@@ -647,6 +647,7 @@ class Network(Configurable):
           data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
+          print("preds", preds)
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
           srl_preds = preds[:, 15+num_pred_srls+num_gold_srls:]

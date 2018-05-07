@@ -1275,7 +1275,7 @@ class NN(Configurable):
       else:
         if self.label_smoothing > 0:
           srl_targets_onehot = tf.one_hot(indices=srl_targets, depth=num_labels, axis=-1)
-          srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(logits_transposed), tf.shape(srl_targets), tf.shape(srl_targets_onehot)], "srl logits", summarize=200)
+          # srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(logits_transposed), tf.shape(srl_targets), tf.shape(srl_targets_onehot)], "srl logits", summarize=200)
           # srl_targets_onehot = tf.Print(srl_targets_onehot, [logits_transposed], "srl logits", summarize=200)
           #
           # srl_targets_onehot = tf.Print(srl_targets_onehot, [srl_targets], "srl targets", summarize=200)
@@ -1297,7 +1297,8 @@ class NN(Configurable):
       correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
       return loss, correct
 
-    loss, correct = tf.cond(tf.greater(tf.shape(targets)[2], 0),
+    compute_loss = tf.reduce_all(tf.greater(tf.shape(targets), 0))
+    loss, correct = tf.cond(compute_loss,
                    lambda: compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params),
                    lambda: (tf.constant(0.), tf.constant(0.)))
 

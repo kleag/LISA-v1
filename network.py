@@ -693,7 +693,7 @@ class Network(Configurable):
           words = all_sents[bkt_idx][idx]
           # if len(preds.shape) < 2:
           #   preds = np.reshape(preds, [1, preds.shape[0]])
-          print("preds", preds)
+          # print("preds", preds)
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
           srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
@@ -707,9 +707,9 @@ class Network(Configurable):
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           # if len(predicate_indices) == 0:
           # if preds[0,6] == 2 or preds[0,6] == 3:
-          print("predicate inds", predicate_indices)
-          print("srl_preds_str", srl_preds_str)
-          print("srl_preds", srl_preds)
+          # print("predicate inds", predicate_indices)
+          # print("srl_preds_str", srl_preds_str)
+          # print("srl_preds", srl_preds)
           # print("words", words)
           # print("srl_preds_str", srl_preds_str)
           for i, word in enumerate(words):

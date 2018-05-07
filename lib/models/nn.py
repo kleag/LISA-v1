@@ -1276,6 +1276,7 @@ class NN(Configurable):
         if self.label_smoothing > 0:
           srl_targets_onehot = tf.one_hot(indices=srl_targets, depth=num_labels, axis=-1)
           srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(logits_transposed), tf.shape(srl_targets), tf.shape(srl_targets_onehot)], "srl logits", summarize=200)
+          srl_targets_onehot = tf.Print(srl_targets_onehot, [logits_transposed], "srl logits", summarize=200)
 
           srl_targets_onehot = tf.Print(srl_targets_onehot, [srl_targets], "srl targets", summarize=200)
           srl_targets_onehot = tf.Print(srl_targets_onehot, [srl_targets_onehot], "srl targets onehot", summarize=200)

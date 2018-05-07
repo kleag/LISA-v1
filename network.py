@@ -705,12 +705,11 @@ class Network(Configurable):
           # print("predicate indices", predicate_indices)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           # if len(predicate_indices) == 0:
-          # if preds[0,6] == 2 or preds[0,6] == 3:
-          # print("predicate inds", predicate_indices)
-          # print("srl_preds_str", srl_preds_str)
-          # print("srl_preds", srl_preds)
-          # print("words", words)
-          # print("srl_preds_str", srl_preds_str)
+          if preds[0,6] < 4:
+            print("predicate inds", predicate_indices)
+            print("srl_preds_str", srl_preds_str)
+            print("srl_preds", srl_preds)
+            print("words", words)
           for i, word in enumerate(words):
             pred = srl_preds_str[i] if srl_preds_str else []
             word_str = word if i in predicate_indices else '-'

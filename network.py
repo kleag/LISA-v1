@@ -415,6 +415,8 @@ class Network(Configurable):
       examples += 1
       preds = all_preds[bkt_idx][idx]
       this_sent_id = preds[0, 6]
+      if this_sent_id < 4:
+        print("orig preds", preds)
       # print("preds", preds)
       if this_sent_id != current_sentid:
         sentences += 1

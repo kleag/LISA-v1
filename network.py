@@ -706,6 +706,7 @@ class Network(Configurable):
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           # if len(predicate_indices) == 0:
           if preds[0,6] < 4:
+            print("preds", preds)
             print("predicate inds", predicate_indices)
             print("srl_preds_str", srl_preds_str)
             print("srl_preds", srl_preds)

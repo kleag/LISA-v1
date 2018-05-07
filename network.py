@@ -438,7 +438,7 @@ class Network(Configurable):
           else:
             merged_sent = current_sent_shared
           preds_merged.append(merged_sent)
-        current_sent_shared = preds[:, :16]
+        current_sent_shared = preds[:, :17]
         current_srls = []
         current_predicates = np.zeros(current_sent_shared.shape[0])
       if preds.shape[1] > 16:

@@ -1284,7 +1284,7 @@ class NN(Configurable):
           orig_logits_shape = tf.shape(logits_transposed)
           cross_entropy = tf.losses.softmax_cross_entropy(logits=tf.reshape(logits_transposed, [-1, num_labels]),
                                                           onehot_labels=tf.reshape(srl_targets_onehot, [-1, num_labels]),
-                                                          label_smoothing=self.label_smoothing)
+                                                          label_smoothing=self.label_smoothing, reduction=tf.losses.Reduction.NONE)
           cross_entropy = tf.Print(cross_entropy, [tf.shape(cross_entropy)], "cross entropy", summarize=200)
           # cross_entropy = tf.reshape(cross_entropy, [orig_logits_shape[0], orig_logits_shape[1]])
 

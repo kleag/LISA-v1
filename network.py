@@ -649,7 +649,6 @@ class Network(Configurable):
           # if len(preds.shape) < 2:
           #   preds = np.reshape(preds, [1, preds.shape[0]])
           words = all_sents[bkt_idx][idx]
-          print("preds", preds)
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
           srl_preds = preds[:, 15+num_pred_srls+num_gold_srls:]

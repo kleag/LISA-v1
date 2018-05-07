@@ -1254,9 +1254,10 @@ class NN(Configurable):
     # num_triggers_in_batch x seq_len
     predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
 
+    trigger_counts = tf.reduce_sum(trigger_predictions, -1)
+
     def compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params):
       # batch*num_targets x seq_len
-      trigger_counts = tf.reduce_sum(trigger_predictions, -1)
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
 
       # srl_targets_indices = tf.Print(srl_targets_indices, [batch_size, bucket_size, tf.shape(logits_transposed), tf.shape(targets), tf.shape(srl_targets_transposed), tf.shape(srl_targets_indices)], summarize=10)
@@ -1297,7 +1298,7 @@ class NN(Configurable):
       correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
       return loss, correct
 
-    compute_loss = tf.reduce_all(tf.greater(tf.shape(targets), 0))
+    compute_loss = tf.logical_and(tf.greater(tf.shape(targets)[2], 0), tf.greater(tf.reduce_sum(trigger_counts), 0))
     loss, correct = tf.cond(compute_loss,
                    lambda: compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params),
                    lambda: (tf.constant(0.), tf.constant(0.)))

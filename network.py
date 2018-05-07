@@ -523,7 +523,7 @@ class Network(Configurable):
           all_predictions.append([])
           all_sents.append([])
 
-    if self.add_predicates_to_input:
+    if self.one_example_per_predicate:
       all_predictions, data_indices = self.merge_preds(all_predictions, dataset)
     else:
       data_indices = dataset._metabucket.data
@@ -646,8 +646,8 @@ class Network(Configurable):
           # then all the SRL labels
           data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
-          if len(preds.shape) < 2:
-            preds = np.reshape(preds, [1, preds.shape[0]])
+          # if len(preds.shape) < 2:
+          #   preds = np.reshape(preds, [1, preds.shape[0]])
           words = all_sents[bkt_idx][idx]
           print("preds", preds)
           num_gold_srls = preds[0, 13]
@@ -691,8 +691,8 @@ class Network(Configurable):
           # then all the SRL labels
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
-          if len(preds.shape) < 2:
-            preds = np.reshape(preds, [1, preds.shape[0]])
+          # if len(preds.shape) < 2:
+          #   preds = np.reshape(preds, [1, preds.shape[0]])
           print("preds", preds)
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]

@@ -415,8 +415,8 @@ class Network(Configurable):
       examples += 1
       preds = all_preds[bkt_idx][idx]
       this_sent_id = preds[0, 6]
-      if this_sent_id < 4:
-        print("orig preds", preds)
+      # if this_sent_id < 4:
+      #   print("orig preds", preds)
       # print("preds", preds)
       if this_sent_id != current_sentid:
         sentences += 1
@@ -707,12 +707,12 @@ class Network(Configurable):
           # print("predicate indices", predicate_indices)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           # if len(predicate_indices) == 0:
-          if preds[0,6] < 4:
-            print("preds", preds)
-            print("predicate inds", predicate_indices)
-            print("srl_preds_str", srl_preds_str)
-            print("srl_preds", srl_preds)
-            print("words", words)
+          # if preds[0,6] < 4:
+          #   print("preds", preds)
+          #   print("predicate inds", predicate_indices)
+          #   print("srl_preds_str", srl_preds_str)
+          #   print("srl_preds", srl_preds)
+          #   print("words", words)
           for i, word in enumerate(words):
             pred = srl_preds_str[i] if srl_preds_str else []
             word_str = word if i in predicate_indices else '-'

@@ -1281,6 +1281,8 @@ class NN(Configurable):
           srl_targets_onehot = tf.Print(srl_targets_onehot, [srl_targets_onehot], "srl targets onehot", summarize=200)
           cross_entropy = tf.losses.softmax_cross_entropy(logits=logits_transposed, onehot_labels=srl_targets_onehot,
                                                           label_smoothing=self.label_smoothing)
+          cross_entropy = tf.Print(cross_entropy, [tf.shape(cross_entropy)], "cross entropy", summarize=200)
+
         else:
           cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
         cross_entropy *= mask

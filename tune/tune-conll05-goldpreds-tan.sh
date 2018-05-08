@@ -85,7 +85,7 @@ for lr in ${lrs[@]}; do
 
 
                                                                         commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                        --config_file config/trans-conll05-bio-goldtrigs-sdeps-tanconf.cfg \
+                                                                        --config_file config/trans-conll05-bio-manualattn-goldtrigs-sdeps-tanconf.cfg \
                                                                         --save_dir $OUT_LOG/scores-$fname_append \
                                                                         --save_every 500 \
                                                                         --train_iters 5000000 \
@@ -106,6 +106,7 @@ for lr in ${lrs[@]}; do
                                                                         --one_example_per_predicate $one_example_per_predicate \
                                                                         --eval_by_domain False \
                                                                         --eval_srl True \
+                                                                        --ensure_tree True \
                                                                         --eval_parse $eval_parse \
                                                                         --full_parse $full_parse \
                                                                         --arc_loss_penalty $arc_loss_penalty \

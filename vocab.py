@@ -317,7 +317,8 @@ class Vocab(Configurable):
     
     with tf.device('/cpu:0'):
       with tf.variable_scope(self.name):
-        self.trainable_embeddings = tf.get_variable('Trainable', shape=(len(self._str2idx), embed_size), initializer=initializer)
+        if self.add_to_pretrained:
+          self.trainable_embeddings = tf.get_variable('Trainable', shape=(len(self._str2idx), embed_size), initializer=initializer)
         if self.use_pretrained:
           self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
           self.pretrained_embeddings = tf.Variable(self.pretrained_embeddings, trainable=(not self.add_to_pretrained), name='Pretrained')

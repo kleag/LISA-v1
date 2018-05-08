@@ -60,8 +60,8 @@ class Network(Configurable):
     with open(os.path.join(self.save_dir, 'config.cfg'), 'w') as f:
       self._config.write(f)
 
-    self._global_step = tf.Variable(0., trainable=False)
-    self._global_epoch = tf.Variable(0., trainable=False)
+    self._global_step = tf.Variable(0., trainable=False, name="global_step")
+    self._global_epoch = tf.Variable(0., trainable=False, name="global_epoch")
 
     # todo what is this??
     # self._model = model(self._config, global_step=self.global_step)
@@ -103,7 +103,7 @@ class Network(Configurable):
     self._testset = Dataset(self.test_file, self._vocabs, model, self._config, name='Testset')
 
     self._ops = self._gen_ops()
-    self._save_vars = filter(lambda x: u'Pretrained' not in x.name or not self.add_to_pretrained, tf.global_variables())
+    self._save_vars = filter(lambda x: u'Pretrained' not in x.name, tf.global_variables())
     self.history = {
       'train_loss': [],
       'train_accuracy': [],

@@ -70,21 +70,22 @@ class Network(Configurable):
     self._vocabs = []
 
     if self.conll:
-      vocab_files = [(self.word_file, 1, 'Words'),
-                     (self.tag_file, [3, 4], 'Tags'),
-                     (self.rel_file, 7, 'Rels')]
+      vocab_files = [(self.word_file, 1, 'Words', self.embed_size),
+                     (self.tag_file, [3, 4], 'Tags', 0),
+                     (self.rel_file, 7, 'Rels', 0)]
     elif self.conll2012:
-      vocab_files = [(self.word_file, 3, 'Words'),
-                     (self.tag_file, [5, 4], 'Tags'), # auto, gold
-                     (self.rel_file, 7, 'Rels'),
-                     (self.srl_file, range(14, 50), 'SRLs'),
-                     (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10, 'Trigs'),
-                     (self.domain_file, 0, 'Domains')]
+      vocab_files = [(self.word_file, 3, 'Words', self.embed_size),
+                     (self.tag_file, [5, 4], 'Tags', 0), # auto, gold
+                     (self.rel_file, 7, 'Rels', 0),
+                     (self.srl_file, range(14, 50), 'SRLs', 0),
+                     (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10,
+                        'Trigs', self.predicate_embed_size if self.add_predicates_to_input else 0),
+                     (self.domain_file, 0, 'Domains', 0)]
 
     print("Loading vocabs")
     sys.stdout.flush()
-    for i, (vocab_file, index, name) in enumerate(vocab_files):
-      vocab = Vocab(vocab_file, index, self._config,
+    for i, (vocab_file, index, name, embed_size) in enumerate(vocab_files):
+      vocab = Vocab(vocab_file, index, embed_size, self._config,
                     name=name,
                     cased=self.cased if not i else True,
                     use_pretrained=(not i))

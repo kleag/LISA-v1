@@ -26,7 +26,6 @@ trans_layers="10 12" # "10 8 6" # 3
 num_heads="8" #4 8"
 head_sizes="25"
 relu_hidden_sizes="800"
-pred_role_mlp_size="200 300"
 
 parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"

@@ -40,7 +40,7 @@ class Vocab(Configurable):
   UNK = 2
   
   #=============================================================
-  def __init__(self, vocab_file, conll_idx, *args, **kwargs):
+  def __init__(self, vocab_file, conll_idx, embed_size, *args, **kwargs):
     """"""
 
     self._vocab_file = vocab_file
@@ -52,7 +52,7 @@ class Vocab(Configurable):
 
     self.train_domains_set = set(self.train_domains.split(',')) if self.train_domains != '-' and self.name != "Domains" else set()
 
-    self._embed_size = self.embed_size if self.name != 'Trigs' else self.predicate_embed_size
+    self._embed_size = embed_size #self.embed_size if self.name != 'Trigs' else self.predicate_embed_size
 
     self.SPECIAL_TOKENS = ('<PAD>', '<UNK>') #, '<ROOT>', '<UNK>')
 
@@ -317,11 +317,15 @@ class Vocab(Configurable):
     
     with tf.device('/cpu:0'):
       with tf.variable_scope(self.name):
-        if self.add_to_pretrained:
-          self.trainable_embeddings = tf.get_variable('Trainable', shape=(len(self._str2idx), embed_size), initializer=initializer)
-        if self.use_pretrained:
+        if self._embed_size > 0 and self.use_pretrained and not self.add_to_pretrained:
           self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
-          self.pretrained_embeddings = tf.Variable(self.pretrained_embeddings, trainable=(not self.add_to_pretrained), name='Pretrained')
+          self.trainable_embeddings = tf.Variable(self.pretrained_embeddings, trainable=True, name='Trainable')
+        else:
+          if self._embed_size > 0:
+            self.trainable_embeddings = tf.get_variable('Trainable', shape=(len(self._str2idx), embed_size), initializer=initializer)
+          if self.use_pretrained:
+            self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
+            self.pretrained_embeddings = tf.Variable(self.pretrained_embeddings, trainable=False, name='Pretrained')
           print("Loaded pre-trained embeddings. Trainable: %s" % (str(not self.add_to_pretrained)))
     return
   

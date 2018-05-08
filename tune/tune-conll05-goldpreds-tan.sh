@@ -65,7 +65,7 @@ for lr in ${lrs[@]}; do
                                                                 for one_example_per_predicate in ${one_example_per_predicates[@]}; do
                                                                     for rep in `seq $reps`; do
     #                                                                    if [[ "$cnn_layer" != "2" || "$trans_layer" != "10" ]]; then
-                                                     con                   fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$rel_penalty-$parents_layer-$predicate_layer-$ss-$full_parse-$one_example_per_predicate"
+                                                                        fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$rel_penalty-$parents_layer-$predicate_layer-$ss-$full_parse-$one_example_per_predicate"
                                                                         orig_parents_layer=$parents_layer
                                                                         if [[ "$parents_layer" == "no" ]]; then
                                                                             parents_layer=""

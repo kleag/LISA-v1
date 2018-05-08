@@ -102,7 +102,7 @@ for lr in ${lrs[@]}; do
                                                                         --epsilon $epsilon \
                                                                         --predicate_layer $predicate_layer \
                                                                         --multitask_layers \"$parents_layer\" \
-                                                                        --multitask_penalties \"parents:$parents_penalty\"
+                                                                        --multitask_penalties \"parents:$parents_penalty\" \
                                                                         --one_example_per_predicate $one_example_per_predicate \
                                                                         --eval_by_domain False \
                                                                         --eval_srl True \

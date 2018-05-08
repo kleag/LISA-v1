@@ -321,7 +321,7 @@ class Vocab(Configurable):
         if self.use_pretrained:
           self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
           self.pretrained_embeddings = tf.Variable(self.pretrained_embeddings, trainable=(not self.add_to_pretrained), name='Pretrained')
-          print("Loaded pre-trained embeddings. Trainable: %s" % (str(self.add_to_pretrained)))
+          print("Loaded pre-trained embeddings. Trainable: %s" % (str(not self.add_to_pretrained)))
     return
   
   #=============================================================

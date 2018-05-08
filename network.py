@@ -79,7 +79,7 @@ class Network(Configurable):
                      (self.rel_file, 7, 'Rels', 0),
                      (self.srl_file, range(14, 50), 'SRLs', 0),
                      (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10,
-                        'Trigs', self.predicate_embed_size if self.add_predicates_to_input else 0),
+                        'Predicates', self.predicate_embed_size if self.add_predicates_to_input else 0),
                      (self.domain_file, 0, 'Domains', 0)]
 
     print("Loading vocabs")

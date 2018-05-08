@@ -26,6 +26,7 @@ trans_layers="10 12" # "10 8 6" # 3
 num_heads="8" #4 8"
 head_sizes="25"
 relu_hidden_sizes="800"
+pred_role_mlp_size="200 300"
 
 parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
@@ -56,6 +57,7 @@ for lr in ${lrs[@]}; do
                                         for parents_penalty in ${parents_penalties[@]}; do
                                             for parents_layer in ${parents_layers[@]}; do
                                                 for predicate_layer in ${predicate_layers[@]}; do
+
                                                     for full_parse in ${use_full_parse[@]}; do
                                                         for ss in ${scheduled_sampling[@]}; do
                                                             for rep in `seq $reps`; do

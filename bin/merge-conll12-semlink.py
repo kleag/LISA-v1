@@ -2,6 +2,7 @@ from __future__ import print_function
 import re
 
 conll12_fname = "/home/strubell/research/data/conll-2012-new/conll2012-train.txt"
+# conll12_fname = "/home/strubell/research/data/conll05st-release/train-set.gz.parse.sdeps.combined.bio"
 semlink_fname = "/home/strubell/research/data/semlink-1.2.2c/semlink-wsj.txt"
 
 remove_list = ['rel', 'LINK-SLC', 'LINK-PSV', 'LINK-PRO']
@@ -60,10 +61,17 @@ print("Loaded %d semlink propositions" % proposition_count)
 for arg in arg_mappings:
   print("%s: %s" % (arg, arg_mappings[arg]))
 
+print(semlink_map)
+
 with open(conll12_fname, 'r') as conll12_file:
   # want to scan conll12 file until we find a sentence that is in semlink,
   # then process that sentence
+  curr_sent = 0
   for line in conll12_file:
     line = line.strip()
     if line:
       split_line = line.split()
+      doc = split_line[0]
+      if doc.startswith("nw/wsj"):
+        this_id =
+

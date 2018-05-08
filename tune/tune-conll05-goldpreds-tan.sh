@@ -25,7 +25,7 @@ batch_sizes="5000"
 trans_layers="10" # "10 8 6" # 3
 num_heads="8" #4 8"
 head_sizes="25"
-relu_hidden_sizes="500"
+relu_hidden_sizes="800"
 
 parents_penalties="0.1"
 rels_penalties="1.0"

@@ -25,13 +25,13 @@ batch_sizes="5000"
 trans_layers="10 12" # "10 8 6" # 3
 num_heads="8" #4 8"
 head_sizes="25"
-relu_hidden_sizes="200 500"
+relu_hidden_sizes="800"
 
 parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
 parents_layers="no" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
-predicate_layers="1 2 3"
+predicate_layers="2 3 4"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
 use_full_parse="False"
 

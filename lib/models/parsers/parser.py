@@ -50,11 +50,12 @@ class Parser(BaseParser):
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params
     
-    word_inputs, pret_inputs = vocabs[0].embedding_lookup(inputs[:,:,0], inputs[:,:,1], moving_params=self.moving_params)
     if self.add_to_pretrained:
+      word_inputs, pret_inputs = vocabs[0].embedding_lookup(inputs[:, :, 0], inputs[:, :, 1],
+                                                            moving_params=self.moving_params)
       word_inputs += pret_inputs
-    # else:
-    #   word_inputs = pret_inputs
+    else:
+      word_inputs = vocabs[0].embedding_lookup(inputs[:, :, 1], moving_params=self.moving_params)
     if self.word_l2_reg > 0:
       unk_mask = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,1], vocabs[0].UNK)), 2)
       word_loss = self.word_l2_reg*tf.nn.l2_loss((word_inputs - pret_inputs) * unk_mask)
@@ -73,7 +74,6 @@ class Parser(BaseParser):
 
     attn_weights_by_layer = {}
 
-    kernel = 3
     hidden_size = self.num_heads * self.head_size
     self.print_once("n_recur: ", self.n_recur)
     self.print_once("num heads: ", self.num_heads)

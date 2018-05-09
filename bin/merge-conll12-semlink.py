@@ -72,6 +72,6 @@ with open(conll12_fname, 'r') as conll12_file:
     if line:
       split_line = line.split()
       doc = split_line[0]
-      if doc.startswith("nw/wsj"):
-        this_id =
+      # if doc.startswith("nw/wsj"):
+      #   this_id =
 

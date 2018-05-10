@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=8
+num_gpus=2
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -27,15 +27,15 @@ num_heads="8" #4 8"
 head_sizes="25"
 relu_hidden_sizes="800"
 
-parents_penalties="0.1"
-rels_penalties="1.0"
+parents_penalties="1.0"
+rels_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:4 no"
+parents_layers="parents:4"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 predicate_layers="1"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
 use_full_parse="True"
-one_example_per_predicates="True False"
+one_example_per_predicates="True"
 
 
 reps="2"

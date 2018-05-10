@@ -35,7 +35,7 @@ parents_layers="parents:4"
 predicate_layers="1"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
 use_full_parse="True"
-one_example_per_predicates="True"
+one_example_per_predicates="True False"
 
 
 reps="2"
@@ -78,6 +78,9 @@ for lr in ${lrs[@]}; do
                                                                         fi
 
                                                                         partition="m40-long"
+                                                                        if [[ "$one_example_per_predicate" == "False" ]]; then
+                                                                            partition="titanx-long"
+                                                                        fi
 
                                                                         ss_arr=(${ss//=/ })
                                                                         sampling_sched=${ss_arr[0]}

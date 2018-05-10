@@ -34,7 +34,7 @@ parents_layers="parents:4 parents:5" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 predicate_layers="3 4"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
-use_full_parse="False"
+use_full_parse="True"
 
 reps="2"
 
@@ -66,6 +66,7 @@ for lr in ${lrs[@]}; do
                                                                         orig_parents_layer=$parents_layer
                                                                         arc_loss_penalty=$parents_penalty
                                                                         rel_loss_penalty=$rels_penalty
+                                                                        eval_parse="True"
                                                                         if [[ "$parents_layer" == "no" ]]; then
                                                                             parents_layer=""
                                                                             eval_parse="False"
@@ -112,6 +113,7 @@ for lr in ${lrs[@]}; do
                                                                         parents_layer=$orig_parents_layer
                                                                         arc_loss_penalty=$parents_penalty
                                                                         rel_loss_penalty=$rels_penalty
+                                                                        eval_parse="True"
                                                                 done
                                                             done
                                                         done

@@ -61,59 +61,61 @@ for lr in ${lrs[@]}; do
                                                         for full_parse in ${use_full_parse[@]}; do
                                                             for ss in ${scheduled_sampling[@]}; do
                                                                 for rep in `seq $reps`; do
-    #                                                                    if [[ "$cnn_layer" != "2" || "$trans_layer" != "10" ]]; then
-                                                                        fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$rels_penalty-$parents_layer-$predicate_layer-$ss-$full_parse"
-                                                                        orig_parents_layer=$parents_layer
-                                                                        arc_loss_penalty=$parents_penalty
-                                                                        rel_loss_penalty=$rels_penalty
-                                                                        eval_parse="True"
-                                                                        if [[ "$parents_layer" == "no" ]]; then
-                                                                            parents_layer=""
-                                                                            eval_parse="False"
-                                                                            rel_loss_penalty=0.0
-                                                                            arc_loss_penalty=0.0
-                                                                        fi
+#                                                                    if [[ "$cnn_layer" != "2" || "$trans_layer" != "10" ]]; then
+                                                                    fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$rels_penalty-$parents_layer-$predicate_layer-$ss-$full_parse"
+                                                                    orig_parents_layer=$parents_layer
+                                                                    arc_loss_penalty=$parents_penalty
+                                                                    rel_loss_penalty=$rels_penalty
+                                                                    eval_parse="True"
+                                                                    if [[ "$parents_layer" == "no" ]]; then
+                                                                        parents_layer=""
+                                                                        eval_parse="False"
+                                                                        rel_loss_penalty=0.0
+                                                                        arc_loss_penalty=0.0
+                                                                    fi
 
-                                                                        partition="titanx-long"
+                                                                    partition="titanx-long"
 
-                                                                        ss_arr=(${ss//=/ })
-                                                                        sampling_sched=${ss_arr[0]}
-                                                                        sample_prob=${ss_arr[1]}
+                                                                    ss_arr=(${ss//=/ })
+                                                                    sampling_sched=${ss_arr[0]}
+                                                                    sample_prob=${ss_arr[1]}
 
-                                                                        commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                        --config_file config/trans-conll05-bio-tan.cfg \
-                                                                        --save_dir $OUT_LOG/scores-$fname_append \
-                                                                        --save_every 500 \
-                                                                        --train_iters 5000000 \
-                                                                        --train_batch_size $batch_size \
-                                                                        --test_batch_size $batch_size \
-                                                                        --warmup_steps $warmup_steps \
-                                                                        --learning_rate $lr \
-                                                                        --n_recur $trans_layer \
-                                                                        --num_heads $num_head \
-                                                                        --head_size $head_size \
-                                                                        --relu_hidden_size $relu_hidden_size \
-                                                                        --mu $mu \
-                                                                        --nu $nu \
-                                                                        --epsilon $epsilon \
-                                                                        --predicate_layer $predicate_layer \
-                                                                        --multitask_layers \"$parents_layer\" \
-                                                                        --multitask_penalties \"parents:$parents_penalty\"
-                                                                        --eval_by_domain False \
-                                                                        --eval_srl True \
-                                                                        --eval_parse $eval_parse \
-                                                                        --full_parse $full_parse \
-                                                                        --arc_loss_penalty $arc_loss_penalty \
-                                                                        --rel_loss_penalty $rel_loss_penalty \
-                                                                        --sampling_schedule $sampling_sched \
-                                                                        --sample_prob $sample_prob \
-                                                                        --save True \
-                                                                        &> $OUT_LOG/train-$fname_append.log")
-                                                                        i=$((i + 1))
-                                                                        parents_layer=$orig_parents_layer
-                                                                        arc_loss_penalty=$parents_penalty
-                                                                        rel_loss_penalty=$rels_penalty
-                                                                        eval_parse="True"
+                                                                    commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
+                                                                    --config_file config/trans-conll05-bio-tan.cfg \
+                                                                    --save_dir $OUT_LOG/scores-$fname_append \
+                                                                    --save_every 500 \
+                                                                    --train_iters 5000000 \
+                                                                    --train_batch_size $batch_size \
+                                                                    --test_batch_size $batch_size \
+                                                                    --warmup_steps $warmup_steps \
+                                                                    --learning_rate $lr \
+                                                                    --n_recur $trans_layer \
+                                                                    --num_heads $num_head \
+                                                                    --head_size $head_size \
+                                                                    --relu_hidden_size $relu_hidden_size \
+                                                                    --mu $mu \
+                                                                    --nu $nu \
+                                                                    --epsilon $epsilon \
+                                                                    --predicate_layer $predicate_layer \
+                                                                    --multitask_layers \"$parents_layer\" \
+                                                                    --multitask_penalties \"parents:$parents_penalty\"
+                                                                    --eval_by_domain False \
+                                                                    --eval_srl True \
+                                                                    --eval_parse $eval_parse \
+                                                                    --full_parse $full_parse \
+                                                                    --arc_loss_penalty $arc_loss_penalty \
+                                                                    --rel_loss_penalty $rel_loss_penalty \
+                                                                    --gold_attn_at_train True \
+                                                                    --inject_manual_attn True \
+                                                                    --sampling_schedule $sampling_sched \
+                                                                    --sample_prob $sample_prob \
+                                                                    --save True \
+                                                                    &> $OUT_LOG/train-$fname_append.log")
+                                                                    i=$((i + 1))
+                                                                    parents_layer=$orig_parents_layer
+                                                                    arc_loss_penalty=$parents_penalty
+                                                                    rel_loss_penalty=$rels_penalty
+                                                                    eval_parse="True"
                                                                 done
                                                             done
                                                         done

@@ -25,7 +25,9 @@ with open(args.input_file, 'r') as f:
       predicate_word, predicate_sense = predicate.split('.') if predicate_tf == 'Y' else ('-', '-')
       srls = split_line[14:]
 
+      srls_bio = ['O' if s == '_' else "B-%s" % s for s in srls]
+
       print("_\t_\t%s\t%s\t%s\t%s\t%s\t%s\t_\t%s\t%s\t_\t_\t%s" %
-            (id, word, gold_pos, pred_pos, gold_head, gold_dep, predicate_word, predicate_sense, '\t'.join(srls)))
+            (id, word, gold_pos, pred_pos, gold_head, gold_dep, predicate_word, predicate_sense, '\t'.join(srls_bio)))
     else:
       print()

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 conll09_fname = "/home/strubell/research/data/CoNLL2009-ST-English/CoNLL2009-ST-English-train.txt"
 

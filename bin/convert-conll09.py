@@ -1,5 +1,5 @@
 
-conll09_fname = "~/research/data/CoNLL2009-ST-English/CoNLL2009-ST-English-train.txt"
+conll09_fname = "/home/strubell/research/data/CoNLL2009-ST-English/CoNLL2009-ST-English-train.txt"
 
 with open(conll09_fname, 'r') as f:
   for line in f:

@@ -1,8 +1,12 @@
 from __future__ import print_function
+import argparse
 
-conll09_fname = "/home/strubell/research/data/CoNLL2009-ST-English/CoNLL2009-ST-English-train.txt"
+arg_parser = argparse.ArgumentParser(description='Convert a CoNLL-2009 file to the format expected by this project')
+arg_parser.add_argument('--input_file', type=str, help='File to process')
 
-with open(conll09_fname, 'r') as f:
+args = arg_parser.parse_args()
+
+with open(args.input_file, 'r') as f:
   for line in f:
     line = line.strip()
     if line:

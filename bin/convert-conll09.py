@@ -22,3 +22,5 @@ with open(conll09_fname, 'r') as f:
 
       print("_\t_\t%s\t%s\t%s\t%s\t%s\t%s\t_\t%s\t%s\t_\t_\t%s" %
             (id, word, gold_pos, pred_pos, gold_head, gold_dep, predicate_word, predicate_sense, '\t'.join(srls)))
+    else:
+      print()

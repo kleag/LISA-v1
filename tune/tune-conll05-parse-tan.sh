@@ -81,7 +81,7 @@ for lr in ${lrs[@]}; do
                                                                     sample_prob=${ss_arr[1]}
 
                                                                     commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                    --config_file config/trans-conll05-bio-tan.cfg \
+                                                                    --config_file config/trans-conll05-bio-parse-tan.cfg \
                                                                     --save_dir $OUT_LOG/scores-$fname_append \
                                                                     --save_every 500 \
                                                                     --train_iters 5000000 \
@@ -105,8 +105,6 @@ for lr in ${lrs[@]}; do
                                                                     --full_parse $full_parse \
                                                                     --arc_loss_penalty $arc_loss_penalty \
                                                                     --rel_loss_penalty $rel_loss_penalty \
-                                                                    --gold_attn_at_train True \
-                                                                    --inject_manual_attn True \
                                                                     --sampling_schedule $sampling_sched \
                                                                     --sample_prob $sample_prob \
                                                                     --save True \

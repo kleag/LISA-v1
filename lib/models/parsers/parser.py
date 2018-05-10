@@ -194,6 +194,7 @@ class Parser(BaseParser):
 
         ####### 1D CNN ########
         with tf.variable_scope('CNN', reuse=reuse):
+          kernel = 3
           for i in xrange(self.cnn_layers):
             with tf.variable_scope('layer%d' % i, reuse=reuse):
               if self.cnn_residual:

@@ -17,7 +17,7 @@ with open(conll09_fname, 'r') as f:
       # pred_dep = split_line[11]
       predicate_tf = split_line[12]
       predicate = split_line[13]
-      predicate_word, predicate_sense = predicate.split('.') if predicate_tf == 'Y' else '-', '-'
+      predicate_word, predicate_sense = predicate.split('.') if predicate_tf == 'Y' else ('-', '-')
       srls = split_line[14:]
 
       print("_\t_\t%s\t%s\t%s\t%s\t%s\t%s\t_\t%s\t%s\t_\t_\t%s" %

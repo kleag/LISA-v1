@@ -226,6 +226,11 @@ class Configurable(object):
   def train_domains(self):
     return self._config.get('Dataset', 'train_domains')
   argparser.add_argument('--train_domains')
+
+  @property
+  def conll09(self):
+    return self._config.getboolean('Dataset', 'conll09')
+  argparser.add_argument('--conll09')
   
   #=============================================================
   # [Layers]

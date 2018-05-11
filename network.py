@@ -706,7 +706,6 @@ class Network(Configurable):
           else:
             predicate_indices = preds[0, 15:15+num_pred_srls]
           # print("predicate indices", predicate_indices)
-          srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           # if len(predicate_indices) == 0:
           # if preds[0,6] < 4:
           #   print("preds", preds)
@@ -714,15 +713,27 @@ class Network(Configurable):
           #   print("srl_preds_str", srl_preds_str)
           #   print("srl_preds", srl_preds)
           #   print("words", words)
-          for i, word in enumerate(words):
-            pred = srl_preds_str[i] if srl_preds_str else []
-            word_str = word if i in predicate_indices else '-'
-            fields = (word_str,) + tuple(pred)
-            owpl_str = '\t'.join(fields)
-            f.write(owpl_str + "\n")
-          if not self.parens_check(np.transpose(srl_preds_str)):
-            print(np.transpose(srl_preds_str))
-            print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
+          if self.conll09:
+            srl_preds_str = map(lambda s: s if s == "O" else )
+            # ID FORM LEMMA PLEMMA POS PPOS FEAT PFEAT HEAD PHEAD DEPREL PDEPREL
+            for i, word in enumerate(words):
+              srl_preds_str = map(lambda i: self._vocabs[3][i], srl_preds[i])
+              pred = srl_preds_str[i] if srl_preds_str else []
+              word_str = word if i in predicate_indices else '-'
+              fields = (word_str,) + tuple(pred)
+              owpl_str = '\t'.join(fields)
+              f.write(owpl_str + "\n")
+          else:
+            srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+            for i, word in enumerate(words):
+              pred = srl_preds_str[i] if srl_preds_str else []
+              word_str = word if i in predicate_indices else '-'
+              fields = (word_str,) + tuple(pred)
+              owpl_str = '\t'.join(fields)
+              f.write(owpl_str + "\n")
+            if not self.parens_check(np.transpose(srl_preds_str)):
+              print(np.transpose(srl_preds_str))
+              print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
           f.write('\n')
 
       srl_acc = (srl_correct_total / srl_count_total)*100.0

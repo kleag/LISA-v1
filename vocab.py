@@ -40,7 +40,7 @@ class Vocab(Configurable):
   UNK = 2
   
   #=============================================================
-  def __init__(self, vocab_file, conll_idx, *args, **kwargs):
+  def __init__(self, vocab_file, conll_idx, embed_size, *args, **kwargs):
     """"""
 
     self._vocab_file = vocab_file
@@ -52,7 +52,7 @@ class Vocab(Configurable):
 
     self.train_domains_set = set(self.train_domains.split(',')) if self.train_domains != '-' and self.name != "Domains" else set()
 
-    self._embed_size = self.embed_size if self.name != 'Trigs' else self.predicate_embed_size
+    self._embed_size = embed_size
 
     self.SPECIAL_TOKENS = ('<PAD>', '<UNK>') #, '<ROOT>', '<UNK>')
 
@@ -66,7 +66,7 @@ class Vocab(Configurable):
     elif self.name == 'Rels':
       self.SPECIAL_TOKENS = ('PAD',) #, self.root_label)
       # self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
-    elif self.name == 'Trigs':
+    elif self.name == 'Predicates':
       self.SPECIAL_TOKENS = ('PAD',)
     elif self.name == 'SRLs':
       self.SPECIAL_TOKENS = ('PAD',)
@@ -190,7 +190,7 @@ class Vocab(Configurable):
               self.add(counts, line[self.conll_idx])
           elif self.conll2012: #and len(line) > 1:
             if hasattr(self.conll_idx, '__iter__'):
-              if self.name == "Trigs":
+              if self.name == "Predicates":
                 actual = "False" if line[self.conll_idx[0]] == '-' else "True"
                 actual = actual + "/" + line[self.conll_idx[1]]
                 self.add(counts, actual)
@@ -200,7 +200,7 @@ class Vocab(Configurable):
                     # print("adding ", line[idx])
                     self.add(counts, line[idx])
             else:
-              if self.name == "Trigs":
+              if self.name == "Predicates":
                 actual = "False" if line[self.conll_idx] == '-' else "True"
                 self.add(counts, actual)
               elif self.name == "Domains":
@@ -234,7 +234,7 @@ class Vocab(Configurable):
 
 
     self._counts = counts
-    self._str2idx, self._idx2str = self.index_vocab_joint(counts) if self.joint_pos_predicates and self.name == "Trigs" else self.index_vocab(counts)
+    self._str2idx, self._idx2str = self.index_vocab_joint(counts) if self.joint_pos_predicates and self.name == "Predicates" else self.index_vocab(counts)
     return
 
   #=============================================================
@@ -295,7 +295,7 @@ class Vocab(Configurable):
           else:
             raise ValueError('The vocab file is misformatted at line %d' % (line_num+1))
     self._counts = counts
-    self._str2idx, self._idx2str = self.index_vocab_joint(counts) if self.joint_pos_predicates and self.name == "Trigs" else self.index_vocab(counts)
+    self._str2idx, self._idx2str = self.index_vocab_joint(counts) if self.joint_pos_predicates and self.name == "Predicates" else self.index_vocab(counts)
     return
   
   #=============================================================
@@ -317,10 +317,17 @@ class Vocab(Configurable):
     
     with tf.device('/cpu:0'):
       with tf.variable_scope(self.name):
-        self.trainable_embeddings = tf.get_variable('Trainable', shape=(len(self._str2idx), embed_size), initializer=initializer)
-        if self.use_pretrained:
+        if self._embed_size > 0 and self.use_pretrained and not self.add_to_pretrained:
           self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
-          self.pretrained_embeddings = tf.Variable(self.pretrained_embeddings, trainable=False, name='Pretrained')
+          self.trainable_embeddings = tf.Variable(self.pretrained_embeddings, trainable=True, name='Trainable')
+          print("Loaded pre-trained embeddings. Trainable: True")
+        else:
+          if self._embed_size > 0:
+            self.trainable_embeddings = tf.get_variable('Trainable', shape=(len(self._str2idx), embed_size), initializer=initializer)
+          if self.use_pretrained:
+            self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
+            self.pretrained_embeddings = tf.Variable(self.pretrained_embeddings, trainable=False, name='Pretrained')
+            print("Loaded pre-trained embeddings. Trainable: False")
     return
   
   #=============================================================

@@ -30,7 +30,7 @@ relu_hidden_sizes="256"
 
 parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:0 parents:1 parents:2"
+parents_layers="parents:0 parents:1 parents:2 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 children_layers="no" #children:1 children:2 no"
 pos_layers="-2 -1 1"

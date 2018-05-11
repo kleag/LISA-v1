@@ -701,3 +701,22 @@ class Configurable(object):
   def max_test_batch_size(self):
     return self._config.getint('Training', 'max_test_batch_size')
   argparser.add_argument('--max_test_batch_size')
+
+  def ff_kernel(self):
+    return self._config.getint('Training', 'ff_kernel')
+  argparser.add_argument('--ff_kernel')
+
+  @property
+  def one_example_per_predicate(self):
+    return self._config.getboolean('Training', 'one_example_per_predicate')
+  argparser.add_argument('--one_example_per_predicate')
+
+  @property
+  def srl_simple_tagging(self):
+    return self._config.getboolean('Training', 'srl_simple_tagging')
+  argparser.add_argument('--srl_simple_tagging')
+
+  @property
+  def label_smoothing(self):
+    return self._config.getfloat('Training', 'label_smoothing')
+  argparser.add_argument('--label_smoothing')

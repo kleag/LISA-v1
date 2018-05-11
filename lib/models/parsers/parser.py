@@ -58,9 +58,12 @@ class Parser(BaseParser):
       #   elmo_encoder = ElmoLSTMEncoder(dataset)
         word_inputs = dataset.elmo_encoder.embed_text()
     else:
-      word_inputs, pret_inputs = vocabs[0].embedding_lookup(inputs[:,:,0], inputs[:,:,1], moving_params=self.moving_params)
       if self.add_to_pretrained:
+        word_inputs, pret_inputs = vocabs[0].embedding_lookup(inputs[:, :, 0], inputs[:, :, 1],
+                                                              moving_params=self.moving_params)
         word_inputs += pret_inputs
+      else:
+        word_inputs = vocabs[0].embedding_lookup(inputs[:, :, 1], moving_params=self.moving_params)
       if self.word_l2_reg > 0:
         unk_mask = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,1], vocabs[0].UNK)), 2)
         word_loss = self.word_l2_reg*tf.nn.l2_loss((word_inputs - pret_inputs) * unk_mask)
@@ -79,7 +82,6 @@ class Parser(BaseParser):
 
     attn_weights_by_layer = {}
 
-    kernel = 3
     hidden_size = self.num_heads * self.head_size
     self.print_once("n_recur: ", self.n_recur)
     self.print_once("num heads: ", self.num_heads)
@@ -149,8 +151,8 @@ class Parser(BaseParser):
 
     # whether to condition on gold or predicted parse
     use_gold_parse = self.inject_manual_attn and not ((moving_params is not None) and self.gold_attn_at_train)
-    if use_gold_parse and (moving_params is not None):
-      sample_prob = self.get_sample_prob(step)
+    sample_prob = self.get_sample_prob(step)
+    if use_gold_parse and (moving_params is None):
       use_gold_parse_tensor = tf.less(tf.random_uniform([]), sample_prob)
     else:
       use_gold_parse_tensor = tf.equal(int(use_gold_parse), 1)
@@ -173,9 +175,7 @@ class Parser(BaseParser):
 
     def dummy_parse_logits():
       dummy_rel_mlp = tf.zeros([batch_size, bucket_size, self.class_mlp_size])
-      # return tf.constant(0.), dummy_rel_mlp, dummy_rel_mlp
       return tf.zeros([batch_size, bucket_size, bucket_size]), dummy_rel_mlp, dummy_rel_mlp
-
 
     arc_logits, dep_rel_mlp, head_rel_mlp = dummy_parse_logits()
 
@@ -202,6 +202,7 @@ class Parser(BaseParser):
 
         ####### 1D CNN ########
         with tf.variable_scope('CNN', reuse=reuse):
+          kernel = 3
           for i in xrange(self.cnn_layers):
             with tf.variable_scope('layer%d' % i, reuse=reuse):
               if self.cnn_residual:
@@ -214,7 +215,9 @@ class Parser(BaseParser):
 
         # if layer is set to -2, these are used
         pos_pred_inputs = top_recur
+        self.print_once("Setting pos_pred_inputs to: %s" % top_recur.name)
         predicate_inputs = top_recur
+        self.print_once("Setting predicate_inputs to: %s" % top_recur.name)
 
         # Project for Tranformer / residual LSTM input
         if self.n_recur > 0:
@@ -228,8 +231,10 @@ class Parser(BaseParser):
         # if layer is set to -1, these are used
         if self.pos_layer == -1:
           pos_pred_inputs = top_recur
+          self.print_once("Setting pos_pred_inputs to: %s" % top_recur.name)
         if self.predicate_layer == -1:
           predicate_inputs = top_recur
+          self.print_once("Setting predicate_inputs to: %s" % top_recur.name)
 
         ##### Transformer #######
         if self.dist_model == 'transformer':
@@ -240,7 +245,7 @@ class Parser(BaseParser):
                 manual_attn = None
                 hard_attn = False
                 # todo make this into gold_at_train and gold_at_test flags... + scheduled sampling
-                if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents']:
+                if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents'] and (use_gold_parse or self.full_parse):
                   # if use_gold_parse:
                   #   manual_attn = adj
                   #   # manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)
@@ -275,18 +280,20 @@ class Parser(BaseParser):
                 # else:
                 top_recur, attn_weights = self.transformer(top_recur, hidden_size, self.num_heads,
                                                            self.attn_dropout, self.relu_dropout, self.prepost_dropout,
-                                                           self.relu_hidden_size, self.info_func, reuse,
+                                                           self.relu_hidden_size, self.info_func, self.ff_kernel, reuse,
                                                            this_layer_capsule_heads, manual_attn, hard_attn)
                 # head x batch x seq_len x seq_len
                 attn_weights_by_layer[i] = tf.transpose(attn_weights, [1, 0, 2, 3])
 
                 if i == self.pos_layer:
                   pos_pred_inputs = top_recur
+                  self.print_once("Setting pos_pred_inputs to: %s" % top_recur.name)
                 if i == self.predicate_layer:
                   predicate_inputs = top_recur
+                  self.print_once("Setting predicate_inputs to: %s" % top_recur.name)
                 if i == self.parse_layer:
                   parse_pred_inputs = top_recur
-
+                  self.print_once("Setting parse_pred_inputs to: %s" % top_recur.name)
 
             # if normalization is done in layer_preprocess, then it should also be done
             # on the output, since the output can grow very large, being the sum of
@@ -312,10 +319,14 @@ class Parser(BaseParser):
 
         if self.pos_layer == self.n_recur - 1:
           pos_pred_inputs = top_recur
+          self.print_once("Setting pos_pred_inputs to: %s" % top_recur.name)
         if self.predicate_layer == self.n_recur - 1:
           predicate_inputs = top_recur
+          self.print_once("Setting predicate_inputs to: %s" % top_recur.name)
         if self.parse_layer == self.n_recur - 1:
           parse_pred_inputs = top_recur
+          self.print_once("Setting parse_pred_inputs to: %s" % top_recur.name)
+
 
     ####### 2D CNN ########
     # if self.cnn2d_layers > 0:
@@ -459,6 +470,9 @@ class Parser(BaseParser):
 
     predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
                                      tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
+
+    # predicate_targets_binary = tf.Print(predicate_targets_binary, [predicate_targets], "predicate targets", summarize=200)
+
     def dummy_predicate_output():
       return {
         'loss': 0.0,
@@ -523,6 +537,7 @@ class Parser(BaseParser):
         # gathered roles: need a (bucket_size x self.role_mlp_size) role representation for each trigger,
         # i.e. a (num_triggers_in_batch x bucket_size x self.role_mlp_size) tensor
         predicate_gather_indices = tf.where(tf.equal(predicate_predictions, 1))
+        # predicate_gather_indices = tf.Print(predicate_gather_indices, [predicate_predictions, tf.shape(predicate_gather_indices), tf.shape(predicate_predictions)], "predicate gather shape", summarize=200)
         gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
         tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
         gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
@@ -532,6 +547,19 @@ class Parser(BaseParser):
         srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
         srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, predicate_predictions, transition_params if self.viterbi_train else None)
         return srl_output
+
+    def compute_srl_simple(srl_target):
+      with tf.variable_scope('SRL-MLP', reuse=reuse):
+        # srl_logits are batch x seq_len x num_classes
+        srl_logits = self.MLP(top_recur, num_srl_classes, n_splits=1)
+        # srl_target is targets[:, :, 3:]: batch x seq_len x targets
+        output = self.output(srl_logits, srl_target)
+        srl_output = {f: output[f] for f in ['loss', 'probabilities', 'predictions', 'correct', 'count']}
+        srl_output['logits'] = srl_logits
+        srl_output['transition_params'] = tf.constant(0.)
+        srl_output['correct'] = output['n_correct']
+        return srl_output
+
     srl_targets = targets[:, :, 3:]
     if self.role_loss_penalty == 0:
       # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))
@@ -543,6 +571,8 @@ class Parser(BaseParser):
         'correct':  tf.constant(0.),
         'count':  tf.constant(0.)
       }
+    elif self.srl_simple_tagging:
+      srl_output = compute_srl_simple(srl_targets)
     else:
       srl_output = compute_srl(srl_targets)
 
@@ -613,7 +643,7 @@ class Parser(BaseParser):
     output['predicate_correct'] = predicate_output['correct']
     output['predicate_preds'] = predicate_output['predictions']
 
-    output['sample_prob'] = self.get_sample_prob(step)
+    output['sample_prob'] = sample_prob
 
     output['pos_loss'] = pos_loss
     output['pos_correct'] = pos_correct

@@ -60,8 +60,8 @@ class Network(Configurable):
     with open(os.path.join(self.save_dir, 'config.cfg'), 'w') as f:
       self._config.write(f)
 
-    self._global_step = tf.Variable(0., trainable=False)
-    self._global_epoch = tf.Variable(0., trainable=False)
+    self._global_step = tf.Variable(0., trainable=False, name="global_step")
+    self._global_epoch = tf.Variable(0., trainable=False, name="global_epoch")
 
     # todo what is this??
     # self._model = model(self._config, global_step=self.global_step)
@@ -70,21 +70,22 @@ class Network(Configurable):
     self._vocabs = []
 
     if self.conll:
-      vocab_files = [(self.word_file, 1, 'Words'),
-                     (self.tag_file, [3, 4], 'Tags'),
-                     (self.rel_file, 7, 'Rels')]
+      vocab_files = [(self.word_file, 1, 'Words', self.embed_size),
+                     (self.tag_file, [3, 4], 'Tags', 0),
+                     (self.rel_file, 7, 'Rels', 0)]
     elif self.conll2012:
-      vocab_files = [(self.word_file, 3, 'Words'),
-                     (self.tag_file, [5, 4], 'Tags'), # auto, gold
-                     (self.rel_file, 7, 'Rels'),
-                     (self.srl_file, range(14, 50), 'SRLs'),
-                     (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10, 'Trigs'),
-                     (self.domain_file, 0, 'Domains')]
+      vocab_files = [(self.word_file, 3, 'Words', self.embed_size),
+                     (self.tag_file, [5, 4], 'Tags', 0), # auto, gold
+                     (self.rel_file, 7, 'Rels', 0),
+                     (self.srl_file, range(14, 50), 'SRLs', 0),
+                     (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10,
+                        'Predicates', self.predicate_embed_size if self.add_predicates_to_input else 0),
+                     (self.domain_file, 0, 'Domains', 0)]
 
     print("Loading vocabs")
     sys.stdout.flush()
-    for i, (vocab_file, index, name) in enumerate(vocab_files):
-      vocab = Vocab(vocab_file, index, self._config,
+    for i, (vocab_file, index, name, embed_size) in enumerate(vocab_files):
+      vocab = Vocab(vocab_file, index, embed_size, self._config,
                     name=name,
                     cased=self.cased if not i else True,
                     use_pretrained=(not i))
@@ -190,7 +191,7 @@ class Network(Configurable):
             # Dump the profile to '/tmp/train_dir' after the step.
             pctx.dump_next_step()
 
-          feed_dict[self._trainset.step] = n_train_iters
+          feed_dict[self._trainset.step] = total_train_iters
 
           _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, predicate_loss, predicate_count, predicate_correct, pos_loss, pos_correct, multitask_losses, lr, sample_prob = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
           total_train_iters += 1
@@ -218,7 +219,6 @@ class Network(Configurable):
           n_train_srl_correct += srl_correct
           n_train_srl_count += srl_count
           n_train_iters += 1
-          total_train_iters += 1
           self.history['train_loss'].append(loss)
           self.history['train_accuracy'].append(100 * n_correct / n_tokens)
           if total_train_iters == 1 or total_train_iters % validate_every == 0:
@@ -399,6 +399,68 @@ class Network(Configurable):
       if parens_count != 0:
         return False
     return True
+
+  def merge_preds(self, all_preds, dataset):
+    # want a sentences x tokens x fields array
+    preds_merged = []
+    current_sentid = -1
+    current_sent_shared = None
+    current_srls = []
+    current_predicates = None
+    merged_indices = []
+    examples = 0
+    sentences = 0
+    predicate_idx = 4
+
+    # for each example
+    for bkt_idx, idx in dataset._metabucket.data:
+      examples += 1
+      preds = all_preds[bkt_idx][idx]
+      this_sent_id = preds[0, 6]
+      # if this_sent_id < 4:
+      #   print("orig preds", preds)
+      # print("preds", preds)
+      if this_sent_id != current_sentid:
+        sentences += 1
+        current_sentid = this_sent_id
+        # print("processing sent %d" % current_sentid)
+        merged_indices.append((bkt_idx, idx))
+        if current_sent_shared is not None:
+          # print("last sent had: %d/%d preds" % (len(current_srls), np.sum(current_predicates)))
+          # merge and add to merged list
+          # print(merged_srls)
+          # if len(merged_srls.shape) == 1:
+          #   merged_srls = np.expand_dims(merged_srls, -1)
+          # print("merged srls", len(merged_srls.shape), merged_srls.shape, merged_srls)
+          # print("current shared", current_sent_shared.shape, current_sent_shared)
+          current_sent_shared[:, predicate_idx] = current_predicates
+          if current_srls:
+            merged_srls = np.concatenate(current_srls, axis=-1)
+            merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=1)
+          else:
+            merged_sent = current_sent_shared
+          preds_merged.append(merged_sent)
+        current_sent_shared = preds[:, :17]
+        current_srls = []
+        current_predicates = np.zeros(current_sent_shared.shape[0])
+      if preds.shape[1] > 16:
+        # print(current_sent_shared)
+        current_srls.append(np.expand_dims(preds[:, -1], -1))
+        current_predicates += (preds[:, predicate_idx] > self._vocabs[4].predicate_true_start_idx).astype(np.int32)
+        # print("predicates", (preds[:, predicate_idx] > self._vocabs[4].predicate_true_start_idx).astype(np.int32))
+
+    # deal with last one
+    current_sent_shared[:, predicate_idx] = current_predicates
+    if current_srls:
+      merged_srls = np.concatenate(current_srls, axis=-1)
+      merged_sent = np.concatenate([current_sent_shared, merged_srls], axis=1)
+    else:
+      merged_sent = current_sent_shared
+    preds_merged.append(merged_sent)
+
+    print("Merged %d examples into %d/%d sentences" % (examples, len(preds_merged), sentences))
+    return preds_merged, merged_indices
+
     
   #=============================================================
   # TODO make this work if lines_per_buff isn't set to 0
@@ -465,6 +527,12 @@ class Network(Configurable):
           all_predictions.append([])
           all_sents.append([])
 
+    if self.one_example_per_predicate:
+      all_predictions, data_indices = self.merge_preds(all_predictions, dataset)
+    else:
+      data_indices = dataset._metabucket.data
+      # all_predictions = [p for s in all_predictions for p in s]
+
     correct = {'UAS': 0., 'LAS': 0., 'parse_eval': '', 'F1': 0.}
     srl_acc = 0.0
     if self.eval_parse:
@@ -488,9 +556,9 @@ class Network(Configurable):
       # write predicted parse
       parse_pred_fname = os.path.join(self.save_dir, "parse_preds.tsv")
       with open(parse_pred_fname, 'w') as f:
-        for bkt_idx, idx in dataset._metabucket.data:
+        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           data = dataset._metabucket[bkt_idx].data[idx]
-          preds = all_predictions[bkt_idx][idx]
+          preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
           # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
           # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
@@ -500,16 +568,16 @@ class Network(Configurable):
           sent_len = len(words)
           if self.eval_single_token_sents or sent_len > 1:
             for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
-              head = pred[7] + 1
+              head = pred[8] + 1
               tok_id = i + 1
-              assert self.tags[datum[5]] == self.tags[pred[6]]
+              assert self.tags[datum[6]] == self.tags[pred[7]]
               tup = (
                 tok_id,  # id
                 word,  # form
-                self.tags[pred[6]],  # gold tag
+                self.tags[pred[7]],  # gold tag
                 # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
                 str(head if head != tok_id else 0),  # pred head
-                self.rels[pred[8]] # pred label
+                self.rels[pred[9]] # pred label
               )
               f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
             f.write('\n')
@@ -534,25 +602,25 @@ class Network(Configurable):
             domain_gold_fname = os.path.join(parse_gold_fname_path, d + '_' + parse_gold_fname_end)
             domain_fname = os.path.join(self.save_dir, '%s_parse_preds.tsv' % d)
             with open(domain_fname, 'w') as f:
-              for bkt_idx, idx in dataset._metabucket.data:
+              for p_idx, (bkt_idx, idx) in enumerate(data_indices):
                 data = dataset._metabucket[bkt_idx].data[idx]
-                preds = all_predictions[bkt_idx][idx]
+                preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
                 domain = '-'
                 sent_len = len(words)
                 if self.eval_single_token_sents or sent_len > 1:
                   for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
                     domain = self._vocabs[5][pred[5]]
-                    head = pred[7] + 1
+                    head = pred[8] + 1
                     tok_id = i + 1
                     if domain == d:
                       tup = (
                         tok_id,  # id
                         word,  # form
-                        self.tags[pred[6]],  # gold tag
+                        self.tags[pred[7]],  # gold tag
                         # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
                         str(head if head != tok_id else 0),  # pred head
-                        self.rels[pred[8]]  # pred label
+                        self.rels[pred[9]]  # pred label
                       )
                       f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
                   if domain == d:
@@ -577,16 +645,18 @@ class Network(Configurable):
       # save SRL gold output for debugging purposes
       srl_sanity_fname = os.path.join(self.save_dir, 'srl_sanity.tsv')
       with open(srl_sanity_fname, 'w') as f, open(filename, 'r') as orig_f:
-        for bkt_idx, idx in dataset._metabucket.data:
+        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           # for each word, if predicate print word, otherwise -
           # then all the SRL labels
           data = dataset._metabucket[bkt_idx].data[idx]
-          preds = all_predictions[bkt_idx][idx]
+          preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
+          # if len(preds.shape) < 2:
+          #   preds = np.reshape(preds, [1, preds.shape[0]])
           words = all_sents[bkt_idx][idx]
-          num_gold_srls = preds[0, 12]
-          num_pred_srls = preds[0, 13]
-          srl_preds = preds[:, 14+num_pred_srls+num_gold_srls:]
-          srl_golds = preds[:, 14+num_pred_srls:14+num_gold_srls+num_pred_srls]
+          num_gold_srls = preds[0, 13]
+          num_pred_srls = preds[0, 14]
+          srl_preds = preds[:, 15+num_pred_srls+num_gold_srls:]
+          srl_golds = preds[:, 15+num_pred_srls:15+num_gold_srls+num_pred_srls]
           srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
           # todo if you want golds in here get it from the props file
@@ -605,9 +675,9 @@ class Network(Configurable):
             # gold_pred = srl_golds_str[i] if srl_golds_str else []
             bio_pred = srl_preds_bio[i] if srl_preds_bio else []
             word_str = word
-            tag0_str = self.tags[pred[6]] # gold tag
-            tag1_str = self.tags[pred[8]] # auto tag
-            tag2_str = self.tags[pred[11]] # predicted tag
+            tag0_str = self.tags[pred[7]] # gold tag
+            tag1_str = self.tags[pred[3]] # auto tag
+            tag2_str = self.tags[pred[12]] # predicted tag
             # gold_pred = word if np.any(["(V*" in p for p in gold_pred]) else '-'
             pred_pred = word if np.any(["(V*" in p for p in orig_pred]) else '-'
             # fields = (domain,) + (word_str,) + (tag0_str,) + (tag1_str,) + (tag2_str,) + (gold_pred,) + (pred_pred,) + tuple(bio_pred) + tuple(orig_pred)
@@ -619,18 +689,33 @@ class Network(Configurable):
       # save SRL output
       srl_preds_fname = os.path.join(self.save_dir, 'srl_preds.tsv')
       with open(srl_preds_fname, 'w') as f:
-        for bkt_idx, idx in dataset._metabucket.data:
+        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           # for each word, if predicate print word, otherwise -
           # then all the SRL labels
-          data = dataset._metabucket[bkt_idx].data[idx]
-          preds = all_predictions[bkt_idx][idx]
+          preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
-          num_gold_srls = preds[0, 12]
-          num_pred_srls = preds[0, 13]
-          srl_preds = preds[:, 14+num_gold_srls+num_pred_srls:]
-          predicate_indices = preds[:, 14:14+num_pred_srls]
+          # if len(preds.shape) < 2:
+          #   preds = np.reshape(preds, [1, preds.shape[0]])
+          # print("preds", preds)
+          num_gold_srls = preds[0, 13]
+          num_pred_srls = preds[0, 14]
+          srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
+          if self.one_example_per_predicate:
+            # srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
+            predicate_indices = np.where(preds[:, 4] == 1)[0]
+            # print("predicate indices", predicate_indices)
+          else:
+            predicate_indices = preds[0, 15:15+num_pred_srls]
+          # print("predicate indices", predicate_indices)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
-          for i, (datum, word) in enumerate(zip(data, words)):
+          # if len(predicate_indices) == 0:
+          # if preds[0,6] < 4:
+          #   print("preds", preds)
+          #   print("predicate inds", predicate_indices)
+          #   print("srl_preds_str", srl_preds_str)
+          #   print("srl_preds", srl_preds)
+          #   print("words", words)
+          for i, word in enumerate(words):
             pred = srl_preds_str[i] if srl_preds_str else []
             word_str = word if i in predicate_indices else '-'
             fields = (word_str,) + tuple(pred)
@@ -660,16 +745,16 @@ class Network(Configurable):
             domain_gold_fname = os.path.join(srl_gold_fname_path, d + '_' + srl_gold_fname_end)
             domain_fname = os.path.join(self.save_dir, '%s_srl_preds.tsv' % d)
             with open(domain_fname, 'w') as f:
-              for bkt_idx, idx in dataset._metabucket.data:
+              for p_idx, (bkt_idx, idx) in enumerate(data_indices):
                 # for each word, if predicate print word, otherwise -
                 # then all the SRL labels
                 data = dataset._metabucket[bkt_idx].data[idx]
-                preds = all_predictions[bkt_idx][idx]
+                preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
-                num_gold_srls = preds[0, 12]
-                num_pred_srls = preds[0, 13]
+                num_gold_srls = preds[0, 13]
+                num_pred_srls = preds[0, 14]
                 srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
-                predicate_indices = preds[:, 14:14 + num_pred_srls]
+                predicate_indices = preds[:, 15:15 + num_pred_srls]
                 srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
                 domain = '-'
                 for i, (datum, word, p) in enumerate(zip(data, words, preds)):

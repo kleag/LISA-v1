@@ -81,7 +81,7 @@ for lr in ${lrs[@]}; do
                                                                     sample_prob=${ss_arr[1]}
 
                                                                     commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                    --config_file config/trans-conll05-bio-tan-elmo.cfg \
+                                                                    --config_file config/trans-conll05-bio-parse-tan-elmo.cfg \
                                                                     --save_dir $OUT_LOG/scores-$fname_append \
                                                                     --save_every 500 \
                                                                     --train_iters 5000000 \
@@ -98,7 +98,7 @@ for lr in ${lrs[@]}; do
                                                                     --epsilon $epsilon \
                                                                     --predicate_layer $predicate_layer \
                                                                     --multitask_layers \"$parents_layer\" \
-                                                                    --multitask_penalties \"parents:$parents_penalty\"
+                                                                    --multitask_penalties \"parents:$parents_penalty\" \
                                                                     --eval_by_domain False \
                                                                     --eval_srl True \
                                                                     --eval_parse $eval_parse \

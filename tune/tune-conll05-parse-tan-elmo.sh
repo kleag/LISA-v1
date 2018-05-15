@@ -22,7 +22,7 @@ epsilons="1e-12"
 warmup_steps="8000"
 batch_sizes="4000"
 
-trans_layers="10" # "10 8 6" # 3
+trans_layers="9" # "10 8 6" # 3
 num_heads="8" #4 8"
 head_sizes="25"
 relu_hidden_sizes="800"

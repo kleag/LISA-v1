@@ -32,7 +32,7 @@ rels_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
 parents_layers="parents:4 parents:5" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
-predicate_layers="4"
+predicate_layers="4 3"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
 use_full_parse="True"
 

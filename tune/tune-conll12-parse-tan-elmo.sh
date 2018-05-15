@@ -74,7 +74,7 @@ for lr in ${lrs[@]}; do
                                                                         arc_loss_penalty=0.0
                                                                     fi
 
-                                                                    partition="titanx-long"
+                                                                    partition="m40-long"
 
                                                                     ss_arr=(${ss//=/ })
                                                                     sampling_sched=${ss_arr[0]}

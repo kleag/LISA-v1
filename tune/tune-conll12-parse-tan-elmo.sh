@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=6
+num_gpus=12
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -36,7 +36,7 @@ predicate_layers="3 4"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
 use_full_parse="True"
 
-reps="1"
+reps="2"
 
 # 3*2*2 = 12
 

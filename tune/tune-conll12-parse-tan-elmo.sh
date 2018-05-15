@@ -36,7 +36,7 @@ predicate_layers="3 4"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
 use_full_parse="True"
 
-reps="2"
+reps="1"
 
 # 3*2*2 = 12
 
@@ -81,7 +81,7 @@ for lr in ${lrs[@]}; do
                                                                     sample_prob=${ss_arr[1]}
 
                                                                     commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                    --config_file config/trans-conll05-bio-parse-tan-elmo.cfg \
+                                                                    --config_file config/trans-conll12-bio-parse-tan-elmo.cfg \
                                                                     --save_dir $OUT_LOG/scores-$fname_append \
                                                                     --save_every 500 \
                                                                     --train_iters 5000000 \

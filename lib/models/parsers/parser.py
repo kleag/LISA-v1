@@ -149,6 +149,8 @@ class Parser(BaseParser):
     else:
       use_gold_parse_tensor = tf.equal(int(use_gold_parse), 1)
 
+    self.print_once("use gold parse (%s): " % self.name, use_gold_parse)
+
     ##### Functions for predicting parse, Dozat-style #####
     def get_parse_logits(parse_inputs):
       if self.full_parse:

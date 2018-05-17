@@ -687,7 +687,7 @@ class Network(Configurable):
 
       # save SRL output
       srl_preds_fname = os.path.join(self.save_dir, 'srl_preds.tsv')
-      print("writing srl preds file: %s" % srl_preds_fname)
+      # print("writing srl preds file: %s" % srl_preds_fname)
       with open(srl_preds_fname, 'w') as f:
         for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           # for each word, if predicate print word, otherwise -

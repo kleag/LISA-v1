@@ -74,7 +74,7 @@ for lr in ${lrs[@]}; do
                                                                         sample_prob=${ss_arr[1]}
 
                                                                         commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                        --config_file config/trans-conll12-bio-parse-tan.cfg \
+                                                                        --config_file config/trans-conll12-bio-parse-tan-notrain.cfg \
                                                                         --save_dir $OUT_LOG/scores-$fname_append \
                                                                         --save_every 500 \
                                                                         --train_iters 5000000 \

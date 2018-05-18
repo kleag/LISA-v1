@@ -48,6 +48,7 @@ python $DOZAT_ROOT/network.py \
     --test_file $test_file \
     --gold_test_props_file $test_props_file \
     --gold_dev_parse_file $valid_parse_file \
-    --gold_test_parse_file $test_parse_file
-cp $model_dir/srl_preds.tsv $model_dir/${parse_config}_dev_srl_preds.tsv
-cp $model_dir/parse_preds.tsv $model_dir/${parse_config}_dev_parse_preds.tsv
+    --gold_test_parse_file $test_parse_file \
+    --eval_by_domain True
+#cp $model_dir/srl_preds.tsv $model_dir/${parse_config}_dev_srl_preds.tsv
+#cp $model_dir/parse_preds.tsv $model_dir/${parse_config}_dev_parse_preds.tsv

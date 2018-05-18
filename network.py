@@ -748,16 +748,16 @@ class Network(Configurable):
               for p_idx, (bkt_idx, idx) in enumerate(data_indices):
                 # for each word, if predicate print word, otherwise -
                 # then all the SRL labels
-                data = dataset._metabucket[bkt_idx].data[idx]
+                # data = dataset._metabucket[bkt_idx].data[idx]
                 preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
                 num_gold_srls = preds[0, 13]
                 num_pred_srls = preds[0, 14]
-                srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
+                srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
                 predicate_indices = preds[:, 15:15 + num_pred_srls]
                 srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
                 domain = '-'
-                for i, (datum, word, p) in enumerate(zip(data, words, preds)):
+                for i, (word, p) in enumerate(zip(words, preds)):
                   domain = self._vocabs[5][p[5]]
                   if domain == d:
                     pred = srl_preds_str[i] if srl_preds_str else []

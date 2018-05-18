@@ -556,7 +556,6 @@ class Network(Configurable):
       parse_pred_fname = os.path.join(self.save_dir, "parse_preds.tsv")
       with open(parse_pred_fname, 'w') as f:
         for p_idx, (bkt_idx, idx) in enumerate(data_indices):
-          data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
           # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
@@ -566,10 +565,10 @@ class Network(Configurable):
           # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
           sent_len = len(words)
           if self.eval_single_token_sents or sent_len > 1:
-            for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+            for i, (word, pred) in enumerate(zip(words, preds)):
               head = pred[8] + 1
               tok_id = i + 1
-              assert self.tags[datum[6]] == self.tags[pred[7]]
+              # assert self.tags[datum[6]] == self.tags[pred[7]]
               tup = (
                 tok_id,  # id
                 word,  # form
@@ -602,13 +601,12 @@ class Network(Configurable):
             domain_fname = os.path.join(self.save_dir, '%s_parse_preds.tsv' % d)
             with open(domain_fname, 'w') as f:
               for p_idx, (bkt_idx, idx) in enumerate(data_indices):
-                data = dataset._metabucket[bkt_idx].data[idx]
                 preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
                 domain = '-'
                 sent_len = len(words)
                 if self.eval_single_token_sents or sent_len > 1:
-                  for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+                  for i, (word, pred) in enumerate(zip(words, preds)):
                     domain = self._vocabs[5][pred[5]]
                     head = pred[8] + 1
                     tok_id = i + 1

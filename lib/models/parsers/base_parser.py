@@ -118,7 +118,7 @@ class BaseParser(NN):
 
       # print("srl pred", len(srl_pred), srl_pred)
 
-      if transition_params is not None and num_pred_srls > 0:
+      if transition_params is not None and num_pred_srls > 0 and self.viterbi_decode:
         srl_unary_scores = srl_logits[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
         # print("unary scores shape", srl_unary_scores.shape)
         for pred_idx, single_pred_unary_scores in enumerate(srl_unary_scores):

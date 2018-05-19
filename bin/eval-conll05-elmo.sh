@@ -44,27 +44,9 @@ else
 fi
 
 # Dev only
-python $DOZAT_ROOT/network.py \
-    --load \
-    --test \
-    --load_dir $model_dir \
-    --config_file $model_dir/config.cfg \
-    --gold_attn_at_train $gold_attn_at_train \
-    --inject_manual_attn $inject_manual_attn \
-    --valid_file $valid_file \
-    --test_file $wsj_test_file \
-    --gold_test_props_file $wsj_test_props_file \
-    --gold_dev_parse_file $valid_parse_file \
-    --gold_test_parse_file $wsj_test_parse_file
-
-cp $model_dir/srl_preds.tsv $model_dir/${parse_config}_dev_srl_preds.tsv
-cp $model_dir/parse_preds.tsv $model_dir/${parse_config}_dev_parse_preds.tsv
-
-# WSJ test
 #python $DOZAT_ROOT/network.py \
 #    --load \
 #    --test \
-#    --test_eval \
 #    --load_dir $model_dir \
 #    --config_file $model_dir/config.cfg \
 #    --gold_attn_at_train $gold_attn_at_train \
@@ -75,17 +57,35 @@ cp $model_dir/parse_preds.tsv $model_dir/${parse_config}_dev_parse_preds.tsv
 #    --gold_dev_parse_file $valid_parse_file \
 #    --gold_test_parse_file $wsj_test_parse_file
 #
-## Brown test
-#python $DOZAT_ROOT/network.py \
-#    --load \
-#    --test \
-#    --test_eval \
-#    --load_dir $model_dir \
-#    --config_file $model_dir/config.cfg \
-#    --gold_attn_at_train $gold_attn_at_train \
-#    --inject_manual_attn $inject_manual_attn \
-#    --valid_file $valid_file \
-#    --test_file $brown_test_file \
-#    --gold_test_props_file $brown_test_props_file \
-#    --gold_dev_parse_file $valid_parse_file \
-#    --gold_test_parse_file $brown_test_parse_file
+#cp $model_dir/srl_preds.tsv $model_dir/${parse_config}_dev_srl_preds.tsv
+#cp $model_dir/parse_preds.tsv $model_dir/${parse_config}_dev_parse_preds.tsv
+
+# WSJ test
+python $DOZAT_ROOT/network.py \
+    --load \
+    --test \
+    --test_eval \
+    --load_dir $model_dir \
+    --config_file $model_dir/config.cfg \
+    --gold_attn_at_train $gold_attn_at_train \
+    --inject_manual_attn $inject_manual_attn \
+    --valid_file $valid_file \
+    --test_file $wsj_test_file \
+    --gold_test_props_file $wsj_test_props_file \
+    --gold_dev_parse_file $valid_parse_file \
+    --gold_test_parse_file $wsj_test_parse_file
+
+# Brown test
+python $DOZAT_ROOT/network.py \
+    --load \
+    --test \
+    --test_eval \
+    --load_dir $model_dir \
+    --config_file $model_dir/config.cfg \
+    --gold_attn_at_train $gold_attn_at_train \
+    --inject_manual_attn $inject_manual_attn \
+    --valid_file $valid_file \
+    --test_file $brown_test_file \
+    --gold_test_props_file $brown_test_props_file \
+    --gold_dev_parse_file $valid_parse_file \
+    --gold_test_parse_file $brown_test_parse_file

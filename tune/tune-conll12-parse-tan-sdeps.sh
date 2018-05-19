@@ -36,7 +36,7 @@ predicate_layers="4 3"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
 use_full_parse="True"
 
-reps="2"
+reps="1"
 
 # 5*2*2 = 20
 

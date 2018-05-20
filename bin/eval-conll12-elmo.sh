@@ -40,6 +40,7 @@ fi
 python $DOZAT_ROOT/network.py \
     --load \
     --test \
+    --test_eval \
     --load_dir $model_dir \
     --config_file $model_dir/config.cfg \
     --gold_attn_at_train $gold_attn_at_train \

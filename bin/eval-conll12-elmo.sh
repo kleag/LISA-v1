@@ -36,10 +36,10 @@ else
     inject_manual_attn="True"
 fi
 
+#     --test_eval \
 python $DOZAT_ROOT/network.py \
     --load \
     --test \
-    --test_eval \
     --load_dir $model_dir \
     --config_file $model_dir/config.cfg \
     --gold_attn_at_train $gold_attn_at_train \
@@ -50,5 +50,5 @@ python $DOZAT_ROOT/network.py \
     --gold_dev_parse_file $valid_parse_file \
     --gold_test_parse_file $test_parse_file \
     --eval_by_domain True
-#cp $model_dir/srl_preds.tsv $model_dir/${parse_config}_dev_srl_preds.tsv
-#cp $model_dir/parse_preds.tsv $model_dir/${parse_config}_dev_parse_preds.tsv
+cp $model_dir/srl_preds.tsv $model_dir/${parse_config}_dev_srl_preds.tsv
+cp $model_dir/parse_preds.tsv $model_dir/${parse_config}_dev_parse_preds.tsv

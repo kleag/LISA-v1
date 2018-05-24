@@ -792,9 +792,9 @@ class Network(Configurable):
         multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k] * 100)
       print(multitask_uas_str)
 
-      if self.save_attn_weights:
-        attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
-        np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
+    if self.save_attn_weights:
+      attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
+      np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
 
     pos_accuracy = (pos_correct_total/n_tokens)*100.0
     correct['POS'] = pos_accuracy

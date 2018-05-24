@@ -320,6 +320,8 @@ class Vocab(Configurable):
         if self._embed_size > 0 and self.use_pretrained and not self.add_to_pretrained:
           self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
           self.trainable_embeddings = tf.Variable(self.pretrained_embeddings, trainable=True, name='Trainable')
+          self._str2idx = self._str2embed
+          self._idx2str = self._embed2str
           print("Loaded pre-trained embeddings. Trainable: True")
         else:
           if self._embed_size > 0:

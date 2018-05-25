@@ -41,7 +41,7 @@ class Parser(BaseParser):
     num_srl_classes = len(vocabs[3])
     num_pred_classes = len(vocabs[4])
 
-    self.root_id = vocabs[2]['root']
+    self.root_id = vocabs[2]['root'][0]
 
     # need to add batch dim for batch size 1
     # inputs = tf.Print(inputs, [tf.shape(inputs), tf.shape(targets)], summarize=10)

@@ -41,6 +41,8 @@ class Parser(BaseParser):
     num_srl_classes = len(vocabs[3])
     num_pred_classes = len(vocabs[4])
 
+    self.root_id = vocabs[2]['root']
+
     # need to add batch dim for batch size 1
     # inputs = tf.Print(inputs, [tf.shape(inputs), tf.shape(targets)], summarize=10)
 
@@ -661,6 +663,6 @@ class Parser(BaseParser):
     start_time = time.time()
     parse_preds, roots_lt, roots_gt = self.parse_argmax(parse_probs, tokens_to_keep, n_cycles, len_2_cycles)
     rel_probs = rel_probs[np.arange(len(parse_preds)), parse_preds]
-    rel_preds = self.rel_argmax(rel_probs, tokens_to_keep)
+    rel_preds = self.rel_argmax(rel_probs, tokens_to_keep, self.root_id)
     total_time = time.time() - start_time
     return parse_preds, rel_preds, total_time, roots_lt, roots_gt

@@ -1664,7 +1664,7 @@ class NN(Configurable):
   def tag_argmax(self, tag_probs, tokens_to_keep):
     """"""
     
-    return np.argmax(tag_probs[:,Vocab.ROOT:], axis=1)+Vocab.ROOT
+    return np.argmax(tag_probs[:,Vocab.UNK:], axis=1)+Vocab.UNK
 
   def get_sample_prob(self, step):
     if self.sampling_schedule == 'constant':
@@ -1865,28 +1865,28 @@ class NN(Configurable):
 
   
   #=============================================================
-  def rel_argmax(self, rel_probs, tokens_to_keep):
+  def rel_argmax(self, rel_probs, tokens_to_keep, root_id):
     """"""
     
     if self.ensure_tree:
       # tokens_to_keep[0] = True
       rel_probs[:,Vocab.PAD] = 0
-      root = Vocab.ROOT
+      # root = Vocab.ROOT
       length = np.sum(tokens_to_keep)
       tokens = np.arange(length)
       rel_preds = np.argmax(rel_probs, axis=1)
-      roots = np.where(rel_preds[tokens] == root)[0] #+1
+      roots = np.where(rel_preds[tokens] == root_id)[0] #+1
       if len(roots) < 1:
         # rel_preds[1+np.argmax(rel_probs[tokens,root])] = root
-        rel_preds[np.argmax(rel_probs[tokens, root])] = root
+        rel_preds[np.argmax(rel_probs[tokens, root_id])] = root_id
       elif len(roots) > 1:
-        root_probs = rel_probs[roots, root]
-        rel_probs[roots, root] = 0
+        root_probs = rel_probs[roots, root_id]
+        rel_probs[roots, root_id] = 0
         new_rel_preds = np.argmax(rel_probs[roots], axis=1)
         new_rel_probs = rel_probs[roots, new_rel_preds] / root_probs
         new_root = roots[np.argmin(new_rel_probs)]
         rel_preds[roots] = new_rel_preds
-        rel_preds[new_root] = root
+        rel_preds[new_root] = root_id
       return rel_preds
     else:
       rel_probs[:,Vocab.PAD] = 0

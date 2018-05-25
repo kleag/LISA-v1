@@ -692,8 +692,8 @@ class Network(Configurable):
           # then all the SRL labels
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
-          print("words: ", words)
-          print("preds:", preds)
+          # print("words: ", words)
+          # print("preds:", preds)
           # if len(preds.shape) < 2:
           #   preds = np.reshape(preds, [1, preds.shape[0]])
           # print("preds", preds)
@@ -715,9 +715,9 @@ class Network(Configurable):
           #   print("srl_preds_str", srl_preds_str)
           #   print("srl_preds", srl_preds)
           #   print("words", words)
-          print("srl preds str:", srl_preds_str)
-          print(len(srl_preds_str))
-          print(len(words))
+          # print("srl preds str:", srl_preds_str)
+          # print(len(srl_preds_str))
+          # print(len(words))
           for i, word in enumerate(words):
             pred = srl_preds_str[i] if srl_preds_str else []
             word_str = word if i in predicate_indices else '-'

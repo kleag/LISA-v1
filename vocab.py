@@ -36,8 +36,8 @@ class Vocab(Configurable):
   # START_IDX = len(SPECIAL_TOKENS)
   # PAD, ROOT, UNK = range(START_IDX)
   PAD = 0
-  ROOT = 1
-  UNK = 2
+  # ROOT = 1
+  UNK = 1
   
   #=============================================================
   def __init__(self, vocab_file, conll_idx, embed_size, *args, **kwargs):

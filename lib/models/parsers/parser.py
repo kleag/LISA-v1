@@ -47,7 +47,7 @@ class Parser(BaseParser):
     # inputs = tf.Print(inputs, [tf.shape(inputs), tf.shape(targets)], summarize=10)
 
     reuse = (moving_params is not None)
-    self.tokens_to_keep3D = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,0], vocabs[0].UNK)), 2)
+    self.tokens_to_keep3D = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,0], vocabs[0].PAD)), 2)
     self.sequence_lengths = tf.reshape(tf.reduce_sum(self.tokens_to_keep3D, [1, 2]), [-1,1])
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params

@@ -1664,7 +1664,7 @@ class NN(Configurable):
   def tag_argmax(self, tag_probs, tokens_to_keep):
     """"""
     
-    return np.argmax(tag_probs[:,Vocab.UNK:], axis=1)+Vocab.UNK
+    return np.argmax(tag_probs[:,Vocab.PAD:], axis=1)+Vocab.PAD
 
   def get_sample_prob(self, step):
     if self.sampling_schedule == 'constant':

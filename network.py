@@ -716,6 +716,8 @@ class Network(Configurable):
           #   print("srl_preds", srl_preds)
           #   print("words", words)
           print("srl preds str:", srl_preds_str)
+          print(len(srl_preds_str))
+          print(len(words))
           for i, word in enumerate(words):
             pred = srl_preds_str[i] if srl_preds_str else []
             word_str = word if i in predicate_indices else '-'

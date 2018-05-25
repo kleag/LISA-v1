@@ -92,7 +92,7 @@ class BaseParser(NN):
     srl_pred_idx = 0
     n_tokens = 0.
     for inputs, targets, parse_probs, rel_probs, n_cycle, len_2_cycle, srl_trigger, srl_trigger_target, pos_pred in zip(mb_inputs, mb_targets, mb_parse_probs, mb_rel_probs, n_cycles, len_2_cycles, srl_triggers, srl_trigger_targets, pos_preds):
-      tokens_to_keep = np.greater(inputs[:,0], Vocab.ROOT)
+      tokens_to_keep = np.greater(inputs[:,0], Vocab.UNK)
       length = np.sum(tokens_to_keep)
       n_tokens += length
       parse_preds, rel_preds, argmax_time, roots_lt, roots_gt = self.prob_argmax(parse_probs, rel_probs, tokens_to_keep, n_cycle, len_2_cycle)

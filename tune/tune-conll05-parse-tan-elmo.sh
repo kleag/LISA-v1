@@ -20,7 +20,7 @@ mus="0.9"
 nus="0.98"
 epsilons="1e-12"
 warmup_steps="8000"
-batch_sizes="4000"
+batch_sizes="5000"
 
 trans_layers="8" # "10 8 6" # 3
 num_heads="8" #4 8"

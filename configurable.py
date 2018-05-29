@@ -384,6 +384,10 @@ class Configurable(object):
   def relu_dropout(self):
     return self._config.getfloat('Dropout', 'relu_dropout')
   argparser.add_argument('--relu_dropout')
+  @property
+  def input_dropout(self):
+    return self._config.getfloat('Dropout', 'input_dropout')
+  argparser.add_argument('--input_dropout')
   
   #=============================================================
   # [Learning rate]

@@ -22,23 +22,26 @@ epsilons="1e-12"
 warmup_steps="8000"
 batch_sizes="4000"
 
-trans_layers="9" # "10 8 6" # 3
+trans_layers="8" # "10 8 6" # 3
 num_heads="8" #4 8"
 head_sizes="25"
 relu_hidden_sizes="800"
 
+word_drops="0.8 1.0"
+input_drops="0.5 0.8 1.0"
+
 parents_penalties="1.0"
 rels_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:4 parents:5 no" # "parents:4 no"
+parents_layers="parents:5 no" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
-predicate_layers="3 4"
+predicate_layers="3"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
 use_full_parse="True"
 
 reps="2"
 
-# 3*2*2 = 12
+# 3*2*2*2 = 24
 
 # array to hold all the commands we'll distribute
 declare -a commands
@@ -60,6 +63,8 @@ for lr in ${lrs[@]}; do
                                                     for predicate_layer in ${predicate_layers[@]}; do
                                                         for full_parse in ${use_full_parse[@]}; do
                                                             for ss in ${scheduled_sampling[@]}; do
+                                                                for word_drop in ${word_drops[@]}; do
+                                                                    for input_drop in ${input_drops[@]}; do
                                                                 for rep in `seq $reps`; do
 #                                                                    if [[ "$cnn_layer" != "2" || "$trans_layer" != "10" ]]; then
                                                                     fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$rels_penalty-$parents_layer-$predicate_layer-$ss-$full_parse"
@@ -107,6 +112,8 @@ for lr in ${lrs[@]}; do
                                                                     --rel_loss_penalty $rel_loss_penalty \
                                                                     --sampling_schedule $sampling_sched \
                                                                     --sample_prob $sample_prob \
+                                                                    --input_dropout $input_drop \
+                                                                    --word_keep_prob $word_drop \
                                                                     --save True \
                                                                     &> $OUT_LOG/train-$fname_append.log")
                                                                     i=$((i + 1))

@@ -67,7 +67,7 @@ for lr in ${lrs[@]}; do
                                                                     for input_drop in ${input_drops[@]}; do
                                                                         for rep in `seq $reps`; do
         #                                                                    if [[ "$cnn_layer" != "2" || "$trans_layer" != "10" ]]; then
-                                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$rels_penalty-$parents_layer-$predicate_layer-$ss-$full_parse"
+                                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$rels_penalty-$parents_layer-$predicate_layer-$ss-$full_parse-$input_drop-$word_drop"
                                                                             orig_parents_layer=$parents_layer
                                                                             arc_loss_penalty=$parents_penalty
                                                                             rel_loss_penalty=$rels_penalty

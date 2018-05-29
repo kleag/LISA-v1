@@ -78,7 +78,7 @@ class Parser(BaseParser):
       predicate_embed_inputs = vocabs[4].embedding_lookup(inputs[:, :, 3], moving_params=self.moving_params)
       embed_inputs = tf.concat([embed_inputs, predicate_embed_inputs], axis=2)
     
-    top_recur = embed_inputs
+    top_recur = tf.nn.dropout(embed_inputs, self.input_dropout)
 
     attn_weights_by_layer = {}
 

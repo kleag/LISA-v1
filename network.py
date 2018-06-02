@@ -557,7 +557,6 @@ class Network(Configurable):
       parse_pred_fname = os.path.join(self.save_dir, "parse_preds.tsv")
       with open(parse_pred_fname, 'w') as f:
         for p_idx, (bkt_idx, idx) in enumerate(data_indices):
-          data = dataset._metabucket[bkt_idx].data[idx]
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
           # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
@@ -567,10 +566,10 @@ class Network(Configurable):
           # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
           sent_len = len(words)
           if self.eval_single_token_sents or sent_len > 1:
-            for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+            for i, (word, pred) in enumerate(zip(words, preds)):
               head = pred[8] + 1
               tok_id = i + 1
-              assert self.tags[datum[6]] == self.tags[pred[7]]
+              # assert self.tags[datum[6]] == self.tags[pred[7]]
               tup = (
                 tok_id,  # id
                 word,  # form
@@ -603,13 +602,12 @@ class Network(Configurable):
             domain_fname = os.path.join(self.save_dir, '%s_parse_preds.tsv' % d)
             with open(domain_fname, 'w') as f:
               for p_idx, (bkt_idx, idx) in enumerate(data_indices):
-                data = dataset._metabucket[bkt_idx].data[idx]
                 preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
                 domain = '-'
                 sent_len = len(words)
                 if self.eval_single_token_sents or sent_len > 1:
-                  for i, (datum, word, pred) in enumerate(zip(data, words, preds)):
+                  for i, (word, pred) in enumerate(zip(words, preds)):
                     domain = self._vocabs[5][pred[5]]
                     head = pred[8] + 1
                     tok_id = i + 1
@@ -688,6 +686,7 @@ class Network(Configurable):
 
       # save SRL output
       srl_preds_fname = os.path.join(self.save_dir, 'srl_preds.tsv')
+      # print("writing srl preds file: %s" % srl_preds_fname)
       with open(srl_preds_fname, 'w') as f:
         for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           # for each word, if predicate print word, otherwise -
@@ -748,16 +747,16 @@ class Network(Configurable):
               for p_idx, (bkt_idx, idx) in enumerate(data_indices):
                 # for each word, if predicate print word, otherwise -
                 # then all the SRL labels
-                data = dataset._metabucket[bkt_idx].data[idx]
+                # data = dataset._metabucket[bkt_idx].data[idx]
                 preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
                 words = all_sents[bkt_idx][idx]
                 num_gold_srls = preds[0, 13]
                 num_pred_srls = preds[0, 14]
-                srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
+                srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
                 predicate_indices = preds[:, 15:15 + num_pred_srls]
                 srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
                 domain = '-'
-                for i, (datum, word, p) in enumerate(zip(data, words, preds)):
+                for i, (word, p) in enumerate(zip(words, preds)):
                   domain = self._vocabs[5][p[5]]
                   if domain == d:
                     pred = srl_preds_str[i] if srl_preds_str else []
@@ -794,9 +793,9 @@ class Network(Configurable):
         multitask_uas_str += '\t%s UAS: %.2f' % (k, attn_correct_counts[k] * 100)
       print(multitask_uas_str)
 
-      if self.save_attn_weights:
-        attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
-        np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
+    if self.save_attn_weights:
+      attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
+      np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
 
     pos_accuracy = (pos_correct_total/n_tokens)*100.0
     correct['POS'] = pos_accuracy

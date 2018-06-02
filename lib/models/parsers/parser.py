@@ -157,21 +157,26 @@ class Parser(BaseParser):
     else:
       use_gold_parse_tensor = tf.equal(int(use_gold_parse), 1)
 
+    print("use gold parse (%s): " % dataset.name, use_gold_parse)
+
     ##### Functions for predicting parse, Dozat-style #####
     def get_parse_logits(parse_inputs):
-      ######## do parse-specific stuff (arcs) ########
-      with tf.variable_scope('MLP', reuse=reuse):
-        dep_mlp, head_mlp = self.MLP(parse_inputs, self.class_mlp_size + self.attn_mlp_size, n_splits=2)
-        dep_arc_mlp, dep_rel_mlp = dep_mlp[:, :, :self.attn_mlp_size], dep_mlp[:, :, self.attn_mlp_size:]
-        head_arc_mlp, head_rel_mlp = head_mlp[:, :, :self.attn_mlp_size], head_mlp[:, :, self.attn_mlp_size:]
+      if self.full_parse:
+        ######## do parse-specific stuff (arcs) ########
+        with tf.variable_scope('MLP', reuse=reuse):
+          dep_mlp, head_mlp = self.MLP(parse_inputs, self.class_mlp_size + self.attn_mlp_size, n_splits=2)
+          dep_arc_mlp, dep_rel_mlp = dep_mlp[:, :, :self.attn_mlp_size], dep_mlp[:, :, self.attn_mlp_size:]
+          head_arc_mlp, head_rel_mlp = head_mlp[:, :, :self.attn_mlp_size], head_mlp[:, :, self.attn_mlp_size:]
 
-      with tf.variable_scope('Arcs', reuse=reuse):
-        arc_logits = self.bilinear_classifier(dep_arc_mlp, head_arc_mlp)
+        with tf.variable_scope('Arcs', reuse=reuse):
+          arc_logits = self.bilinear_classifier(dep_arc_mlp, head_arc_mlp)
 
-        arc_logits = tf.cond(tf.less_equal(tf.shape(tf.shape(arc_logits))[0], 2),
-                             lambda: tf.reshape(arc_logits, [batch_size, 1, 1]), lambda: arc_logits)
-        # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.shape(tf.shape(arc_logits))])
-      return arc_logits, dep_rel_mlp, head_rel_mlp
+          arc_logits = tf.cond(tf.less_equal(tf.shape(tf.shape(arc_logits))[0], 2),
+                               lambda: tf.reshape(arc_logits, [batch_size, 1, 1]), lambda: arc_logits)
+          # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.shape(tf.shape(arc_logits))])
+        return arc_logits, dep_rel_mlp, head_rel_mlp
+      else:
+        return dummy_parse_logits()
 
     def dummy_parse_logits():
       dummy_rel_mlp = tf.zeros([batch_size, bucket_size, self.class_mlp_size])

@@ -27,18 +27,18 @@ num_heads="8" #4 8"
 head_sizes="25"
 relu_hidden_sizes="800"
 
-parents_penalties="1.0 0.1"
-rels_penalties="0.1 0.0"
+parents_penalties="0.0"
+rels_penalties="0.0"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
 parents_layers="parents:4 parents:5" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 predicate_layers="4 3"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
-use_full_parse="True"
+use_full_parse="False"
 
 reps="2"
 
-# 3*2*2 = 12
+# 3*2*2=12
 
 # array to hold all the commands we'll distribute
 declare -a commands
@@ -66,25 +66,15 @@ for lr in ${lrs[@]}; do
 
     #                                                                    if [[ "$cnn_layer" != "2" || "$trans_layer" != "10" ]]; then
                                                                         fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$rels_penalty-$parents_layer-$predicate_layer-$ss-$full_parse"
-                                                                        orig_parents_layer=$parents_layer
-                                                                        arc_loss_penalty=$parents_penalty
-                                                                        rel_loss_penalty=$rels_penalty
-                                                                        eval_parse="True"
-                                                                        if [[ "$parents_layer" == "no" ]]; then
-                                                                            parents_layer=""
-                                                                            eval_parse="False"
-                                                                            rel_loss_penalty=0.0
-                                                                            arc_loss_penalty=0.0
-                                                                        fi
 
-                                                                        partition="m40-long"
+                                                                        partition="titanx-long"
 
                                                                         ss_arr=(${ss//=/ })
                                                                         sampling_sched=${ss_arr[0]}
                                                                         sample_prob=${ss_arr[1]}
 
                                                                         commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                        --config_file config/trans-conll12-bio-parse-tan.cfg \
+                                                                        --config_file config/trans-conll05-bio-parse-tan-notrain.cfg \
                                                                         --save_dir $OUT_LOG/scores-$fname_append \
                                                                         --save_every 500 \
                                                                         --train_iters 5000000 \
@@ -104,19 +94,15 @@ for lr in ${lrs[@]}; do
                                                                         --multitask_penalties \"parents:$parents_penalty\"
                                                                         --eval_by_domain False \
                                                                         --eval_srl True \
-                                                                        --eval_parse $eval_parse \
+                                                                        --eval_parse False \
                                                                         --full_parse $full_parse \
-                                                                        --arc_loss_penalty $arc_loss_penalty \
-                                                                        --rel_loss_penalty $rel_loss_penalty \
+                                                                        --arc_loss_penalty $parents_penalty \
+                                                                        --rel_loss_penalty $rels_penalty \
                                                                         --sampling_schedule $sampling_sched \
                                                                         --sample_prob $sample_prob \
                                                                         --save True \
                                                                         &> $OUT_LOG/train-$fname_append.log")
                                                                         i=$((i + 1))
-                                                                        parents_layer=$orig_parents_layer
-                                                                        arc_loss_penalty=$parents_penalty
-                                                                        rel_loss_penalty=$rels_penalty
-                                                                        eval_parse="True"
                                                                     fi
                                                                 done
                                                             done

@@ -8,18 +8,18 @@ parse_config=$2
 data_dir=$DATA_DIR/conll05st-release-new
 
 valid_file=$data_dir/dev-set.gz.parse.sdeps.combined.bio
-valid_props_file=$data_dir/conll2005-test-wsj-gold-props.txt
-valid_parse_file=$data_dir/dev-set.conll
+valid_props_file=$data_dir/conll2005-dev-gold-props.txt
+valid_parse_file=$data_dir/conll2005-dev-gold-parse.txt
 
 # WSJ test
 wsj_test_file=$data_dir/test.wsj.gz.parse.sdeps.combined.bio
 wsj_test_props_file=$data_dir/conll2005-test-wsj-gold-props.txt
-wsj_test_parse_file=$data_dir/test.wsj.conll
+wsj_test_parse_file=$data_dir/conll2005-test-wsj-gold-parse.txt
 
 # Brown test
 brown_test_file=$data_dir/test.brown.gz.parse.sdeps.combined.bio
 brown_test_props_file=$data_dir/conll2005-test-brown-gold-props.txt
-brown_test_parse_file=$data_dir/test.brown.conll
+brown_test_parse_file=$data_dir/conll2005-test-brown-gold-parse.txt
 
 # D&M injected
 dm_valid_file=lstm_predicted_parses/parse_preds-conll2005-lstm-dev24.tsv.replaced

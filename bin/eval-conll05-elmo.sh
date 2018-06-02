@@ -5,21 +5,21 @@
 model_dir=$1
 parse_config=$2
 
-data_dir=$DATA_DIR/conll05st-release
+data_dir=$DATA_DIR/conll05st-release-new
 
 valid_file=$data_dir/dev-set.gz.parse.sdeps.combined.bio
 valid_props_file=$data_dir/conll2005-dev-gold-props.txt
-valid_parse_file=$data_dir/dev-set.conll
+valid_parse_file=$data_dir/conll2005-dev-gold-parse.txt
 
 # WSJ test
 wsj_test_file=$data_dir/test.wsj.gz.parse.sdeps.combined.bio
 wsj_test_props_file=$data_dir/conll2005-test-wsj-gold-props.txt
-wsj_test_parse_file=$data_dir/test.wsj.conll
+wsj_test_parse_file=$data_dir/conll2005-test-wsj-gold-parse.txt
 
 # Brown test
 brown_test_file=$data_dir/test.brown.gz.parse.sdeps.combined.bio
 brown_test_props_file=$data_dir/conll2005-test-brown-gold-props.txt
-brown_test_parse_file=$data_dir/test.brown.conll
+brown_test_parse_file=$data_dir/conll2005-test-brown-gold-parse.txt
 
 # D&M injected
 dm_valid_file=lstm_predicted_parses_elmo/parse_preds-conll2005-lstm-dev24.tsv.replaced
@@ -48,7 +48,6 @@ fi
 #    --load \
 #    --test \
 #    --load_dir $model_dir \
-#    --save_dir tmp \
 #    --config_file $model_dir/config.cfg \
 #    --gold_attn_at_train $gold_attn_at_train \
 #    --inject_manual_attn $inject_manual_attn \
@@ -57,6 +56,9 @@ fi
 #    --gold_test_props_file $wsj_test_props_file \
 #    --gold_dev_parse_file $valid_parse_file \
 #    --gold_test_parse_file $wsj_test_parse_file
+#
+#cp $model_dir/srl_preds.tsv $model_dir/${parse_config}_dev_srl_preds.tsv
+#cp $model_dir/parse_preds.tsv $model_dir/${parse_config}_dev_parse_preds.tsv
 
 # WSJ test
 python $DOZAT_ROOT/network.py \

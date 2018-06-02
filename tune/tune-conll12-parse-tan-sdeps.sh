@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=12
+num_gpus=10
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -27,18 +27,18 @@ num_heads="8" #4 8"
 head_sizes="25"
 relu_hidden_sizes="800"
 
-parents_penalties="1.0 0.1"
-rels_penalties="0.1 0.0"
+parents_penalties="1.0"
+rels_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:4 parents:5" # "parents:4 no"
+parents_layers="parents:4 parents:5 no" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
 predicate_layers="4 3"
 scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
 use_full_parse="True"
 
-reps="2"
+reps="1"
 
-# 3*2*2 = 12
+# 5*2*2 = 20
 
 # array to hold all the commands we'll distribute
 declare -a commands
@@ -84,7 +84,7 @@ for lr in ${lrs[@]}; do
                                                                         sample_prob=${ss_arr[1]}
 
                                                                         commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                        --config_file config/trans-conll12-bio-parse-tan.cfg \
+                                                                        --config_file config/trans-conll12-bio-parse-tan-sdeps.cfg \
                                                                         --save_dir $OUT_LOG/scores-$fname_append \
                                                                         --save_every 500 \
                                                                         --train_iters 5000000 \

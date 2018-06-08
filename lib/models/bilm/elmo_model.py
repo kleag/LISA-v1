@@ -47,17 +47,18 @@ class ElmoLSTMEncoder(object):
     self.vocabs = dataset.vocabs
     self.dataset = dataset
 
-  def get_feed_dict(self, feed_dict):
+  def get_feed_dict(self, feed_dict, sents):
     # e1, e2, ep, rel, tokens, e1_dist, e2_dist, seq_len = batch
     # token_map = string_int_maps['token_id_str_map']
     # remove pad tokens
     # todo 0 or 1?
-    tokens_batch = feed_dict[self.dataset.inputs][:, :, 0]
+    tokens_batch = feed_dict[self.dataset.inputs][:, :, 1]
     # print("feed: ", feed_dict[self.dataset.inputs].shape, feed_dict[self.dataset.inputs][:, 0])
-    str_tokens = [[self.vocabs[0][t] for t in sentence] for sentence in tokens_batch]
+    # str_tokens = [[self.vocabs[0][t] for t in sentence] for sentence in tokens_batch]
+    print("sents", sents)
     # print("str tokens: ", str_tokens)
     # map text to sentences
-    char_ids = self.elmo_batcher.batch_sentences(str_tokens)
+    char_ids = self.elmo_batcher.batch_sentences(sents)
     feed_dict[self.elmo_ids_placeholder] = char_ids
     return feed_dict
 

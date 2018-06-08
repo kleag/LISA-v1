@@ -278,7 +278,7 @@ class Dataset(Configurable):
         self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
       })
       if self.use_elmo:
-        feed_dict = self.elmo_encoder.get_feed_dict(feed_dict)
+        feed_dict = self.elmo_encoder.get_feed_dict(feed_dict, sents)
       yield feed_dict, sents
   
   #=============================================================

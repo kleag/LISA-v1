@@ -8,8 +8,8 @@ model_dir=$1
 data_dir=$DATA_DIR/conll05st-release-new
 
 valid_file=$data_dir/dev-set.gz.parse.sdeps.combined.bio
-valid_props_file=$data_dir/conll2005-test-wsj-gold-props.txt
-valid_parse_file=$data_dir/conll2005-test-wsj-gold-parse.txt
+valid_props_file=$data_dir/conll2005-dev-wsj-gold-props.txt
+valid_parse_file=$data_dir/conll2005-dev-wsj-gold-parse.txt
 
 # WSJ test
 wsj_test_file=$data_dir/test.wsj.gz.parse.sdeps.combined.bio
@@ -69,7 +69,6 @@ python $DOZAT_ROOT/network.py \
     --gold_dev_parse_file $valid_parse_file \
     --gold_test_parse_file $wsj_test_parse_file
 cp $model_dir/parse_preds.tsv $model_dir/parse_preds-conll2005-lstm-test.tsv
-
 
 # Brown test
 python $DOZAT_ROOT/network.py \

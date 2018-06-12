@@ -75,7 +75,7 @@ class Network(Configurable):
                      (self.rel_file, 7, 'Rels', 0)]
     elif self.conll2012:
       vocab_files = [(self.word_file, 3, 'Words', self.embed_size),
-                     (self.tag_file, [5, 4], 'Tags', 0), # auto, gold
+                     (self.tag_file, [5, 4], 'Tags', self.embed_size if self.add_pos_to_input else 0), # auto, gold
                      (self.rel_file, 7, 'Rels', 0),
                      (self.srl_file, range(14, 50), 'SRLs', 0),
                      (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10,

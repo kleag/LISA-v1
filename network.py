@@ -71,7 +71,7 @@ class Network(Configurable):
 
     if self.conll:
       vocab_files = [(self.word_file, 1, 'Words', self.embed_size),
-                     (self.tag_file, [3, 4], 'Tags', 0),
+                     (self.tag_file, [3, 4], 'Tags', self.embed_size if self.add_pos_to_input else 0),
                      (self.rel_file, 7, 'Rels', 0)]
     elif self.conll2012:
       vocab_files = [(self.word_file, 3, 'Words', self.embed_size),

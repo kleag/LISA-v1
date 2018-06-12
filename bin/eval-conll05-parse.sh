@@ -8,8 +8,8 @@ model_dir=$1
 data_dir=$DATA_DIR/conll05st-release-new
 
 valid_file=$data_dir/dev-set.gz.parse.sdeps.combined.bio
-valid_props_file=$data_dir/conll2005-dev-wsj-gold-props.txt
-valid_parse_file=$data_dir/conll2005-dev-wsj-gold-parse.txt
+valid_props_file=$data_dir/conll2005-dev-gold-props.txt
+valid_parse_file=$data_dir/conll2005-dev-gold-parse.txt
 
 # WSJ test
 wsj_test_file=$data_dir/test.wsj.gz.parse.sdeps.combined.bio

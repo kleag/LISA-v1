@@ -317,17 +317,18 @@ class Vocab(Configurable):
     
     with tf.device('/cpu:0'):
       with tf.variable_scope(self.name):
-        if self._embed_size > 0 and self.use_pretrained and not self.add_to_pretrained:
-          self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
-          self.trainable_embeddings = tf.Variable(self.pretrained_embeddings, trainable=True, name='Trainable')
-          print("Loaded pre-trained embeddings. Trainable: True")
-        else:
-          if self._embed_size > 0:
-            self.trainable_embeddings = tf.get_variable('Trainable', shape=(len(self._str2idx), embed_size), initializer=initializer)
-          if self.use_pretrained:
+        if self.name == "Words":
+          if self.name == "Words" and self._embed_size > 0 and self.use_pretrained and not self.add_to_pretrained:
             self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
-            self.pretrained_embeddings = tf.Variable(self.pretrained_embeddings, trainable=False, name='Pretrained')
-            print("Loaded pre-trained embeddings. Trainable: False")
+            self.trainable_embeddings = tf.Variable(self.pretrained_embeddings, trainable=True, name='Trainable')
+            print("Loaded pre-trained embeddings. Trainable: True")
+          else:
+            if self._embed_size > 0:
+              self.trainable_embeddings = tf.get_variable('Trainable', shape=(len(self._str2idx), embed_size), initializer=initializer)
+            if self.use_pretrained:
+              self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
+              self.pretrained_embeddings = tf.Variable(self.pretrained_embeddings, trainable=False, name='Pretrained')
+              print("Loaded pre-trained embeddings. Trainable: False")
     return
   
   #=============================================================

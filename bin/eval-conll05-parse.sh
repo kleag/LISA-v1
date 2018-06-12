@@ -47,6 +47,7 @@ brown_test_parse_file=$data_dir/conll2005-test-brown-gold-parse.txt
 python $DOZAT_ROOT/network.py \
     --load \
     --test \
+    --eval_srl False \
     --load_dir $model_dir \
     --config_file $model_dir/config.cfg \
     --valid_file $valid_file \
@@ -61,6 +62,7 @@ python $DOZAT_ROOT/network.py \
     --load \
     --test \
     --test_eval \
+    --eval_srl False \
     --load_dir $model_dir \
     --config_file $model_dir/config.cfg \
     --valid_file $valid_file \
@@ -75,6 +77,7 @@ python $DOZAT_ROOT/network.py \
     --load \
     --test \
     --test_eval \
+    --eval_srl False \
     --load_dir $model_dir \
     --config_file $model_dir/config.cfg \
     --valid_file $valid_file \

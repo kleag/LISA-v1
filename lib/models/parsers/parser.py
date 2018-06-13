@@ -161,7 +161,7 @@ class Parser(BaseParser):
 
     ##### Functions for predicting parse, Dozat-style #####
     def get_parse_logits(parse_inputs):
-      if self.full_parse:
+      if self.full_parse or (self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.):
         ######## do parse-specific stuff (arcs) ########
         with tf.variable_scope('MLP', reuse=reuse):
           dep_mlp, head_mlp = self.MLP(parse_inputs, self.class_mlp_size + self.attn_mlp_size, n_splits=2)
@@ -392,9 +392,9 @@ class Parser(BaseParser):
     if not self.full_parse and self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.0:
       arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(parse_pred_inputs)
 
-    arc_output = self.output_svd(arc_logits, targets[:,:,1])
+    arc_output = self.output_svd(arc_logits, targets[:, :, 1])
     if moving_params is None:
-      predictions = targets[:,:,1]
+      predictions = targets[:, :, 1]
     else:
       predictions = arc_output['predictions']
     parse_probs = arc_output['probabilities']

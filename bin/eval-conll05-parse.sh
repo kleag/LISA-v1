@@ -7,9 +7,12 @@ model_dir=$1
 
 data_dir=$DATA_DIR/conll05st-release-new
 
-valid_file=$data_dir/dev-set.gz.parse.sdeps.combined.bio
+#valid_file=$data_dir/dev-set.gz.parse.sdeps.combined.bio
+#valid_props_file=$data_dir/conll2005-dev-gold-props.txt
+#valid_parse_file=$data_dir/conll2005-dev-gold-parse.txt
+valid_file=/home/strubell/research/data/wsj-parse-3.5.0/bio_format/wsj22-dev.sdep.spos.conllu_BIO
 valid_props_file=$data_dir/conll2005-dev-gold-props.txt
-valid_parse_file=$data_dir/conll2005-dev-gold-parse.txt
+valid_parse_file=/home/strubell/research/data/wsj-parse-3.5.0/bio_format/wsj22-dev.sdep.spos.conllu_BIO.conll
 
 # WSJ test
 wsj_test_file=$data_dir/test.wsj.gz.parse.sdeps.combined.bio

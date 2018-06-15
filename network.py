@@ -1037,7 +1037,8 @@ if __name__ == '__main__':
 
         # decode with & without viterbi
         network.test(sess, False, validate=True)
-        network.test(sess, True, validate=True)
+        if network.eval_srl and (network.viterbi_decode or network.viterbi_train):
+          network.test(sess, True, validate=True)
 
         # Actually evaluate on test data
         if args.test_eval:

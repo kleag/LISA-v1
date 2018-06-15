@@ -707,6 +707,11 @@ class Configurable(object):
   argparser.add_argument('--max_test_batch_size')
 
   @property
+  def max_dev_batch_size(self):
+    return self._config.getint('Training', 'max_dev_batch_size')
+  argparser.add_argument('--max_dev_batch_size')
+
+  @property
   def ff_kernel(self):
     return self._config.getint('Training', 'ff_kernel')
   argparser.add_argument('--ff_kernel')

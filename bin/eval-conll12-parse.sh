@@ -12,8 +12,8 @@ valid_parse_file=$data_dir/conll2012-dev-gold-parse.txt
 
 # Test
 test_file=$data_dir/conll2012-test.txt.bio
-test_props_file=$data_dir/conll2012-test-wsj-gold-props.txt
-test_parse_file=$data_dir/conll2012-test-wsj-gold-parse.txt
+test_props_file=$data_dir/conll2012-test-gold-props.txt
+test_parse_file=$data_dir/conll2012-test-gold-parse.txt
 
 # Dev
 python $DOZAT_ROOT/network.py \

@@ -23,10 +23,10 @@ python $DOZAT_ROOT/network.py \
     --load_dir $model_dir \
     --config_file $model_dir/config.cfg \
     --valid_file $valid_file \
-    --test_file $wsj_test_file \
-    --gold_test_props_file $wsj_test_props_file \
+    --test_file $test_file \
+    --gold_test_props_file $test_props_file \
     --gold_dev_parse_file $valid_parse_file \
-    --gold_test_parse_file $wsj_test_parse_file
+    --gold_test_parse_file $test_parse_file
 cp $model_dir/parse_preds.tsv $model_dir/parse_preds-conll2012-lstm-dev.tsv
 
 # Test
@@ -38,8 +38,8 @@ python $DOZAT_ROOT/network.py \
     --load_dir $model_dir \
     --config_file $model_dir/config.cfg \
     --valid_file $valid_file \
-    --test_file $wsj_test_file \
-    --gold_test_props_file $wsj_test_props_file \
+    --test_file $test_file \
+    --gold_test_props_file $test_props_file \
     --gold_dev_parse_file $valid_parse_file \
-    --gold_test_parse_file $wsj_test_parse_file
+    --gold_test_parse_file $test_parse_file
 cp $model_dir/parse_preds.tsv $model_dir/parse_preds-conll2012-lstm-test.tsv

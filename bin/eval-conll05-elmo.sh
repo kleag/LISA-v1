@@ -76,8 +76,8 @@ python $DOZAT_ROOT/network.py \
     --test_file $wsj_test_file \
     --gold_test_props_file $wsj_test_props_file \
     --gold_dev_parse_file $valid_parse_file \
-    --gold_test_parse_file $wsj_test_parse_file
-#    --max_dev_batch_size 183
+    --gold_test_parse_file $wsj_test_parse_file \
+    --max_dev_batch_size 246 #183
 
 
 # Brown test
@@ -93,5 +93,5 @@ python $DOZAT_ROOT/network.py \
     --test_file $brown_test_file \
     --gold_test_props_file $brown_test_props_file \
     --gold_dev_parse_file $valid_parse_file \
-    --gold_test_parse_file $brown_test_parse_file
-#    --max_dev_batch_size 183
+    --gold_test_parse_file $brown_test_parse_file \
+    --max_dev_batch_size 246 #183

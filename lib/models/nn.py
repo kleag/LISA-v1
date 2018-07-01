@@ -1439,7 +1439,7 @@ class NN(Configurable):
       lambda: dummy_loss())
 
 
-    log_loss = tf.Print(log_loss, [log_loss, tf.greater(tf.rank(logits3D), 1)], "log loss")
+    log_loss = tf.Print(log_loss, [log_loss, tf.greater(tf.rank(logits3D), 1), self.n_tokens], "log loss")
 
     n_correct = tf.reduce_sum(correct * tokens_to_keep1D)
     accuracy = n_correct / self.n_tokens

@@ -1397,7 +1397,7 @@ class NN(Configurable):
       cross_entropy1D = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits2D, labels=targets1D)
       log_loss = tf.cond(tf.greater(self.n_tokens, 0), lambda: tf.reduce_sum(cross_entropy1D * tokens_to_keep1D) / self.n_tokens, lambda: tf.constant(0.))
 
-      log_loss = tf.Print(log_loss, [log_loss, tf.reduce_sum(cross_entropy1D * tokens_to_keep1D), tf.reduce_sum(cross_entropy1D)],
+      log_loss = tf.Print(log_loss, [log_loss, tf.reduce_sum(cross_entropy1D * tokens_to_keep1D), tf.reduce_sum(cross_entropy1D), tf.reduce_sum(logits2D)],
                           "sums")
 
       ########## pairs mask #########

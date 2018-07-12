@@ -109,6 +109,7 @@ class Dataset(Configurable):
     # tmp_f = open("debug_data_%s" % self.name, 'w')
     
     words, tags, rels, srls, predicates, domains = self.vocabs
+    #print('SRL in vocabs: ', srls[0])
     srl_start_field = srls.conll_idx[0]
     sents = 0
     toks = 0
@@ -117,10 +118,12 @@ class Dataset(Configurable):
     buff2 = []
     for i, sent in enumerate(buff):
       # if not self.conll2012 or (self.conll2012 and len(list(sent)) > 1):
-      # print(sent, len(sent))
+      #print(sent, len(sent))
       sents += 1
       sent_len = len(sent)
       num_fields = len(sent[0])
+
+      # indices of SRLs from 14 to end of sentence
       srl_take_indices = [idx for idx in range(srl_start_field, srl_start_field + sent_len) if idx < num_fields - 1 and (self.train_on_nested or np.all(['/' not in sent[j][idx] for j in range(sent_len)]))]
       predicate_indices = []
       for j, token in enumerate(sent):
@@ -135,14 +138,19 @@ class Dataset(Configurable):
         elif self.conll2012:
           word, auto_tag, gold_tag, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
           domain = token[0].split('/')[0]
-          # print(word, tag1, tag2, head, rel)
+          #print(word, auto_tag, gold_tag, head, rel)
           if rel == 'root':
             head = j
           else:
             head = int(head) - 1
 
           # srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in range(srl_start_field, srl_start_field + sent_len)]
-          srl_fields = [token[idx] for idx in srl_take_indices] # todo can we use fancy indexing here?
+          srl_fields_full = [token[idx] for idx in srl_take_indices] # todo can we use fancy indexing here?
+
+          # split propbank from verbnet labels e.g. Agent=ARG0
+          srl_vn_labels = [tuple(srl_str.split('=')) for srl_str in srl_fields_full]
+          srl_fields = [srl_str[1] if len(srl_str) > 1 else srl_str[0] for srl_str in srl_vn_labels]
+
           srl_fields += ['O'] * (sent_len - len(srl_take_indices))
           srl_tags = [srls[s][0] for s in srl_fields]
 
@@ -157,6 +165,7 @@ class Dataset(Configurable):
             predicate_indices.append(j)
 
           buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
+          #print(buff[i][j])
 
       # Expand sentences into one example per predicate
       if self.one_example_per_predicate:
@@ -264,9 +273,13 @@ class Dataset(Configurable):
       # print("maxlen", maxlen)
       # print("maxlen+max(target_idxs)", maxlen+max(target_idxs))
       # print("data.shape[2]", data.shape[2])
-      # targets = data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
-      # print("data shape", targets.shape)
+      print('inputs shape: ', data[:,:maxlen,input_idxs].shape)
+      targets = data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
+      print("data shape", targets.shape)
       # print("data[:,:,3:] shape", targets[:,:,3:].shape)
+
+      #print('Data: ', data[0])
+      #print('Target: ', target[0])
 
       feed_dict.update({
         self.inputs: data[:,:maxlen,input_idxs],

@@ -74,6 +74,7 @@ class Network(Configurable):
                      (self.tag_file, [3, 4], 'Tags', 0),
                      (self.rel_file, 7, 'Rels', 0)]
     elif self.conll2012:
+      #print('SRL file: ', self.srl_file)
       vocab_files = [(self.word_file, 3, 'Words', self.embed_size),
                      (self.tag_file, [5, 4], 'Tags', 0), # auto, gold
                      (self.rel_file, 7, 'Rels', 0),
@@ -138,7 +139,8 @@ class Network(Configurable):
                                           self.model.input_idxs,
                                           self.model.target_idxs,
                                           shuffle=False)
-  
+
+  ##
   #=============================================================
   # assumes the sess has already been initialized
   def train(self, sess, profile):

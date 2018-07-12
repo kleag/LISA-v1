@@ -56,6 +56,7 @@ class Parser(BaseParser):
       word_inputs += pret_inputs
     else:
       word_inputs = vocabs[0].embedding_lookup(inputs[:, :, 1], moving_params=self.moving_params)
+      print('Word inputs: ', word_inputs.shape)
     if self.word_l2_reg > 0:
       unk_mask = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,1], vocabs[0].UNK)), 2)
       word_loss = self.word_l2_reg*tf.nn.l2_loss((word_inputs - pret_inputs) * unk_mask)
@@ -107,6 +108,7 @@ class Parser(BaseParser):
       with open(self.transition_statistics, 'r') as f:
         for line in f:
           tag1, tag2, prob = line.split("\t")
+          print('Tags, prob: ', tag1, tag2, prob)
           bilou_constraints[vocabs[3][tag1], vocabs[3][tag2]] = float(prob)
 
     ###### stuff for multitask attention ######

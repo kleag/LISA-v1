@@ -98,6 +98,10 @@ class Configurable(object):
     return self._config.get('OS', 'srl_file')
   argparser.add_argument('--srl_file')
   @property
+  def vnroles_file(self):
+    return self._config.get('OS', 'vnroles_file')
+  argparser.add_argument('--vnroles_file')
+  @property
   def predicates_file(self):
     return self._config.get('OS', 'predicate_file')
   argparser.add_argument('--predicate_file')

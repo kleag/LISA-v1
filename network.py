@@ -52,7 +52,8 @@ class Network(Configurable):
     if args:
       if len(args) > 1:
         raise TypeError('Parser takes at most one argument')
-    
+
+    # Check defaults.cfg and command line config if arg not found
     kwargs['name'] = kwargs.pop('name', model.__name__)
     super(Network, self).__init__(*args, **kwargs)
     if not os.path.isdir(self.save_dir):
@@ -75,13 +76,15 @@ class Network(Configurable):
                      (self.rel_file, 7, 'Rels', 0)]
     elif self.conll2012:
       #print('SRL file: ', self.srl_file)
+      print('VN Roles file: ', self.vnroles_file)
       vocab_files = [(self.word_file, 3, 'Words', self.embed_size),
                      (self.tag_file, [5, 4], 'Tags', 0), # auto, gold
                      (self.rel_file, 7, 'Rels', 0),
                      (self.srl_file, range(14, 50), 'SRLs', 0),
                      (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10,
                         'Predicates', self.predicate_embed_size if self.add_predicates_to_input else 0),
-                     (self.domain_file, 0, 'Domains', 0)]
+                     (self.domain_file, 0, 'Domains', 0),
+                     (self.vnroles_file, range(14, 50), 'VNRoles', 0)]
 
     print("Loading vocabs")
     sys.stdout.flush()

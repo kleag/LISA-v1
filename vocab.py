@@ -124,7 +124,7 @@ class Vocab(Configurable):
     cur_idx = self.START_IDX
     self.predicate_true_start_idx = cur_idx
     for word, count in self.sorted_vocab(counts):
-      if (count >= self.min_occur_count or self.name == 'SRLs') and word not in str2idx:
+      if (count >= self.min_occur_count or (self.name == 'SRLs' or self.name == 'VNRoles')) and word not in str2idx:
         str2idx[word] = cur_idx
         idx2str[cur_idx] = word
         cur_idx += 1
@@ -139,7 +139,7 @@ class Vocab(Configurable):
     cur_idx = self.START_IDX
     add_to_end = []
     for word, count in self.sorted_vocab(counts):
-      if (count >= self.min_occur_count or self.name == 'SRLs') and word not in str2idx:
+      if (count >= self.min_occur_count or (self.name == 'SRLs' or self.name == 'VNRoles')) and word not in str2idx:
         if word.split('/')[0] == "True":
           add_to_end.append(word)
         else:
@@ -198,7 +198,21 @@ class Vocab(Configurable):
                 for idx in self.conll_idx:
                   if idx < len(line) and (self.name != 'SRLs' or (idx != len(line)-1 and (self.train_on_nested or '/' not in line[idx]))):
                     # print("adding ", line[idx])
-                    self.add(counts, line[idx])
+                    if self.name == 'SRLs':
+                      try:
+                        actual = line[idx].split('=')[1]
+                      except:
+                        actual = line[idx]
+                      #print('SRL labels: ', actual)
+                    elif self.name == 'VNRoles':
+                      split_word = line[idx].split('=')
+                      if len(split_word) > 1:
+                        actual = split_word[0]
+                      else:
+                        actual = 'NoLabel'
+                    else:
+                      actual = line[idx]
+                    self.add(counts, actual)
             else:
               if self.name == "Predicates":
                 actual = "False" if line[self.conll_idx] == '-' else "True"

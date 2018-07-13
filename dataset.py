@@ -108,7 +108,7 @@ class Dataset(Configurable):
 
     # tmp_f = open("debug_data_%s" % self.name, 'w')
     
-    words, tags, rels, srls, predicates, domains = self.vocabs
+    words, tags, rels, srls, predicates, domains, vnroles = self.vocabs
     #print('SRL in vocabs: ', srls[0])
     srl_start_field = srls.conll_idx[0]
     sents = 0
@@ -150,9 +150,15 @@ class Dataset(Configurable):
           # split propbank from verbnet labels e.g. Agent=ARG0
           srl_vn_labels = [tuple(srl_str.split('=')) for srl_str in srl_fields_full]
           srl_fields = [srl_str[1] if len(srl_str) > 1 else srl_str[0] for srl_str in srl_vn_labels]
+          vn_fields = [srl_str[0] if len(srl_str) > 1 else 'NoLabel' for srl_str in srl_vn_labels]
 
           srl_fields += ['O'] * (sent_len - len(srl_take_indices))
           srl_tags = [srls[s][0] for s in srl_fields]
+
+          vn_fields += ['NoLabel'] * (sent_len - len(srl_take_indices))
+          vn_tags = [vnroles[s][0] for s in vn_fields]
+
+          print(word, vn_fields, vn_tags)
 
           if self.joint_pos_predicates:
             is_predicate = token[predicates.conll_idx[0]] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
@@ -164,7 +170,7 @@ class Dataset(Configurable):
           if is_predicate:
             predicate_indices.append(j)
 
-          buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
+          buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags) + tuple(vn_tags)
           #print(buff[i][j])
 
       # Expand sentences into one example per predicate
@@ -273,9 +279,9 @@ class Dataset(Configurable):
       # print("maxlen", maxlen)
       # print("maxlen+max(target_idxs)", maxlen+max(target_idxs))
       # print("data.shape[2]", data.shape[2])
-      print('inputs shape: ', data[:,:maxlen,input_idxs].shape)
+      #print('inputs shape: ', data[:,:maxlen,input_idxs].shape)
       targets = data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
-      print("data shape", targets.shape)
+      #print("data shape", targets.shape)
       # print("data[:,:,3:] shape", targets[:,:,3:].shape)
 
       #print('Data: ', data[0])

@@ -25,6 +25,7 @@ from collections import Counter
 
 from lib.etc.k_means import KMeans
 from configurable import Configurable
+
 from vocab import Vocab
 from metabucket import Metabucket
 
@@ -50,6 +51,9 @@ class Dataset(Configurable):
 
     self.inputs = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')
     self.targets = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='targets')
+    self.srl_targets_pb = tf.placeholder(dtype=tf.int32, shape=(None, None, None), name='srl_targets_pb')
+    self.srl_targets_vn = tf.placeholder(dtype=tf.int32, shape=(None, None, None), name='srl_targets_vn')
+    self.annotated = tf.placeholder(dtype=tf.int32, shape=(None, None), name='annotated')
     self.step = tf.placeholder_with_default(0., shape=None, name='step')
     self.builder = builder()
   
@@ -116,6 +120,8 @@ class Dataset(Configurable):
     examples = 0
     total_predicates = 0
     buff2 = []
+    annotation = {'True': 1, 'False':0}
+    # process tokens in each sent, store in buff[i][j]
     for i, sent in enumerate(buff):
       # if not self.conll2012 or (self.conll2012 and len(list(sent)) > 1):
       #print(sent, len(sent))
@@ -124,19 +130,20 @@ class Dataset(Configurable):
       num_fields = len(sent[0])
 
       # indices of SRLs from 14 to end of sentence
+      #print('SRL start field: ', srl_start_field)
       srl_take_indices = [idx for idx in range(srl_start_field, srl_start_field + sent_len) if idx < num_fields - 1 and (self.train_on_nested or np.all(['/' not in sent[j][idx] for j in range(sent_len)]))]
       predicate_indices = []
       for j, token in enumerate(sent):
         toks += 1
         if self.conll:
-          word, tag1, tag2, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
+          word, tag1, tag2, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[8], token[rels.conll_idx]
           if rel == 'root':
             head = j
           else:
             head = int(head) - 1
           buff[i][j] = (word,) + words[word] + tags[tag1] + tags[tag2] + (head,) + rels[rel]
         elif self.conll2012:
-          word, auto_tag, gold_tag, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
+          word, auto_tag, gold_tag, head, rel, annotated = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[8], token[rels.conll_idx], token[1]
           domain = token[0].split('/')[0]
           #print(word, auto_tag, gold_tag, head, rel)
           if rel == 'root':
@@ -150,15 +157,26 @@ class Dataset(Configurable):
           # split propbank from verbnet labels e.g. Agent=ARG0
           srl_vn_labels = [tuple(srl_str.split('=')) for srl_str in srl_fields_full]
           srl_fields = [srl_str[1] if len(srl_str) > 1 else srl_str[0] for srl_str in srl_vn_labels]
-          vn_fields = [srl_str[0] if len(srl_str) > 1 else 'NoLabel' for srl_str in srl_vn_labels]
+          vn_fields = []
+          for srl_str in srl_vn_labels:
+            if len(srl_str) > 1:
+              vn_fields.append(srl_str[0])
+            elif srl_str[0] == 'O':
+              vn_fields.append('O')
+            elif srl_str[0].startswith('B-ARGM') or srl_str[0].startswith('I-ARGM'):
+              vn_fields.append('-'.join(srl_str[0].split('-')[1:]))
+            else:
+              vn_fields.append('NoLabel')
+          #vn_fields = [srl_str[0] if len(srl_str) > 1 else 'NoLabel' if srl_str[0] is not 'O' else 'O' for srl_str in srl_vn_labels]
 
           srl_fields += ['O'] * (sent_len - len(srl_take_indices))
           srl_tags = [srls[s][0] for s in srl_fields]
 
-          vn_fields += ['NoLabel'] * (sent_len - len(srl_take_indices))
+          vn_fields += ['O'] * (sent_len - len(srl_take_indices))
           vn_tags = [vnroles[s][0] for s in vn_fields]
 
-          print(word, vn_fields, vn_tags)
+          #print(word, vn_fields, srl_fields)
+          #print(vn_tags)
 
           if self.joint_pos_predicates:
             is_predicate = token[predicates.conll_idx[0]] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
@@ -170,7 +188,7 @@ class Dataset(Configurable):
           if is_predicate:
             predicate_indices.append(j)
 
-          buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags) + tuple(vn_tags)
+          buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + (annotation[annotated],) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags) + tuple(vn_tags)
           #print(buff[i][j])
 
       # Expand sentences into one example per predicate
@@ -181,6 +199,7 @@ class Dataset(Configurable):
         # print(sent)
         is_predicate_idx = 4
         srl_start_idx = 10
+        #print(len(sent), len(sent)-srl_start_idx)
         word_part = sent[:, 0].astype('O')
         srl_part = sent[:, srl_start_idx:].astype(np.int32)
         rest_part = sent[:, 1:srl_start_idx].astype(np.int32)
@@ -223,6 +242,7 @@ class Dataset(Configurable):
     
     self._data = []
     self._targets = []
+    print('Sizes of splits: ', sizes)
     self._metabucket.reset(sizes)
     return
   
@@ -239,6 +259,7 @@ class Dataset(Configurable):
     
     for sent in buff:
       self._metabucket.add(sent)
+
     self._finalize()
     return
   
@@ -252,9 +273,9 @@ class Dataset(Configurable):
   #=============================================================
   def get_minibatches(self, batch_size, input_idxs, target_idxs, shuffle=True):
     """"""
-    
     minibatches = []
     for bkt_idx, bucket in enumerate(self._metabucket):
+      #print('Index, bucket, length: ', bkt_idx, len(bucket), batch_size, bucket.size)
       if batch_size == 0:
         n_splits = 1
       else:
@@ -269,11 +290,18 @@ class Dataset(Configurable):
         minibatches.append( (bkt_idx, bkt_mb) )
     if shuffle:
       np.random.shuffle(minibatches)
+
     for bkt_idx, bkt_mb in minibatches:
+      #print(bkt_idx, bkt_mb)
       feed_dict = {}
       data = self[bkt_idx].data[bkt_mb]
       sents = self[bkt_idx].sents[bkt_mb]
+      # length of maximum
       maxlen = np.max(np.sum(np.greater(data[:,:,0], 0), axis=1))
+
+      #print('Data shape: ', data.shape)
+      #print('Data[0].shape: ', data[0].shape)
+      #print('Data[0][0] shape: ', data[0][0].shape)
 
       # np.set_printoptions(threshold=np.nan)
       # print("maxlen", maxlen)
@@ -282,14 +310,28 @@ class Dataset(Configurable):
       #print('inputs shape: ', data[:,:maxlen,input_idxs].shape)
       targets = data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
       #print("data shape", targets.shape)
-      # print("data[:,:,3:] shape", targets[:,:,3:].shape)
+      #print("data[:,:,3:] shape, maxlen: ", targets[:,:,3:].shape, maxlen+max(target_idxs)+1)
 
-      #print('Data: ', data[0])
-      #print('Target: ', target[0])
+      #print('Data: ', data[0][0], len(data[0][0]))
+      #print('Target: ', targets[0][0], len(targets[0][0]))
+      #for item in data:
+      #  print('Item size: ', item.shape)
+
+      srl_total = data.shape[2] - 3
+      srl_vn_start = srl_total // 2
+      srl_vn = data[:, :maxlen, srl_vn_start:]
+      srl_pb = targets[:,:,3:]
+      #print(srl_vn, srl_pb)
+      #print(srl_total, srl_vn_start)
+      #print(targets[:,:,3:])
+      #print(min(target_idxs), maxlen+max(target_idxs)+1)
 
       feed_dict.update({
         self.inputs: data[:,:maxlen,input_idxs],
-        self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
+        self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1],
+        self.srl_targets_pb: targets[:,:,3:],
+        self.srl_targets_vn: data[:, :maxlen, srl_vn_start:],
+        self.annotated: data[:,:maxlen, 6]
       })
       yield feed_dict, sents
   

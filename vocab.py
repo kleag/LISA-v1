@@ -209,7 +209,13 @@ class Vocab(Configurable):
                       if len(split_word) > 1:
                         actual = split_word[0]
                       else:
-                        actual = 'NoLabel'
+                        if split_word[0] == 'O':
+                          actual = 'O'
+                        elif split_word[0].startswith('B-ARGM') or split_word[0].startswith('I-ARGM'):
+                          actual = '-'.join(split_word[0].split('-')[1:])
+                          #print(split_word[0], actual)
+                        else:
+                          actual = 'NoLabel'
                     else:
                       actual = line[idx]
                     self.add(counts, actual)

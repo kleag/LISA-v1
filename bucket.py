@@ -66,8 +66,15 @@ class Bucket(Configurable):
     # idxs = [word[1:] for word in sent]
     words = [word[0] for word in sent]
     idxs = [word[1:] for word in sent]
+    #for idx in idxs:
+      #print(len(idx), idx[3:])
+
+
     self._sents.append(words)
     self._data.append(idxs)
+
+    #print('Sent and data length: ', len(sent), len(self._data))
+    #print(len(idxs), idxs[0])
     return len(self._data)-1
   
   #=============================================================
@@ -82,6 +89,8 @@ class Bucket(Configurable):
       max_len = max(lens)
       shape = (len(self._data), self.size, max_len)
       data = np.zeros(shape, dtype=np.int32)
+
+      #print('Shape of data: ', shape)
 
       # if len(self._data) == 416:
       #   print("lens", lens)

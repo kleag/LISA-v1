@@ -1218,7 +1218,7 @@ class NN(Configurable):
     return output
 
   # =============================================================
-  def output_srl_gather(self, logits_transposed, targets, trigger_predictions, transition_params):
+  def output_srl_gather(self, logits_transposed, targets, trigger_predictions, transition_params, annotated3D):
     """"""
 
     # logits are triggers_in_batch x num_classes x seq_len
@@ -1233,10 +1233,15 @@ class NN(Configurable):
     bucket_size = original_shape[1]
     num_labels = tf.shape(logits_transposed)[-1]
 
+    if annotated3D is not None:
+      tokens_to_keep3D = tf.cast(tf.logical_and(tf.cast(self.tokens_to_keep3D, dtype=tf.bool), tf.cast(annotated3D, dtype=tf.bool)), dtype=tf.float32)
+    else:
+      tokens_to_keep3D = self.tokens_to_keep3D
+
     # need to repeat each of these once for each target in the sentence
     # mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]),
     #                     tf.where(tf.equal(trigger_predictions, 1)))
-    mask_tiled = tf.reshape(tf.tile(tf.squeeze(self.tokens_to_keep3D, -1), [1, bucket_size]), [batch_size, bucket_size, bucket_size])
+    mask_tiled = tf.reshape(tf.tile(tf.squeeze(tokens_to_keep3D, -1), [1, bucket_size]), [batch_size, bucket_size, bucket_size])
     mask = tf.gather_nd(mask_tiled, tf.where(tf.equal(trigger_predictions, 1)))
     count = tf.cast(tf.count_nonzero(mask), tf.float32)
 
@@ -1260,11 +1265,9 @@ class NN(Configurable):
       # batch*num_targets x seq_len
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
 
-      # srl_targets_indices = tf.Print(srl_targets_indices, [batch_size, bucket_size, tf.shape(logits_transposed), tf.shape(targets), tf.shape(srl_targets_transposed), tf.shape(srl_targets_indices)], summarize=10)
+      #srl_targets_indices = tf.Print(srl_targets_indices, [batch_size, bucket_size, tf.shape(logits_transposed), tf.shape(targets), tf.shape(srl_targets_transposed), tf.shape(srl_targets_indices)], summarize=10)
 
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
-
-
 
       if transition_params is not None:
         seq_lens = tf.reduce_sum(mask, 1)
@@ -1796,8 +1799,8 @@ class NN(Configurable):
         #   print(' '.join(map(str, r)))
 
         a = coo2.toarray()
-        for r in a:
-          print("[%s]," % ', '.join(map(str, r)))
+        #for r in a:
+        #  print("[%s]," % ', '.join(map(str, r)))
 
       if not self.svd_tree or len_2_cycles or n_cycles:
         root_probs = np.diag(parse_probs)

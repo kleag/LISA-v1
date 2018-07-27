@@ -34,18 +34,25 @@ class Parser(BaseParser):
     vocabs = dataset.vocabs
     inputs = dataset.inputs
     targets = dataset.targets
+    srl_targets_pb = dataset.srl_targets_pb
+    srl_targets_vn = dataset.srl_targets_vn
+    annotated = dataset.annotated
+    #print(inputs.shape, targets.shape)
     step = dataset.step
 
     num_pos_classes = len(vocabs[1])
     num_rel_classes = len(vocabs[2])
     num_srl_classes = len(vocabs[3])
     num_pred_classes = len(vocabs[4])
+    num_vn_classes = len(vocabs[6])
 
     # need to add batch dim for batch size 1
-    # inputs = tf.Print(inputs, [tf.shape(inputs), tf.shape(targets)], summarize=10)
+    #inputs = tf.Print(inputs, [tf.shape(inputs), tf.shape(targets)], summarize=10)
 
     reuse = (moving_params is not None)
+    # Finds tokens which are not PAD or ROOT but includes UNK?
     self.tokens_to_keep3D = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,0], vocabs[0].ROOT)), 2)
+    annotated_3D = tf.expand_dims(tf.to_float(annotated), 2)
     self.sequence_lengths = tf.reshape(tf.reduce_sum(self.tokens_to_keep3D, [1, 2]), [-1,1])
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params
@@ -187,7 +194,7 @@ class Parser(BaseParser):
         transition_params = tf.get_variable("transitions", [num_srl_classes, num_srl_classes], initializer=tf.constant_initializer(bilou_constraints), trainable=False)
       else:
         transition_params = None
-    self.print_once("using transition params: ", transition_params)
+    #self.print_once("using transition params: ", transition_params)
 
     assert (self.cnn_layers != 0 and self.n_recur != 0) or self.num_blocks == 1, "num_blocks should be 1 if cnn_layers or n_recur is 0"
     assert self.dist_model == 'bilstm' or self.dist_model == 'transformer', 'Model must be either "transformer" or "bilstm"'
@@ -523,8 +530,9 @@ class Parser(BaseParser):
       pos_preds = inputs[:,:,2]
 
     ######## do SRL-specific stuff (rels) ########
-    def compute_srl(srl_target):
+    def compute_srl(srl_target, num_classes):
       with tf.variable_scope('SRL-MLP', reuse=reuse):
+        # project to get predicate and role representations?
         predicate_role_mlp = self.MLP(top_recur, self.predicate_mlp_size + self.role_mlp_size, n_splits=1)
         predicate_mlp, role_mlp = predicate_role_mlp[:,:,:self.predicate_mlp_size], predicate_role_mlp[:, :, self.predicate_mlp_size:]
 
@@ -542,9 +550,34 @@ class Parser(BaseParser):
         gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
 
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
-        srl_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_srl_classes)
+        srl_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
         srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
-        srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, predicate_predictions, transition_params if self.viterbi_train else None)
+        srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, predicate_predictions, transition_params if self.viterbi_train else None, None)
+        return srl_output
+
+    def compute_vn(vn_target, num_classes, annotated):
+      with tf.variable_scope('VN-MLP', reuse=reuse):
+        predicate_role_mlp = self.MLP(top_recur, self.predicate_mlp_size + self.role_mlp_size, n_splits=1)
+        predicate_mlp, role_mlp = predicate_role_mlp[:,:,:self.predicate_mlp_size], predicate_role_mlp[:, :, self.predicate_mlp_size:]
+
+      with tf.variable_scope('VN-Arcs', reuse=reuse):
+        # gather just the triggers
+        # predicate_predictions: batch x seq_len
+        # gathered_predicates: num_triggers_in_batch x 1 x self.trigger_mlp_size
+        # role mlp: batch x seq_len x self.role_mlp_size
+        # gathered roles: need a (bucket_size x self.role_mlp_size) role representation for each trigger,
+        # i.e. a (num_triggers_in_batch x bucket_size x self.role_mlp_size) tensor
+        predicate_gather_indices = tf.where(tf.equal(predicate_predictions, 1))
+        # predicate_gather_indices = tf.Print(predicate_gather_indices, [predicate_predictions, tf.shape(predicate_gather_indices), tf.shape(predicate_predictions)], "predicate gather shape", summarize=200)
+        gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
+        tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
+        gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
+
+        # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
+        srl_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
+        srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
+        srl_output = self.output_srl_gather(srl_logits_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
+        print(tf.shape(srl_output['loss']))
         return srl_output
 
     def compute_srl_simple(srl_target):
@@ -559,7 +592,7 @@ class Parser(BaseParser):
         srl_output['correct'] = output['n_correct']
         return srl_output
 
-    srl_targets = targets[:, :, 3:]
+    srl_targets = srl_targets_pb
     if self.role_loss_penalty == 0:
       # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))
       srl_output = {
@@ -573,10 +606,12 @@ class Parser(BaseParser):
     elif self.srl_simple_tagging:
       srl_output = compute_srl_simple(srl_targets)
     else:
-      srl_output = compute_srl(srl_targets)
+      srl_output = compute_srl(srl_targets, num_srl_classes)
+      vn_output = compute_vn(srl_targets_vn, num_vn_classes, annotated)
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']
+    vn_loss = self.role_loss_penalty * vn_output['loss']
     arc_loss = self.arc_loss_penalty * arc_output['loss']
     rel_loss = self.rel_loss_penalty * rel_output['loss']
 
@@ -629,6 +664,7 @@ class Parser(BaseParser):
     output['len_2_cycles'] = arc_output['len_2_cycles']
 
     output['srl_loss'] = srl_loss
+    output['vn_loss'] = vn_loss
     output['srl_preds'] = srl_output['predictions']
     output['srl_probs'] = srl_output['probabilities']
     output['srl_logits'] = srl_output['logits']

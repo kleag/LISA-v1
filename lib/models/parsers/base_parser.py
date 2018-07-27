@@ -253,4 +253,4 @@ class BaseParser(NN):
     # need to add target indices here?
     # up to max len?
     # gold tag, gold parse head, gold parse rel
-    return (6, 7, 8)
+    return (7, 8, 9)

@@ -75,16 +75,14 @@ class Network(Configurable):
                      (self.tag_file, [3, 4], 'Tags', 0),
                      (self.rel_file, 7, 'Rels', 0)]
     elif self.conll2012:
-      #print('SRL file: ', self.srl_file)
-      print('VN Roles file: ', self.vnroles_file)
-      vocab_files = [(self.word_file, 3, 'Words', self.embed_size),
-                     (self.tag_file, [5, 4], 'Tags', 0), # auto, gold
-                     (self.rel_file, 7, 'Rels', 0),
-                     (self.srl_file, range(14, 50), 'SRLs', 0),
-                     (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10,
+      vocab_files = [(self.word_file, 5, 'Words', self.embed_size),
+                     (self.tag_file, [7, 6], 'Tags', 0), # auto, gold
+                     (self.rel_file, 9, 'Rels', 0),
+                     (self.srl_file, range(16, 52), 'SRLs', 0),
+                     (self.predicates_file, [12, 6] if self.joint_pos_predicates else 12,
                         'Predicates', self.predicate_embed_size if self.add_predicates_to_input else 0),
                      (self.domain_file, 0, 'Domains', 0),
-                     (self.vnroles_file, range(14, 50), 'VNRoles', 0)]
+                     (self.vnroles_file, range(16, 52), 'VNRoles', 0)]
 
     print("Loading vocabs")
     sys.stdout.flush()
@@ -95,10 +93,10 @@ class Network(Configurable):
                     use_pretrained=(not i))
       self._vocabs.append(vocab)
 
-    print("Predicates vocab: ")
-    for l, i in sorted(self._vocabs[4].iteritems(), key=operator.itemgetter(1)):
-      print("%s: %d" % (l, i))
-    print("predicate_true_start_idx", self._vocabs[4].predicate_true_start_idx)
+    #print("Predicates vocab: ")
+    #for l, i in sorted(self._vocabs[4].iteritems(), key=operator.itemgetter(1)):
+    #  print("%s: %d" % (l, i))
+    #print("predicate_true_start_idx", self._vocabs[4].predicate_true_start_idx)
 
     print("Loading data")
     sys.stdout.flush()
@@ -169,6 +167,7 @@ class Network(Configurable):
       train_svd_loss = 0
       train_rel_loss = 0
       train_srl_loss = 0
+      train_vn_loss = 0
       train_mul_loss = {}
       train_predicate_loss = 0
       train_pos_loss = 0
@@ -197,7 +196,7 @@ class Network(Configurable):
 
           feed_dict[self._trainset.step] = total_train_iters
 
-          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, srl_correct, srl_count, predicate_loss, predicate_count, predicate_correct, pos_loss, pos_correct, multitask_losses, lr, sample_prob = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
+          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, vn_loss, srl_correct, srl_count, predicate_loss, predicate_count, predicate_correct, pos_loss, pos_correct, multitask_losses, lr, sample_prob = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
           total_train_iters += 1
           train_time += time.time() - start_time
           train_loss += loss
@@ -207,6 +206,7 @@ class Network(Configurable):
           train_svd_loss += svd_loss
           train_rel_loss += rel_loss
           train_srl_loss += srl_loss
+          train_vn_loss += vn_loss
           train_pos_loss += pos_loss
           train_predicate_loss += predicate_loss
           n_train_predicate_count += predicate_count
@@ -256,6 +256,7 @@ class Network(Configurable):
             train_svd_loss /= n_train_iters
             train_rel_loss /= n_train_iters
             train_srl_loss /= n_train_iters
+            train_vn_loss /= n_train_iters
             train_predicate_loss /= n_train_iters
             train_pos_loss /= n_train_iters
             train_accuracy = 100 * n_train_correct / n_train_tokens
@@ -263,7 +264,7 @@ class Network(Configurable):
             print('%6d) Train loss: %.4f    Train acc: %5.2f%%    Train rate: %6.1f sents/sec    Learning rate: %f    Sample prob: %f\n'
                   '\tValid loss: %.4f    Valid acc: %5.2f%%    Valid rate: %6.1f sents/sec' %
                   (total_train_iters, train_loss, train_accuracy, train_time, lr, sample_prob, valid_loss, valid_accuracy, valid_time))
-            print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\tpos loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_predicate_loss, train_pos_loss))
+            print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\tpos loss: %f\tvn loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_predicate_loss, train_pos_loss, train_vn_loss))
             multitask_losses_str = ''
             for n, l in train_mul_loss.iteritems():
               train_mul_loss[n] = l/n_train_iters
@@ -884,6 +885,7 @@ class Network(Configurable):
                            train_output['log_loss'],
                            train_output['rel_loss'],
                            train_output['srl_loss'],
+                           train_output['vn_loss'],
                            train_output['srl_correct'],
                            train_output['srl_count'],
                            train_output['predicate_loss'],
@@ -989,7 +991,7 @@ if __name__ == '__main__':
   os.system('echo Model: %s > %s/MODEL' % (network.model.__class__.__name__, network.save_dir))
 
   # print variable names (but not the optimizer ones)
-  print([v.name for v in network.save_vars if 'Optimizer' not in v.name and 'layer_norm' not in v.name])
+  #print([v.name for v in network.save_vars if 'Optimizer' not in v.name and 'layer_norm' not in v.name])
 
   config_proto = tf.ConfigProto()
   config_proto.gpu_options.per_process_gpu_memory_fraction = network.per_process_gpu_memory_fraction

@@ -177,6 +177,8 @@ class Network(Configurable):
       n_train_iters = 0
       n_train_srl_correct = 0
       n_train_srl_count = 0
+      n_train_vn_correct = 0
+      n_train_vn_count = 0
       n_train_predicate_count = 0
       n_train_predicate_correct = 0
       total_train_iters = 0
@@ -196,7 +198,8 @@ class Network(Configurable):
 
           feed_dict[self._trainset.step] = total_train_iters
 
-          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, vn_loss, srl_correct, srl_count, predicate_loss, predicate_count, predicate_correct, pos_loss, pos_correct, multitask_losses, lr, sample_prob = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
+          _, loss, n_correct, n_tokens, roots_loss, cycle2_loss, svd_loss, log_loss, rel_loss, srl_loss, vn_loss, srl_correct, srl_count, vn_correct, vn_count, predicate_loss, predicate_count, predicate_correct, pos_loss, pos_correct, multitask_losses, lr, sample_prob = sess.run(self.ops['train_op_srl'], feed_dict=feed_dict)
+          #print('VN correct: ', vn_correct, 'VN count: ', vn_count)
           total_train_iters += 1
           train_time += time.time() - start_time
           train_loss += loss
@@ -222,6 +225,8 @@ class Network(Configurable):
           n_train_tokens += n_tokens
           n_train_srl_correct += srl_correct
           n_train_srl_count += srl_count
+          n_train_vn_correct += vn_correct
+          n_train_vn_count += vn_count
           n_train_iters += 1
           self.history['train_loss'].append(loss)
           self.history['train_accuracy'].append(100 * n_correct / n_tokens)
@@ -285,6 +290,8 @@ class Network(Configurable):
             train_srl_loss = 0
             n_train_srl_correct = 0
             n_train_srl_count = 0
+            n_train_vn_correct = 0
+            n_train_vn_count = 0
             n_train_predicate_correct = 0
             n_train_predicate_count = 0
           if save_every and (total_train_iters % save_every == 0):
@@ -888,6 +895,8 @@ class Network(Configurable):
                            train_output['vn_loss'],
                            train_output['srl_correct'],
                            train_output['srl_count'],
+                           train_output['vn_correct'],
+                           train_output['vn_count'],
                            train_output['predicate_loss'],
                            train_output['predicate_count'],
                            train_output['predicate_correct'],

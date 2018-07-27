@@ -574,11 +574,10 @@ class Parser(BaseParser):
         gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
 
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
-        srl_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
-        srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
-        srl_output = self.output_srl_gather(srl_logits_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
-        print(tf.shape(srl_output['loss']))
-        return srl_output
+        srl_logits_vn = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
+        srl_logits_vn_transpose = tf.transpose(srl_logits_vn, [0, 2, 1])
+        srl_output_vn = self.output_srl_gather(srl_logits_vn_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
+        return srl_output_vn
 
     def compute_srl_simple(srl_target):
       with tf.variable_scope('SRL-MLP', reuse=reuse):
@@ -670,6 +669,8 @@ class Parser(BaseParser):
     output['srl_logits'] = srl_output['logits']
     output['srl_correct'] = srl_output['correct']
     output['srl_count'] = srl_output['count']
+    output['vn_correct'] = vn_output['correct']
+    output['vn_count'] = vn_output['count']
     output['transition_params'] = transition_params if transition_params is not None else tf.constant(bilou_constraints)
     output['srl_predicates'] = predicate_predictions
     output['srl_predicate_targets'] = predicate_targets_binary

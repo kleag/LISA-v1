@@ -1234,7 +1234,11 @@ class NN(Configurable):
     num_labels = tf.shape(logits_transposed)[-1]
 
     if annotated3D is not None:
+      #tokens_to_keep = tf.Print(self.tokens_to_keep3D, [tf.count_nonzero(self.tokens_to_keep3D, dtype=tf.float32)], "tokenstokeep")
+      #annotated = tf.Print(annotated3D, [tf.count_nonzero(annotated3D, dtype=tf.float32)], "annotated")
       tokens_to_keep3D = tf.cast(tf.logical_and(tf.cast(self.tokens_to_keep3D, dtype=tf.bool), tf.cast(annotated3D, dtype=tf.bool)), dtype=tf.float32)
+      #tokens_to_keep3D = tf.Print(tokens_to_keep3D, [tf.count_nonzero(tokens_to_keep3D, dtype=tf.float32)], "final tokenstokeep")
+
     else:
       tokens_to_keep3D = self.tokens_to_keep3D
 

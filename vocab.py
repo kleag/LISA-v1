@@ -358,7 +358,8 @@ class Vocab(Configurable):
       trainable_embeddings = moving_params.average(self.trainable_embeddings)
     else:
       trainable_embeddings = self.trainable_embeddings
-    
+
+    #print('trainable emb: ', trainable_embeddings, 'inputs: ', inputs)
     embed_input = tf.nn.embedding_lookup(trainable_embeddings, inputs)
     if moving_params is None:
       tf.add_to_collection('Weights', embed_input)

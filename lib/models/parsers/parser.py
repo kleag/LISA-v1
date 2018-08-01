@@ -555,7 +555,7 @@ class Parser(BaseParser):
         srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, predicate_predictions, transition_params if self.viterbi_train else None, None)
         return srl_output
 
-    def compute_vn(vn_target, num_classes, annotated):
+    def compute_vn(vn_target, num_classes):
       with tf.variable_scope('VN-MLP', reuse=reuse):
         predicate_role_mlp = self.MLP(top_recur, self.predicate_mlp_size + self.role_mlp_size, n_splits=1)
         predicate_mlp, role_mlp = predicate_role_mlp[:,:,:self.predicate_mlp_size], predicate_role_mlp[:, :, self.predicate_mlp_size:]
@@ -577,6 +577,17 @@ class Parser(BaseParser):
         srl_logits_vn = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
         srl_logits_vn_transpose = tf.transpose(srl_logits_vn, [0, 2, 1])
         srl_output_vn = self.output_srl_gather(srl_logits_vn_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
+
+        vn_attn_weights = tf.expand_dims(tf.nn.softmax(srl_output_vn['logits'], axis=2), axis=3)
+
+        # batch size x bucket size x num labels (53) x emb dim (100)
+        vn_embeddings = vocabs[6].embedding_lookup(tf.tile(tf.reshape(tf.range(num_classes, dtype=tf.int32), [1, 1, num_classes]),
+                                                [batch_size, bucket_size, 1]), moving_params=self.moving_params)
+        print('vn embeddings: ', vn_embeddings)
+        weighted_vn_embeddings = tf.reduce_sum(tf.multiply(vn_attn_weights, vn_embeddings), axis=2)
+
+        #print('Attn weights: ', vn_attn_weights)
+        #print('Logits: ', srl_output_vn['logits'])
         return srl_output_vn
 
     def compute_srl_simple(srl_target):
@@ -606,7 +617,7 @@ class Parser(BaseParser):
       srl_output = compute_srl_simple(srl_targets)
     else:
       srl_output = compute_srl(srl_targets, num_srl_classes)
-      vn_output = compute_vn(srl_targets_vn, num_vn_classes, annotated)
+      vn_output = compute_vn(srl_targets_vn, num_vn_classes)
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']
@@ -638,7 +649,7 @@ class Parser(BaseParser):
     output['n_tokens'] = self.n_tokens
     output['accuracy'] = output['n_correct'] / output['n_tokens']
 
-    output['loss'] = srl_combined_loss + parse_combined_loss + multitask_loss_sum + pos_loss
+    output['loss'] = srl_combined_loss + parse_combined_loss + multitask_loss_sum + pos_loss + vn_loss
     # output['loss'] = srl_loss + predicate_loss + actual_parse_loss
     # output['loss'] = actual_srl_loss + arc_loss + rel_loss
 

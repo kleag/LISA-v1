@@ -82,7 +82,7 @@ class Network(Configurable):
                      (self.predicates_file, [12, 6] if self.joint_pos_predicates else 12,
                         'Predicates', self.predicate_embed_size if self.add_predicates_to_input else 0),
                      (self.domain_file, 0, 'Domains', 0),
-                     (self.vnroles_file, range(16, 52), 'VNRoles', 0)]
+                     (self.vnroles_file, range(16, 52), 'VNRoles', 100)]
 
     print("Loading vocabs")
     sys.stdout.flush()

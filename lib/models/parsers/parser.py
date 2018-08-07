@@ -39,6 +39,7 @@ class Parser(BaseParser):
     annotated = dataset.annotated
     #print(inputs.shape, targets.shape)
     step = dataset.step
+    mappings = dataset.mappings
 
     num_pos_classes = len(vocabs[1])
     num_rel_classes = len(vocabs[2])
@@ -611,29 +612,35 @@ class Parser(BaseParser):
       # combined_rep = tf.add(srl_output_pb['logits'], weighted_vn_labels)
       # print('new size: ', combined_rep)
 
-      # with tf.variable_scope('SRL-MLP', reuse=reuse):
-      #   # project to get predicate and role representations?
-      #   predicate_role_mlp = self.MLP(top_recur, self.predicate_mlp_size + self.role_mlp_size, n_splits=1)
-      #   predicate_mlp, role_mlp = predicate_role_mlp[:,:,:self.predicate_mlp_size], predicate_role_mlp[:, :, self.predicate_mlp_size:]
-      #
-      # with tf.variable_scope('SRL-Arcs', reuse=reuse):
-      #   # gather just the triggers
-      #   # predicate_predictions: batch x seq_len
-      #   # gathered_predicates: num_triggers_in_batch x 1 x self.trigger_mlp_size
-      #   # role mlp: batch x seq_len x self.role_mlp_size
-      #   # gathered roles: need a (bucket_size x self.role_mlp_size) role representation for each trigger,
-      #   # i.e. a (num_triggers_in_batch x bucket_size x self.role_mlp_size) tensor
-      #   predicate_gather_indices = tf.where(tf.equal(predicate_predictions, 1))
-      #   # predicate_gather_indices = tf.Print(predicate_gather_indices, [predicate_predictions, tf.shape(predicate_gather_indices), tf.shape(predicate_predictions)], "predicate gather shape", summarize=200)
-      #   gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
-      #   tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
-      #   gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
-
       with tf.variable_scope('VN-Arcs', reuse=True):
         vn_scores = tf.nn.softmax(srl_output_vn['logits'], axis=2)
-        vn_weights = tf.get_variable('Bilinear/Weights')
-        print('VN weights shape: ', vn_weights)
+        vn_scores = tf.reduce_mean(vn_scores, axis=[0,1])
+        print('vn scores: ', vn_scores)
 
+        # Has shape d x C_vn x d
+        vn_weights = tf.get_variable('Bilinear/Weights')
+        weights_shape = vn_weights.get_shape().as_list()
+
+        print('VN Weights shape: ', weights_shape)
+        dim_d = weights_shape[0]
+
+        # Derived prop weights has shape d x C_prop x d
+        #prop_weights_derived = tf.zeros((dim_d, num_srl_classes, dim_d), dtype=tf.float32)
+        prop_derived_list = []
+
+        for key in range(num_srl_classes):
+          value = mappings[key]
+          if(hasattr(value, '__iter__')):
+            arg_weights = tf.zeros((dim_d, 1, dim_d))
+            for val in value:
+              arg_weights = tf.add(arg_weights, tf.gather_nd(vn_weights, []) * vn_scores[val])
+            prop_derived_list.append(arg_weights)
+          else:
+            print(tf.shape(vn_weights[:,value,:]))
+            prop_derived_list.append(vn_weights[:,value,:] * vn_scores[value])
+            #print(tf.shape(prop_derived_list[-1]))
+
+        #print(len(prop_derived_list))
 
     if self.role_loss_penalty == 0:
       # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))

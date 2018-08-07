@@ -37,7 +37,7 @@ class Dataset(Configurable):
   """"""
   
   #=============================================================
-  def __init__(self, filename, vocabs, builder, *args, **kwargs):
+  def __init__(self, filename, vocabs, mappings, builder, *args, **kwargs):
     """"""
     
     super(Dataset, self).__init__(*args, **kwargs)
@@ -50,6 +50,7 @@ class Dataset(Configurable):
     self._train = (filename == self.train_file)
     self._metabucket = Metabucket(self._config, n_bkts=self.n_bkts)
     self._data = None
+    self.mappings = mappings
     self.rebucket()
 
     self.inputs = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')

@@ -99,12 +99,6 @@ class Network(Configurable):
     #  print("%s: %d" % (l, i))
     #print("predicate_true_start_idx", self._vocabs[4].predicate_true_start_idx)
 
-    print("Loading data")
-    sys.stdout.flush()
-    self._trainset = Dataset(self.train_file, self._vocabs, model, self._config, name='Trainset')
-    self._validset = Dataset(self.valid_file, self._vocabs, model, self._config, name='Validset')
-    self._testset = Dataset(self.test_file, self._vocabs, model, self._config, name='Testset')
-
     pb_roles = self._vocabs[3]
     vn_roles = self._vocabs[6]
     arg_mappings = ast.literal_eval(self.arg_mappings)
@@ -120,11 +114,11 @@ class Network(Configurable):
         # If core arg, defined in mappings
         if pb_arg in arg_mappings:
           key = pb_roles[pb_role][0]
-          #print(pb_role, key)
+          # print(pb_role, key)
           arg_map_inds[key] = []
           for vn_arg in arg_mappings[pb_arg]:
             value = vn_roles[vn_arg][0]
-            #print(vn_arg, value)
+            # print(vn_arg, value)
             arg_map_inds[key].append(value)
           continue
         # If not core arg, fall back on itself
@@ -136,10 +130,16 @@ class Network(Configurable):
         pb_arg = pb_role
       key = pb_roles[pb_role][0]
       value = vn_roles[pb_arg][0]
-      print(pb_role, key, value)
+      # print(pb_role, key, value)
       arg_map_inds[key] = value
 
-    print('Count: ', count, 'Length: ', len(arg_map_inds), 'Arg map: ', arg_map_inds)
+    print("Loading data")
+    sys.stdout.flush()
+    self._trainset = Dataset(self.train_file, self._vocabs, arg_map_inds, model, self._config, name='Trainset')
+    self._validset = Dataset(self.valid_file, self._vocabs, arg_map_inds, model, self._config, name='Validset')
+    self._testset = Dataset(self.test_file, self._vocabs, arg_map_inds, model, self._config, name='Testset')
+
+    # print('Count: ', count, 'Length: ', len(arg_map_inds), 'Arg map: ', arg_map_inds)
 
     self._ops = self._gen_ops()
     self._save_vars = filter(lambda x: u'Pretrained' not in x.name, tf.global_variables())

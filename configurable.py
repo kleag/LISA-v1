@@ -230,6 +230,11 @@ class Configurable(object):
   def train_domains(self):
     return self._config.get('Dataset', 'train_domains')
   argparser.add_argument('--train_domains')
+
+  @property
+  def arg_mappings(self):
+    return self._config.get('Dataset', 'arg_mappings')
+  argparser.add_argument('--arg_mappings')
   
   #=============================================================
   # [Layers]

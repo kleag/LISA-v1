@@ -1290,6 +1290,8 @@ class NN(Configurable):
           # srl_targets_onehot = tf.Print(srl_targets_onehot, [srl_targets_onehot], "srl targets onehot", summarize=200)
 
           orig_logits_shape = tf.shape(logits_transposed)
+
+          # Backprop into logits?
           loss = tf.losses.softmax_cross_entropy(logits=tf.reshape(logits_transposed, [-1, num_labels]),
                                                  onehot_labels=tf.reshape(srl_targets_onehot, [-1, num_labels]),
                                                  weights=tf.reshape(mask, [-1]),

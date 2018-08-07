@@ -68,7 +68,7 @@ class Vocab(Configurable):
       # self.SPECIAL_TOKENS = ('pad', self.root_label, 'unk')
     elif self.name == 'Predicates':
       self.SPECIAL_TOKENS = ('PAD',)
-    elif self.name == 'SRLs':
+    elif self.name == 'SRLs' or self.name == 'VNRoles':
       self.SPECIAL_TOKENS = ('PAD',)
 
     self.START_IDX = len(self.SPECIAL_TOKENS)
@@ -211,8 +211,12 @@ class Vocab(Configurable):
                       else:
                         if split_word[0] == 'O':
                           actual = 'O'
-                        elif split_word[0].startswith('B-ARGM') or split_word[0].startswith('I-ARGM'):
-                          actual = '-'.join(split_word[0].split('-')[1:])
+                        elif split_word[0] == 'B-V' or split_word[0] == 'I-V':
+                          actual = 'V'
+                        elif split_word[0] == 'B-ARGA' or split_word[0] == 'I-ARGA':
+                          actual = 'ARGA'
+                        elif split_word[0].startswith(('B-ARGM', 'I-ARGM', 'B-R-ARGM', 'B-C-ARGM', 'I-R-ARGM', 'I-C-ARGM')):
+                          actual = '-'.join(split_word[0].split('-')[-2:])
                           #print(split_word[0], actual)
                         else:
                           actual = 'NoLabel'

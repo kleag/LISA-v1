@@ -30,6 +30,9 @@ from vocab import Vocab
 from metabucket import Metabucket
 
 #***************************************************************
+
+
+
 class Dataset(Configurable):
   """"""
   
@@ -163,8 +166,12 @@ class Dataset(Configurable):
               vn_fields.append(srl_str[0])
             elif srl_str[0] == 'O':
               vn_fields.append('O')
-            elif srl_str[0].startswith('B-ARGM') or srl_str[0].startswith('I-ARGM'):
-              vn_fields.append('-'.join(srl_str[0].split('-')[1:]))
+            elif srl_str[0].split('-')[1] == 'V':
+              vn_fields.append('V')
+            elif srl_str[0] == 'B-ARGA' or srl_str[0] == 'I-ARGA':
+              vn_fields.append('ARGA')
+            elif srl_str[0].startswith(('B-ARGM', 'I-ARGM', 'B-R-ARGM', 'B-C-ARGM', 'I-R-ARGM', 'I-C-ARGM')):
+              vn_fields.append('-'.join(srl_str[0].split('-')[-2:]))
             else:
               vn_fields.append('NoLabel')
           #vn_fields = [srl_str[0] if len(srl_str) > 1 else 'NoLabel' if srl_str[0] is not 'O' else 'O' for srl_str in srl_vn_labels]
@@ -229,6 +236,7 @@ class Dataset(Configurable):
       #   buff2.append(np.concatenate[np.expand_dims(word_part, -1), rest_part, srl_part], axis=1) #(sent[0],) + map(int, sent[1:]))
       #   examples += 1
     # tmp_f.close()
+    #self.define_mappings()
     if self.one_example_per_predicate:
       print("Loaded %d sentences with %d tokens, %d examples (%d predicates) (%s)" % (sents, toks, examples, total_predicates, self.name))
       return buff2

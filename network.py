@@ -37,6 +37,7 @@ from dataset import Dataset
 import contextlib
 from subprocess import check_output, CalledProcessError
 import operator
+import ast
 
 @contextlib.contextmanager
 def dummy_context_mgr():
@@ -103,6 +104,42 @@ class Network(Configurable):
     self._trainset = Dataset(self.train_file, self._vocabs, model, self._config, name='Trainset')
     self._validset = Dataset(self.valid_file, self._vocabs, model, self._config, name='Validset')
     self._testset = Dataset(self.test_file, self._vocabs, model, self._config, name='Testset')
+
+    pb_roles = self._vocabs[3]
+    vn_roles = self._vocabs[6]
+    arg_mappings = ast.literal_eval(self.arg_mappings)
+    arg_map_inds = {}
+    count = 0
+    for pb_role in pb_roles:
+      count += 1
+      pb_role_split = pb_role.split('-')
+      if len(pb_role_split) > 1:
+        pb_arg = pb_role_split[1]
+        if pb_arg == 'R' or pb_arg == 'C':
+          pb_arg = pb_role_split[2]
+        # If core arg, defined in mappings
+        if pb_arg in arg_mappings:
+          key = pb_roles[pb_role][0]
+          #print(pb_role, key)
+          arg_map_inds[key] = []
+          for vn_arg in arg_mappings[pb_arg]:
+            value = vn_roles[vn_arg][0]
+            #print(vn_arg, value)
+            arg_map_inds[key].append(value)
+          continue
+        # If not core arg, fall back on itself
+        elif pb_arg.startswith('ARGM'):
+          pb_arg = '-'.join(pb_role_split[-2:])
+        elif pb_arg == 'V' or pb_arg == 'ARGA':
+          pb_arg = pb_arg
+      else:
+        pb_arg = pb_role
+      key = pb_roles[pb_role][0]
+      value = vn_roles[pb_arg][0]
+      print(pb_role, key, value)
+      arg_map_inds[key] = value
+
+    print('Count: ', count, 'Length: ', len(arg_map_inds), 'Arg map: ', arg_map_inds)
 
     self._ops = self._gen_ops()
     self._save_vars = filter(lambda x: u'Pretrained' not in x.name, tf.global_variables())

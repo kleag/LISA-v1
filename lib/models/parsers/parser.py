@@ -34,7 +34,7 @@ class Parser(BaseParser):
     vocabs = dataset.vocabs
     inputs = dataset.inputs
     targets = dataset.targets
-    srl_targets_pb = dataset.srl_targets_pb
+    srl_targets = dataset.srl_targets_pb
     srl_targets_vn = dataset.srl_targets_vn
     annotated = dataset.annotated
     #print(inputs.shape, targets.shape)
@@ -578,16 +578,6 @@ class Parser(BaseParser):
         srl_logits_vn_transpose = tf.transpose(srl_logits_vn, [0, 2, 1])
         srl_output_vn = self.output_srl_gather(srl_logits_vn_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
 
-        vn_attn_weights = tf.expand_dims(tf.nn.softmax(srl_output_vn['logits'], axis=2), axis=3)
-
-        # batch size x bucket size x num labels (53) x emb dim (100)
-        vn_embeddings = vocabs[6].embedding_lookup(tf.tile(tf.reshape(tf.range(num_classes, dtype=tf.int32), [1, 1, num_classes]),
-                                                [batch_size, bucket_size, 1]), moving_params=self.moving_params)
-        print('vn embeddings: ', vn_embeddings)
-        weighted_vn_embeddings = tf.reduce_sum(tf.multiply(vn_attn_weights, vn_embeddings), axis=2)
-
-        #print('Attn weights: ', vn_attn_weights)
-        #print('Logits: ', srl_output_vn['logits'])
         return srl_output_vn
 
     def compute_srl_simple(srl_target):
@@ -602,7 +592,49 @@ class Parser(BaseParser):
         srl_output['correct'] = output['n_correct']
         return srl_output
 
-    srl_targets = srl_targets_pb
+    def combine_pb_vn(srl_output_pb, srl_output_vn):
+      # #vn_attn_weights = tf.expand_dims(tf.nn.softmax(srl_output_vn['logits'], axis=2), axis=3)
+      # vn_attn_weights = tf.nn.softmax(srl_output_vn['logits'], axis=2)
+      #
+      # # batch size x bucket size x num labels (53) x emb dim (100)
+      # # vn_embeddings = vocabs[6].embedding_lookup(tf.tile(tf.reshape(tf.range(num_classes, dtype=tf.int32), [1, 1, num_classes]), [batch_size, bucket_size, 1]), moving_params=self.moving_params)
+      #
+      # # batch size x bucket size x num_labels
+      # vn_labels = tf.tile(tf.reshape(tf.range(num_vn_classes, dtype=tf.float32), [1, 1, num_vn_classes]),
+      #                     [batch_size, bucket_size, 1])
+      # # print('vn embeddings: ', vn_embeddings)
+      # # weighted_vn_embeddings = tf.reduce_sum(tf.multiply(vn_attn_weights, vn_embeddings), axis=2)
+      # weighted_vn_labels = tf.reduce_sum(tf.multiply(vn_attn_weights, vn_labels), axis=2)
+      #
+      # print('weighted labels: ', weighted_vn_labels)
+      #
+      # combined_rep = tf.add(srl_output_pb['logits'], weighted_vn_labels)
+      # print('new size: ', combined_rep)
+
+      # with tf.variable_scope('SRL-MLP', reuse=reuse):
+      #   # project to get predicate and role representations?
+      #   predicate_role_mlp = self.MLP(top_recur, self.predicate_mlp_size + self.role_mlp_size, n_splits=1)
+      #   predicate_mlp, role_mlp = predicate_role_mlp[:,:,:self.predicate_mlp_size], predicate_role_mlp[:, :, self.predicate_mlp_size:]
+      #
+      # with tf.variable_scope('SRL-Arcs', reuse=reuse):
+      #   # gather just the triggers
+      #   # predicate_predictions: batch x seq_len
+      #   # gathered_predicates: num_triggers_in_batch x 1 x self.trigger_mlp_size
+      #   # role mlp: batch x seq_len x self.role_mlp_size
+      #   # gathered roles: need a (bucket_size x self.role_mlp_size) role representation for each trigger,
+      #   # i.e. a (num_triggers_in_batch x bucket_size x self.role_mlp_size) tensor
+      #   predicate_gather_indices = tf.where(tf.equal(predicate_predictions, 1))
+      #   # predicate_gather_indices = tf.Print(predicate_gather_indices, [predicate_predictions, tf.shape(predicate_gather_indices), tf.shape(predicate_predictions)], "predicate gather shape", summarize=200)
+      #   gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
+      #   tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
+      #   gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
+
+      with tf.variable_scope('VN-Arcs', reuse=True):
+        vn_scores = tf.nn.softmax(srl_output_vn['logits'], axis=2)
+        vn_weights = tf.get_variable('Bilinear/Weights')
+        print('VN weights shape: ', vn_weights)
+
+
     if self.role_loss_penalty == 0:
       # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))
       srl_output = {
@@ -618,6 +650,7 @@ class Parser(BaseParser):
     else:
       srl_output = compute_srl(srl_targets, num_srl_classes)
       vn_output = compute_vn(srl_targets_vn, num_vn_classes)
+      combine_pb_vn(srl_output, vn_output)
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

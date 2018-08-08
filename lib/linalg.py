@@ -227,7 +227,7 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
     else:
       tf.add_to_collection('Weights', weights)
 
-    print('Weights shape: ', weights)
+    #print('Weights shape: ', weights)
     # inputs1: num_triggers_in_batch x 1 x self.trigger_mlp_size
     # inputs2: batch x seq_len x self.role_mlp_size
 

@@ -621,7 +621,7 @@ class Parser(BaseParser):
         vn_weights = tf.get_variable('Bilinear/Weights')
         weights_shape = vn_weights.get_shape().as_list()
 
-        print('VN Weights shape: ', weights_shape)
+        #print('VN Weights shape: ', weights_shape)
         dim_d = weights_shape[0]
 
         # Derived prop weights has shape d x C_prop x d
@@ -633,14 +633,25 @@ class Parser(BaseParser):
           if(hasattr(value, '__iter__')):
             arg_weights = tf.zeros((dim_d, 1, dim_d))
             for val in value:
-              arg_weights = tf.add(arg_weights, tf.gather_nd(vn_weights, []) * vn_scores[val])
+              weights_slice = tf.transpose(tf.gather(tf.transpose(vn_weights, (1, 0, 2)), [val]), (1, 0, 2))
+              #print('Weights slice ', weights_slice)
+              arg_weights = tf.add(arg_weights,  tf.multiply(weights_slice, vn_scores[val]))
+              #print('Arg weights shape: ', arg_weights)
             prop_derived_list.append(arg_weights)
           else:
-            print(tf.shape(vn_weights[:,value,:]))
-            prop_derived_list.append(vn_weights[:,value,:] * vn_scores[value])
+            #print(tf.shape(vn_weights[:,value,:]))
+            weights_slice = tf.transpose(tf.gather(tf.transpose(vn_weights, (1, 0, 2)), [value]), (1, 0, 2))
+            prop_derived_list.append(tf.multiply(weights_slice, vn_scores[value]))
             #print(tf.shape(prop_derived_list[-1]))
 
         #print(len(prop_derived_list))
+        prop_weights_derived = tf.squeeze(tf.stack(prop_derived_list, axis=1))
+        prop_weights_derived = tf.Print(prop_weights_derived, [tf.shape(prop_weights_derived)], "Prop weights derived shape")
+
+      with tf.variable_scope('SRL-Arcs', reuse=True):
+        prop_weights = tf.get_variable('Bilinear/Weights')
+        combined_weights = tf.add(prop_weights_derived, prop_weights)
+        print('Combined weights: ', combined_weights)
 
     if self.role_loss_penalty == 0:
       # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))

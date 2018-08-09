@@ -943,14 +943,17 @@ class NN(Configurable):
     return weighted_bilin, bilin
 
   # =============================================================
-  def bilinear_classifier_nary(self, inputs1, inputs2, n_classes, add_bias1=True, add_bias2=True):
+  def bilinear_classifier_nary(self, inputs1, inputs2, n_classes, combine=False, combined_weights=None, add_bias1=True, add_bias2=True):
     """"""
 
+    #inputs1 = tf.Print(inputs1, [tf.shape(inputs1)], "Pred reps shape")
+    #inputs2 = tf.Print(inputs2, [tf.shape(inputs2)], "Role reps shape")
     input_shape1 = tf.shape(inputs1)
     input_shape2 = tf.shape(inputs2)
 
     batch_size1 = input_shape1[0]
     batch_size2 = input_shape2[0]
+
 
     # with tf.control_dependencies([tf.assert_equal(input_shape1[1], input_shape2[1])]):
     bucket_size1 = input_shape1[1]
@@ -985,6 +988,8 @@ class NN(Configurable):
 
     bilin = linalg.bilinear_noreshape(inputs1, inputs2,
                             n_classes,
+                            combine=combine,
+                            combined_weights=combined_weights,
                             add_bias1=add_bias1,
                             add_bias2=add_bias2,
                             initializer=tf.zeros_initializer(),
@@ -1218,7 +1223,7 @@ class NN(Configurable):
     return output
 
   # =============================================================
-  def output_srl_gather(self, logits_transposed, targets, trigger_predictions, transition_params, annotated3D):
+  def output_srl_gather(self, logits_transposed, targets, trigger_predictions, transition_params, annotated3D=None):
     """"""
 
     # logits are triggers_in_batch x num_classes x seq_len

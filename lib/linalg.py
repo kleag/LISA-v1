@@ -176,7 +176,7 @@ def bilinear(inputs1, inputs2, output_size, add_bias2=True, add_bias1=True, add_
 
 
 # ===============================================================
-def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=True, add_bias=False, initializer=None,
+def bilinear_noreshape(inputs1, inputs2, output_size, combine, combined_weights, add_bias2=True, add_bias1=True, add_bias=False, initializer=None,
              scope=None, moving_params=None):
   """"""
 
@@ -222,6 +222,11 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
       initializer = tf.constant_initializer(mat)
     weights = tf.get_variable('Weights', [inputs1_size + add_bias1, output_size, inputs2_size + add_bias2],
                               initializer=initializer)
+
+    if combine:
+      print('Using combined weights')
+      weights = combined_weights
+
     if moving_params is not None:
       weights = moving_params.average(weights)
     else:

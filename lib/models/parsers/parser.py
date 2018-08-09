@@ -554,7 +554,7 @@ class Parser(BaseParser):
         srl_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
         srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
         srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, predicate_predictions, transition_params if self.viterbi_train else None, None)
-        return srl_output
+        return srl_output, gathered_predicates, gathered_roles
 
     def compute_vn(vn_target, num_classes):
       with tf.variable_scope('VN-MLP', reuse=reuse):
@@ -593,7 +593,7 @@ class Parser(BaseParser):
         srl_output['correct'] = output['n_correct']
         return srl_output
 
-    def combine_pb_vn(srl_output_pb, srl_output_vn):
+    def combine_pb_vn(srl_output_vn, srl_pred_reps, srl_role_reps):
       # #vn_attn_weights = tf.expand_dims(tf.nn.softmax(srl_output_vn['logits'], axis=2), axis=3)
       # vn_attn_weights = tf.nn.softmax(srl_output_vn['logits'], axis=2)
       #
@@ -646,12 +646,18 @@ class Parser(BaseParser):
 
         #print(len(prop_derived_list))
         prop_weights_derived = tf.squeeze(tf.stack(prop_derived_list, axis=1))
-        prop_weights_derived = tf.Print(prop_weights_derived, [tf.shape(prop_weights_derived)], "Prop weights derived shape")
+        #prop_weights_derived = tf.Print(prop_weights_derived, [tf.shape(prop_weights_derived)], "Prop weights derived shape")
 
       with tf.variable_scope('SRL-Arcs', reuse=True):
         prop_weights = tf.get_variable('Bilinear/Weights')
         combined_weights = tf.add(prop_weights_derived, prop_weights)
-        print('Combined weights: ', combined_weights)
+        #print('Combined weights: ', combined_weights)
+
+        combined_logits = self.bilinear_classifier_nary(srl_pred_reps, srl_role_reps, num_srl_classes, True, combined_weights)
+        srl_logits_transpose = tf.transpose(combined_logits, [0, 2, 1])
+        srl_output_combined = self.output_srl_gather(srl_logits_transpose, srl_targets, predicate_predictions, transition_params if self.viterbi_train else None)
+
+        return srl_output_combined
 
     if self.role_loss_penalty == 0:
       # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))
@@ -666,9 +672,9 @@ class Parser(BaseParser):
     elif self.srl_simple_tagging:
       srl_output = compute_srl_simple(srl_targets)
     else:
-      srl_output = compute_srl(srl_targets, num_srl_classes)
+      srl_output, srl_pred_reps, srl_role_reps = compute_srl(srl_targets, num_srl_classes)
       vn_output = compute_vn(srl_targets_vn, num_vn_classes)
-      combine_pb_vn(srl_output, vn_output)
+      srl_output = combine_pb_vn(vn_output, srl_pred_reps, srl_role_reps)
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

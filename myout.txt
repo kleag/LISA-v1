@@ -3,49 +3,49 @@ Loading vocabs
 Loaded pre-trained embeddings. Trainable: True
 Loading data
 Loading training data from domains: all
-Loaded 125417 sentences with 1240287 tokens (Trainset)
+Loaded 75186 sentences with 1299299 tokens (Trainset)
 running k means
-Sizes of splits:  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 37, 40, 44, 50, 59, 82, 196]
-Bucket Sents-0 is 10843 x 1
-Bucket Sents-1 is 12100 x 2
-Bucket Sents-2 is 8728 x 3
-Bucket Sents-3 is 8061 x 4
-Bucket Sents-4 is 7511 x 5
-Bucket Sents-5 is 6748 x 6
-Bucket Sents-6 is 5895 x 7
-Bucket Sents-7 is 5682 x 8
-Bucket Sents-8 is 5202 x 9
-Bucket Sents-9 is 5205 x 10
-Bucket Sents-10 is 4363 x 11
-Bucket Sents-11 is 4002 x 12
-Bucket Sents-12 is 22433 x 13
-Bucket Sents-13 is 1071 x 14
-Bucket Sents-14 is 1079 x 15
-Bucket Sents-15 is 1023 x 16
-Bucket Sents-16 is 970 x 17
-Bucket Sents-17 is 916 x 18
-Bucket Sents-18 is 927 x 19
-Bucket Sents-19 is 817 x 20
-Bucket Sents-20 is 798 x 21
-Bucket Sents-21 is 745 x 22
-Bucket Sents-22 is 768 x 23
-Bucket Sents-23 is 706 x 24
-Bucket Sents-24 is 672 x 25
-Bucket Sents-25 is 643 x 26
-Bucket Sents-26 is 566 x 27
-Bucket Sents-27 is 585 x 28
-Bucket Sents-28 is 549 x 29
-Bucket Sents-29 is 527 x 30
-Bucket Sents-30 is 438 x 31
-Bucket Sents-31 is 459 x 32
-Bucket Sents-32 is 786 x 34
-Bucket Sents-33 is 974 x 37
-Bucket Sents-34 is 699 x 40
-Bucket Sents-35 is 656 x 44
-Bucket Sents-36 is 559 x 50
-Bucket Sents-37 is 415 x 59
-Bucket Sents-38 is 229 x 82
-Bucket Sents-39 is 67 x 196
+Sizes of splits:  [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 36, 39, 43, 48, 56, 69, 94, 210]
+Bucket Sents-0 is 4773 x 2
+Bucket Sents-1 is 1588 x 3
+Bucket Sents-2 is 1839 x 4
+Bucket Sents-3 is 2321 x 5
+Bucket Sents-4 is 2665 x 6
+Bucket Sents-5 is 3028 x 7
+Bucket Sents-6 is 3268 x 8
+Bucket Sents-7 is 3243 x 9
+Bucket Sents-8 is 3199 x 10
+Bucket Sents-9 is 3102 x 11
+Bucket Sents-10 is 3077 x 12
+Bucket Sents-11 is 2975 x 13
+Bucket Sents-12 is 2791 x 14
+Bucket Sents-13 is 2659 x 15
+Bucket Sents-14 is 2599 x 16
+Bucket Sents-15 is 2360 x 17
+Bucket Sents-16 is 2270 x 18
+Bucket Sents-17 is 2037 x 19
+Bucket Sents-18 is 1972 x 20
+Bucket Sents-19 is 1754 x 21
+Bucket Sents-20 is 1607 x 22
+Bucket Sents-21 is 1549 x 23
+Bucket Sents-22 is 1458 x 24
+Bucket Sents-23 is 1387 x 25
+Bucket Sents-24 is 1294 x 26
+Bucket Sents-25 is 1196 x 27
+Bucket Sents-26 is 1080 x 28
+Bucket Sents-27 is 1050 x 29
+Bucket Sents-28 is 920 x 30
+Bucket Sents-29 is 860 x 31
+Bucket Sents-30 is 790 x 32
+Bucket Sents-31 is 1463 x 34
+Bucket Sents-32 is 1203 x 36
+Bucket Sents-33 is 1393 x 39
+Bucket Sents-34 is 1336 x 43
+Bucket Sents-35 is 1190 x 48
+Bucket Sents-36 is 972 x 56
+Bucket Sents-37 is 584 x 69
+Bucket Sents-38 is 265 x 94
+Bucket Sents-39 is 69 x 210
 Loading training data from domains: all
 Loaded 9603 sentences with 163104 tokens (Validset)
 running k means
@@ -107,557 +107,63 @@ Layer 9 capsule heads: 0
 Layer 10 capsule heads: 0
 Layer 11 capsule heads: 0
 SRL-Predicates/Linear
-Orthogonal pretrainer loss: 9.62e-08
+Orthogonal pretrainer loss: 2.50e-10
 SRL-Predicates/SRL-Predicates-Classifier/Linear
-Orthogonal pretrainer loss: 2.72e-31
+Orthogonal pretrainer loss: 2.04e-31
 SRL-MLP/Linear
 Orthogonal pretrainer loss: 1.00e+02
 VN-MLP/Linear
 Orthogonal pretrainer loss: 1.00e+02
+vn scores:  Tensor("VN-Arcs_1/Mean:0", shape=(54,), dtype=float32)
+Using combined weights
 use gold parse (Validset):  False
+vn scores:  Tensor("VN-Arcs_3/Mean:0", shape=(54,), dtype=float32)
+Using combined weights
 use gold parse (Testset):  False
+vn scores:  Tensor("VN-Arcs_5/Mean:0", shape=(54,), dtype=float32)
+Using combined weights
 Training
-VN correct:  0.0 VN count:  5080.0
-VN correct:  0.0 VN count:  14880.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  0.0 VN count:  4250.0
-VN correct:  6.0 VN count:  0.0
-VN correct:  0.0 VN count:  143.0
-VN correct:  0.0 VN count:  64.0
-VN correct:  16.0 VN count:  0.0
-VN correct:  0.0 VN count:  84.0
-VN correct:  174.0 VN count:  30.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  35.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  2214.0 VN count:  0.0
-VN correct:  0.0 VN count:  4208.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  42.0
-VN correct:  0.0 VN count:  15584.0
-VN correct:  51522.0 VN count:  5134.0
-VN correct:  0.0 VN count:  7704.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  1039.0 VN count:  16215.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  4860.0
-VN correct:  0.0 VN count:  492.0
-VN correct:  0.0 VN count:  6578.0
-VN correct:  0.0 VN count:  5220.0
-VN correct:  0.0 VN count:  230.0
-VN correct:  0.0 VN count:  10341.0
-VN correct:  192.0 VN count:  15.0
-VN correct:  0.0 VN count:  190.0
-VN correct:  0.0 VN count:  221.0
-VN correct:  2157.0 VN count:  6.0
-VN correct:  0.0 VN count:  10034.0
-VN correct:  307.0 VN count:  10848.0
-VN correct:  0.0 VN count:  207.0
-VN correct:  702.0 VN count:  14774.0
-VN correct:  25.0 VN count:  12.0
-VN correct:  0.0 VN count:  270.0
-VN correct:  0.0 VN count:  408.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  708.0 VN count:  15449.0
-VN correct:  0.0 VN count:  84.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  182.0
-VN correct:  0.0 VN count:  4250.0
-VN correct:  0.0 VN count:  5160.0
-VN correct:  183.0 VN count:  15.0
-VN correct:  0.0 VN count:  144.0
-VN correct:  0.0 VN count:  3285.0
-VN correct:  35.0 VN count:  4.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  10206.0
-VN correct:  0.0 VN count:  4338.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  0.0 VN count:  154.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  34.0 VN count:  4.0
-VN correct:  641.0 VN count:  15011.0
-VN correct:  0.0 VN count:  11700.0
-VN correct:  0.0 VN count:  70.0
-VN correct:  680.0 VN count:  13171.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  484.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  10322.0
-VN correct:  1623.0 VN count:  14425.0
-VN correct:  7699.0 VN count:  6781.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  3179.0 VN count:  13466.0
-VN correct:  0.0 VN count:  5244.0
-VN correct:  0.0 VN count:  2926.0
-VN correct:  604.0 VN count:  11125.0
-VN correct:  2957.0 VN count:  13440.0
-VN correct:  0.0 VN count:  14880.0
-VN correct:  617.0 VN count:  12016.0
-VN correct:  1556.0 VN count:  14549.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  250.0
-VN correct:  0.0 VN count:  3825.0
-VN correct:  0.0 VN count:  6426.0
-VN correct:  0.0 VN count:  7872.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  2250.0 VN count:  9.0
-VN correct:  6650.0 VN count:  6880.0
-VN correct:  0.0 VN count:  9177.0
-VN correct:  25.0 VN count:  16.0
-VN correct:  0.0 VN count:  208.0
-VN correct:  0.0 VN count:  3328.0
-VN correct:  0.0 VN count:  279.0
-VN correct:  0.0 VN count:  528.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  8428.0
-VN correct:  0.0 VN count:  11760.0
-   100) Train loss: nan    Train acc:  0.30%    Train rate:  719.4 sents/sec    Learning rate: 0.000006    Sample prob: 1.000000
-	Valid loss: 9.8225    Valid acc:  0.31%    Valid rate: 1912.7 sents/sec
-	log loss: nan	rel loss: 0.375057	srl loss: 3.763008	trig loss: 4.226352	pos loss: 0.000000	vn loss: 3.771777
+   100) Train loss: nan    Train acc:  1.28%    Train rate:  230.2 sents/sec    Learning rate: 0.000006    Sample prob: 1.000000
+	Valid loss: 9.3958    Valid acc:  1.68%    Valid rate: 1886.8 sents/sec
+	log loss: nan	rel loss: 0.370511	srl loss: 3.892919	trig loss: 4.125656	pos loss: 0.000000	vn loss: 2.745787
 
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  120.0
-VN correct:  1714.0 VN count:  15019.0
-VN correct:  0.0 VN count:  300.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  312.0 VN count:  10866.0
-VN correct:  0.0 VN count:  180.0
-VN correct:  0.0 VN count:  480.0
-VN correct:  0.0 VN count:  143.0
-VN correct:  3116.0 VN count:  14522.0
-VN correct:  0.0 VN count:  6489.0
-VN correct:  0.0 VN count:  128.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  0.0 VN count:  136.0
-VN correct:  0.0 VN count:  210.0
-VN correct:  1543.0 VN count:  14877.0
-VN correct:  0.0 VN count:  120.0
-VN correct:  0.0 VN count:  234.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  10296.0
-VN correct:  0.0 VN count:  6468.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  0.0 VN count:  162.0
-VN correct:  0.0 VN count:  8208.0
-VN correct:  0.0 VN count:  2625.0
-VN correct:  0.0 VN count:  8004.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  144.0
-VN correct:  0.0 VN count:  8100.0
-VN correct:  0.0 VN count:  4978.0
-VN correct:  0.0 VN count:  7497.0
-VN correct:  2699.0 VN count:  15111.0
-VN correct:  645.0 VN count:  12457.0
-VN correct:  0.0 VN count:  9464.0
-VN correct:  570.0 VN count:  11335.0
-VN correct:  0.0 VN count:  8418.0
-VN correct:  0.0 VN count:  15200.0
-VN correct:  0.0 VN count:  374.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  2316.0 VN count:  6.0
-VN correct:  0.0 VN count:  26.0
-VN correct:  0.0 VN count:  10740.0
-VN correct:  0.0 VN count:  3968.0
-VN correct:  0.0 VN count:  5520.0
-VN correct:  0.0 VN count:  3000.0
-VN correct:  10.0 VN count:  2.0
-VN correct:  1677.0 VN count:  17117.0
-VN correct:  43436.0 VN count:  1144.0
-VN correct:  0.0 VN count:  195.0
-VN correct:  0.0 VN count:  429.0
-VN correct:  0.0 VN count:  308.0
-VN correct:  669.0 VN count:  15676.0
-VN correct:  665.0 VN count:  14205.0
-VN correct:  0.0 VN count:  11252.0
-VN correct:  0.0 VN count:  385.0
-VN correct:  0.0 VN count:  372.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  153.0 VN count:  20.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  11078.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  284.0 VN count:  11569.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  432.0
-VN correct:  0.0 VN count:  3514.0
-VN correct:  0.0 VN count:  540.0
-VN correct:  160.0 VN count:  60.0
-VN correct:  16.0 VN count:  0.0
-VN correct:  353.0 VN count:  13107.0
-VN correct:  2172.0 VN count:  9.0
-VN correct:  28.0 VN count:  4.0
-VN correct:  0.0 VN count:  66.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  182.0
-VN correct:  0.0 VN count:  77.0
-VN correct:  271.0 VN count:  11269.0
-VN correct:  0.0 VN count:  6732.0
-VN correct:  0.0 VN count:  77.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  10836.0
-VN correct:  0.0 VN count:  102.0
-VN correct:  0.0 VN count:  26.0
-VN correct:  1237.0 VN count:  17699.0
-VN correct:  0.0 VN count:  105.0
-VN correct:  0.0 VN count:  36.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  152.0
-VN correct:  701.0 VN count:  14649.0
-VN correct:  964.0 VN count:  17734.0
-VN correct:  0.0 VN count:  152.0
-VN correct:  0.0 VN count:  605.0
-VN correct:  0.0 VN count:  756.0
-VN correct:  151.0 VN count:  5.0
-VN correct:  0.0 VN count:  5377.0
-VN correct:  0.0 VN count:  273.0
-VN correct:  0.0 VN count:  60.0
-   200) Train loss: nan    Train acc:  0.46%    Train rate:  801.5 sents/sec    Learning rate: 0.000011    Sample prob: 1.000000
-	Valid loss: 9.5366    Valid acc:  0.56%    Valid rate: 1896.1 sents/sec
-	log loss: nan	rel loss: 0.340366	srl loss: 2.503824	trig loss: 4.126175	pos loss: 0.000000	vn loss: 3.892871
+   200) Train loss: nan    Train acc:  1.58%    Train rate:  278.8 sents/sec    Learning rate: 0.000011    Sample prob: 1.000000
+	Valid loss: 6.7576    Valid acc:  2.20%    Valid rate: 1889.5 sents/sec
+	log loss: nan	rel loss: 0.316025	srl loss: 2.414507	trig loss: 3.608701	pos loss: 0.000000	vn loss: 1.061493
 
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  36.0
-VN correct:  0.0 VN count:  150.0
-VN correct:  0.0 VN count:  372.0
-VN correct:  8257.0 VN count:  8935.0
-VN correct:  0.0 VN count:  143.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  135.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  0.0 VN count:  180.0
-VN correct:  0.0 VN count:  180.0
-VN correct:  1102.0 VN count:  12789.0
-VN correct:  0.0 VN count:  10287.0
-VN correct:  0.0 VN count:  9275.0
-VN correct:  23.0 VN count:  0.0
-VN correct:  0.0 VN count:  243.0
-VN correct:  0.0 VN count:  49.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  276.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  26.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  231.0
-VN correct:  0.0 VN count:  9525.0
-VN correct:  0.0 VN count:  234.0
-VN correct:  0.0 VN count:  200.0
-VN correct:  1063.0 VN count:  17247.0
-VN correct:  0.0 VN count:  144.0
-VN correct:  152.0 VN count:  50.0
-VN correct:  0.0 VN count:  10725.0
-VN correct:  661.0 VN count:  13285.0
-VN correct:  0.0 VN count:  36.0
-VN correct:  1044.0 VN count:  16940.0
-VN correct:  0.0 VN count:  9716.0
-VN correct:  0.0 VN count:  8937.0
-VN correct:  0.0 VN count:  2520.0
-VN correct:  0.0 VN count:  374.0
-VN correct:  0.0 VN count:  169.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  8372.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  7476.0
-VN correct:  0.0 VN count:  11286.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  180.0
-VN correct:  998.0 VN count:  17456.0
-VN correct:  619.0 VN count:  12840.0
-VN correct:  0.0 VN count:  128.0
-VN correct:  2888.0 VN count:  11271.0
-VN correct:  0.0 VN count:  54.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  84.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  296.0 VN count:  11614.0
-VN correct:  0.0 VN count:  8256.0
-VN correct:  0.0 VN count:  468.0
-VN correct:  0.0 VN count:  9480.0
-VN correct:  0.0 VN count:  374.0
-VN correct:  0.0 VN count:  10200.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  21.0 VN count:  4.0
-VN correct:  309.0 VN count:  11186.0
-VN correct:  0.0 VN count:  80.0
-VN correct:  6119.0 VN count:  3962.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  234.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  0.0 VN count:  3840.0
-VN correct:  0.0 VN count:  3094.0
-VN correct:  2244.0 VN count:  6.0
-VN correct:  577.0 VN count:  13228.0
-VN correct:  0.0 VN count:  140.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  5814.0
-VN correct:  0.0 VN count:  385.0
-VN correct:  0.0 VN count:  234.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  16640.0
-VN correct:  0.0 VN count:  144.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  4620.0
-VN correct:  0.0 VN count:  10244.0
-VN correct:  0.0 VN count:  66.0
-VN correct:  0.0 VN count:  98.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  0.0 VN count:  13.0
-VN correct:  0.0 VN count:  6006.0
-VN correct:  1388.0 VN count:  15442.0
-VN correct:  180.0 VN count:  20.0
-VN correct:  0.0 VN count:  374.0
-VN correct:  0.0 VN count:  96.0
-VN correct:  1743.0 VN count:  16274.0
-VN correct:  0.0 VN count:  143.0
-VN correct:  0.0 VN count:  143.0
-   300) Train loss: nan    Train acc:  0.35%    Train rate:  806.0 sents/sec    Learning rate: 0.000017    Sample prob: 1.000000
-	Valid loss: 9.4238    Valid acc:  0.57%    Valid rate: 1929.5 sents/sec
-	log loss: nan	rel loss: 0.320582	srl loss: 2.498536	trig loss: 3.957462	pos loss: 0.000000	vn loss: 3.850409
+   300) Train loss: nan    Train acc:  4.16%    Train rate:  302.9 sents/sec    Learning rate: 0.000017    Sample prob: 1.000000
+	Valid loss: 7.8303    Valid acc: 10.63%    Valid rate: 1877.7 sents/sec
+	log loss: nan	rel loss: 0.287131	srl loss: 2.369228	trig loss: 3.161578	pos loss: 0.000000	vn loss: 0.937818
 
-VN correct:  0.0 VN count:  648.0
-VN correct:  0.0 VN count:  14.0
-VN correct:  0.0 VN count:  7944.0
-VN correct:  0.0 VN count:  3240.0
-VN correct:  0.0 VN count:  10556.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  0.0 VN count:  170.0
-VN correct:  0.0 VN count:  112.0
-VN correct:  0.0 VN count:  408.0
-VN correct:  0.0 VN count:  492.0
-VN correct:  0.0 VN count:  99.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  418.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  3346.0
-VN correct:  0.0 VN count:  10380.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  27.0 VN count:  4.0
-VN correct:  0.0 VN count:  11165.0
-VN correct:  0.0 VN count:  4968.0
-VN correct:  0.0 VN count:  320.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  13.0
-VN correct:  0.0 VN count:  261.0
-VN correct:  0.0 VN count:  10680.0
-VN correct:  0.0 VN count:  648.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  0.0 VN count:  9407.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  180.0
-VN correct:  0.0 VN count:  208.0
-VN correct:  0.0 VN count:  4216.0
-VN correct:  6.0 VN count:  0.0
-VN correct:  23.0 VN count:  16.0
-VN correct:  0.0 VN count:  10643.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  703.0 VN count:  11824.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  60.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  7584.0
-VN correct:  0.0 VN count:  270.0
-VN correct:  0.0 VN count:  143.0
-VN correct:  0.0 VN count:  36.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  0.0 VN count:  432.0
-VN correct:  0.0 VN count:  270.0
-VN correct:  180.0 VN count:  15.0
-VN correct:  669.0 VN count:  13010.0
-VN correct:  0.0 VN count:  319.0
-VN correct:  146.0 VN count:  30.0
-VN correct:  0.0 VN count:  180.0
-VN correct:  0.0 VN count:  10800.0
-VN correct:  0.0 VN count:  170.0
-VN correct:  0.0 VN count:  3655.0
-VN correct:  0.0 VN count:  7820.0
-VN correct:  3164.0 VN count:  14532.0
-VN correct:  0.0 VN count:  171.0
-VN correct:  0.0 VN count:  3150.0
-VN correct:  0.0 VN count:  13578.0
-VN correct:  0.0 VN count:  240.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  34.0 VN count:  4.0
-VN correct:  0.0 VN count:  160.0
-VN correct:  0.0 VN count:  133.0
-VN correct:  0.0 VN count:  260.0
-VN correct:  0.0 VN count:  210.0
-VN correct:  0.0 VN count:  210.0
-VN correct:  2163.0 VN count:  6.0
-VN correct:  0.0 VN count:  5400.0
-VN correct:  0.0 VN count:  16182.0
-VN correct:  0.0 VN count:  14144.0
-VN correct:  699.0 VN count:  15346.0
-VN correct:  0.0 VN count:  169.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  2875.0 VN count:  13439.0
-VN correct:  0.0 VN count:  10724.0
-VN correct:  0.0 VN count:  77.0
-VN correct:  14.0 VN count:  0.0
-VN correct:  0.0 VN count:  4256.0
-VN correct:  641.0 VN count:  13004.0
-VN correct:  0.0 VN count:  84.0
-VN correct:  287.0 VN count:  12369.0
-VN correct:  0.0 VN count:  8525.0
-VN correct:  0.0 VN count:  120.0
-VN correct:  0.0 VN count:  42.0
-VN correct:  0.0 VN count:  26.0
-VN correct:  172.0 VN count:  45.0
-VN correct:  312.0 VN count:  10123.0
-VN correct:  0.0 VN count:  10584.0
-VN correct:  0.0 VN count:  480.0
-VN correct:  0.0 VN count:  5740.0
-VN correct:  147.0 VN count:  25.0
-VN correct:  0.0 VN count:  473.0
-VN correct:  1574.0 VN count:  13649.0
-VN correct:  0.0 VN count:  160.0
-VN correct:  646.0 VN count:  16091.0
-   400) Train loss: nan    Train acc:  0.53%    Train rate:  779.0 sents/sec    Learning rate: 0.000022    Sample prob: 1.000000
-	Valid loss: 9.0884    Valid acc:  0.75%    Valid rate: 1955.8 sents/sec
-	log loss: nan	rel loss: 0.313140	srl loss: 2.475528	trig loss: 3.769773	pos loss: 0.000000	vn loss: 3.849984
+   400) Train loss: nan    Train acc: 10.09%    Train rate:  328.5 sents/sec    Learning rate: 0.000022    Sample prob: 1.000000
+	Valid loss: 6.8238    Valid acc: 18.97%    Valid rate: 1862.5 sents/sec
+	log loss: nan	rel loss: 0.236818	srl loss: 2.366874	trig loss: 2.692040	pos loss: 0.000000	vn loss: 0.998806
 
-VN correct:  169.0 VN count:  25.0
-VN correct:  0.0 VN count:  4617.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  31.0 VN count:  4.0
-VN correct:  0.0 VN count:  6930.0
-VN correct:  0.0 VN count:  5166.0
-VN correct:  0.0 VN count:  171.0
-VN correct:  0.0 VN count:  42.0
-VN correct:  0.0 VN count:  10036.0
-VN correct:  717.0 VN count:  11947.0
-VN correct:  1213.0 VN count:  14371.0
-VN correct:  0.0 VN count:  9802.0
-VN correct:  0.0 VN count:  408.0
-VN correct:  0.0 VN count:  135.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  1859.0 VN count:  16607.0
-VN correct:  171.0 VN count:  35.0
-VN correct:  0.0 VN count:  24.0
-VN correct:  0.0 VN count:  273.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  3408.0
-VN correct:  2334.0 VN count:  6.0
-VN correct:  1184.0 VN count:  17734.0
-VN correct:  966.0 VN count:  15183.0
-VN correct:  0.0 VN count:  594.0
-VN correct:  0.0 VN count:  5168.0
-VN correct:  0.0 VN count:  84.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  260.0
-VN correct:  0.0 VN count:  152.0
-VN correct:  0.0 VN count:  152.0
-VN correct:  0.0 VN count:  182.0
-VN correct:  323.0 VN count:  12367.0
-VN correct:  41994.0 VN count:  0.0
-VN correct:  0.0 VN count:  112.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  6072.0
-VN correct:  0.0 VN count:  187.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  4284.0
-VN correct:  14.0 VN count:  0.0
-VN correct:  0.0 VN count:  10611.0
-VN correct:  645.0 VN count:  14884.0
-VN correct:  0.0 VN count:  169.0
-VN correct:  0.0 VN count:  56.0
-VN correct:  0.0 VN count:  7084.0
-VN correct:  713.0 VN count:  14575.0
-VN correct:  39638.0 VN count:  6278.0
-VN correct:  14.0 VN count:  2.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  34.0 VN count:  8.0
-VN correct:  7775.0 VN count:  9141.0
-VN correct:  3024.0 VN count:  17297.0
-VN correct:  0.0 VN count:  221.0
-VN correct:  7628.0 VN count:  9493.0
-VN correct:  2226.0 VN count:  3.0
-VN correct:  1549.0 VN count:  14015.0
-VN correct:  681.0 VN count:  14094.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  2142.0 VN count:  9.0
-VN correct:  0.0 VN count:  4454.0
-VN correct:  0.0 VN count:  6622.0
-VN correct:  553.0 VN count:  12310.0
-VN correct:  0.0 VN count:  2820.0
-VN correct:  0.0 VN count:  10260.0
-VN correct:  0.0 VN count:  77.0
-VN correct:  0.0 VN count:  7656.0
-VN correct:  0.0 VN count:  10322.0
-VN correct:  0.0 VN count:  216.0
-VN correct:  0.0 VN count:  10746.0
-VN correct:  1010.0 VN count:  16778.0
-VN correct:  0.0 VN count:  6040.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  553.0 VN count:  12000.0
-VN correct:  0.0 VN count:  10063.0
-VN correct:  33.0 VN count:  4.0
-VN correct:  0.0 VN count:  300.0
-VN correct:  0.0 VN count:  10530.0
-VN correct:  31.0 VN count:  0.0
-VN correct:  0.0 VN count:  7440.0
-VN correct:  0.0 VN count:  64.0
-VN correct:  0.0 VN count:  10400.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  344.0 VN count:  11945.0
-VN correct:  0.0 VN count:  169.0
-VN correct:  0.0 VN count:  120.0
-VN correct:  0.0 VN count:  169.0
-VN correct:  0.0 VN count:  26.0
-VN correct:  0.0 VN count:  6138.0
-VN correct:  0.0 VN count:  7150.0
-VN correct:  0.0 VN count:  3108.0
-VN correct:  0.0 VN count:  4180.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  8855.0
-VN correct:  0.0 VN count:  396.0
-   500) Train loss: nan    Train acc:  0.71%    Train rate:  715.8 sents/sec    Learning rate: 0.000028    Sample prob: 1.000000
-	Valid loss: 7.2454    Valid acc:  1.13%    Valid rate: 1953.1 sents/sec
-	log loss: nan	rel loss: 0.301847	srl loss: 2.395247	trig loss: 3.582001	pos loss: 0.000000	vn loss: 3.853950
+   500) Train loss: nan    Train acc: 15.71%    Train rate:  252.7 sents/sec    Learning rate: 0.000028    Sample prob: 1.000000
+	Valid loss: 6.1591    Valid acc: 26.71%    Valid rate: 1818.0 sents/sec
+	log loss: nan	rel loss: 0.187172	srl loss: 2.289002	trig loss: 2.222103	pos loss: 0.000000	vn loss: 0.959749
 
-Elapsed time: 01:00:07:39
-Total time in prob_argmax: 18.120845
-Total time in forward: 7.814293
+Elapsed time: 01:00:11:02
+Total time in prob_argmax: 16.540096
+Total time in forward: 10.056664
 Not tree: 9603
-Roots < 1: 0; Roots > 1: 0; 2-cycles: -9603; n-cycles: -9603
-  Labeled   attachment score: 1069 / 145219 * 100 = 0.74 %
-  Unlabeled attachment score: 3380 / 145219 * 100 = 2.33 %
-  Label accuracy score:       36998 / 145219 * 100 = 25.48 %
+Roots < 1: 59; Roots > 1: 7270; 2-cycles: -9603; n-cycles: -9603
+  Labeled   attachment score: 33485 / 145219 * 100 = 23.06 %
+  Unlabeled attachment score: 53900 / 145219 * 100 = 37.12 %
+  Label accuracy score:       63365 / 145219 * 100 = 43.63 %
 
 
 Number of Sentences    :        9603
 Number of Propositions :       23910
-Percentage of perfect props :  10.97
+Percentage of perfect props :   9.74
 
               corr.  excess  missed    prec.    rec.      F1
 ------------------------------------------------------------
-   Overall        0       0   53906     0.00    0.00    0.00
+   Overall       34    2029   53872     1.65    0.06    0.12
 ----------
       ARG0        0       0   11444     0.00    0.00    0.00
-      ARG1        0       0   18216     0.00    0.00    0.00
-      ARG2        0       0    6429     0.00    0.00    0.00
+      ARG1       27    1888   18189     1.41    0.15    0.27
+      ARG2        7     141    6422     4.73    0.11    0.21
       ARG3        0       0     373     0.00    0.00    0.00
       ARG4        0       0     358     0.00    0.00    0.00
       ARG5        0       0      10     0.00    0.00    0.00
@@ -695,324 +201,557 @@ R-ARGM-MNR        0       0      11     0.00    0.00    0.00
 R-ARGM-PRP        0       0       1     0.00    0.00    0.00
 R-ARGM-TMP        0       0      40     0.00    0.00    0.00
 ------------------------------------------------------------
-         V        0       0   23910     0.00    0.00    0.00
+         V        1       3   23909    25.00    0.00    0.01
 ------------------------------------------------------------
 
 Attention UAS: 
 
-UAS: 2.33    LAS: 0.74
-POS: 18.75
-SRL acc: 64.87
-viterbi SRL F1: 0.0
-VN correct:  0.0 VN count:  338.0
-VN correct:  0.0 VN count:  11629.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  72.0
-VN correct:  0.0 VN count:  169.0
-VN correct:  8011.0 VN count:  8027.0
-VN correct:  0.0 VN count:  8688.0
-VN correct:  0.0 VN count:  3030.0
-VN correct:  0.0 VN count:  143.0
-VN correct:  730.0 VN count:  15066.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  250.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  516.0
-VN correct:  0.0 VN count:  492.0
-VN correct:  1118.0 VN count:  16167.0
-VN correct:  0.0 VN count:  516.0
-VN correct:  0.0 VN count:  13.0
-VN correct:  0.0 VN count:  10314.0
-VN correct:  0.0 VN count:  10530.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  112.0
-VN correct:  0.0 VN count:  7613.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  312.0
-VN correct:  0.0 VN count:  6308.0
-VN correct:  22.0 VN count:  2.0
-VN correct:  685.0 VN count:  13458.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  3840.0
-VN correct:  0.0 VN count:  54.0
-VN correct:  0.0 VN count:  407.0
-VN correct:  2250.0 VN count:  6.0
-VN correct:  0.0 VN count:  54.0
-VN correct:  0.0 VN count:  5540.0
-VN correct:  7149.0 VN count:  8207.0
-VN correct:  318.0 VN count:  11176.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  3440.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  195.0
-VN correct:  0.0 VN count:  21.0
-VN correct:  0.0 VN count:  297.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  6490.0
-VN correct:  0.0 VN count:  360.0
-VN correct:  1547.0 VN count:  12261.0
-VN correct:  0.0 VN count:  552.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  1534.0 VN count:  15021.0
-VN correct:  0.0 VN count:  9131.0
-VN correct:  0.0 VN count:  152.0
-VN correct:  0.0 VN count:  319.0
-VN correct:  658.0 VN count:  11612.0
-VN correct:  662.0 VN count:  10835.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  162.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  0.0 VN count:  11004.0
-VN correct:  8.0 VN count:  0.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  153.0 VN count:  30.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  138.0 VN count:  30.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  130.0
-VN correct:  0.0 VN count:  708.0
-VN correct:  0.0 VN count:  48.0
-VN correct:  0.0 VN count:  208.0
-VN correct:  6890.0 VN count:  6362.0
-VN correct:  0.0 VN count:  9750.0
-VN correct:  740.0 VN count:  14060.0
-VN correct:  0.0 VN count:  96.0
-VN correct:  0.0 VN count:  105.0
-VN correct:  193.0 VN count:  20.0
-VN correct:  0.0 VN count:  140.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  26.0
-VN correct:  0.0 VN count:  14818.0
-VN correct:  49586.0 VN count:  5167.0
-VN correct:  22.0 VN count:  8.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  10304.0
-VN correct:  686.0 VN count:  16338.0
-VN correct:  2797.0 VN count:  13581.0
-VN correct:  0.0 VN count:  190.0
-VN correct:  45107.0 VN count:  1111.0
-VN correct:  0.0 VN count:  7975.0
-VN correct:  0.0 VN count:  190.0
-VN correct:  607.0 VN count:  13349.0
-VN correct:  0.0 VN count:  288.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  91.0
-   600) Train loss: nan    Train acc:  1.01%    Train rate:  835.7 sents/sec    Learning rate: 0.000033    Sample prob: 1.000000
-	Valid loss: 7.3197    Valid acc:  1.35%    Valid rate: 1958.4 sents/sec
-	log loss: nan	rel loss: 0.292327	srl loss: 2.414606	trig loss: 3.354912	pos loss: 0.000000	vn loss: 3.814287
+UAS: 37.12    LAS: 23.06
+POS: 56.33
+SRL acc: 48.81
+viterbi SRL F1: 0.12
+Writing model to saves/srl-vn-trial/parser-trained
+   600) Train loss: nan    Train acc: 22.00%    Train rate:  266.7 sents/sec    Learning rate: 0.000033    Sample prob: 1.000000
+	Valid loss: 5.6994    Valid acc: 33.48%    Valid rate: 1781.9 sents/sec
+	log loss: nan	rel loss: 0.154543	srl loss: 2.212408	trig loss: 1.866695	pos loss: 0.000000	vn loss: 1.044604
 
-VN correct:  0.0 VN count:  169.0
-VN correct:  931.0 VN count:  16101.0
-VN correct:  30.0 VN count:  4.0
-VN correct:  0.0 VN count:  230.0
-VN correct:  0.0 VN count:  270.0
-VN correct:  0.0 VN count:  140.0
-VN correct:  0.0 VN count:  88.0
-VN correct:  0.0 VN count:  21.0
-VN correct:  0.0 VN count:  276.0
-VN correct:  303.0 VN count:  12232.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  0.0 VN count:  6741.0
-VN correct:  0.0 VN count:  14942.0
-VN correct:  0.0 VN count:  56.0
-VN correct:  0.0 VN count:  4932.0
-VN correct:  257.0 VN count:  11814.0
-VN correct:  0.0 VN count:  4335.0
-VN correct:  0.0 VN count:  9716.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  179.0 VN count:  5.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  135.0
-VN correct:  158.0 VN count:  35.0
-VN correct:  1188.0 VN count:  16876.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  42.0
-VN correct:  2733.0 VN count:  12942.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  3332.0
-VN correct:  0.0 VN count:  594.0
-VN correct:  619.0 VN count:  14290.0
-VN correct:  1158.0 VN count:  15762.0
-VN correct:  25.0 VN count:  4.0
-VN correct:  0.0 VN count:  3689.0
-VN correct:  0.0 VN count:  6867.0
-VN correct:  640.0 VN count:  12017.0
-VN correct:  0.0 VN count:  6804.0
-VN correct:  8.0 VN count:  0.0
-VN correct:  0.0 VN count:  4465.0
-VN correct:  0.0 VN count:  243.0
-VN correct:  2277.0 VN count:  9.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  639.0 VN count:  13809.0
-VN correct:  3205.0 VN count:  14462.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  0.0 VN count:  126.0
-VN correct:  1839.0 VN count:  16157.0
-VN correct:  305.0 VN count:  10492.0
-VN correct:  0.0 VN count:  4896.0
-VN correct:  644.0 VN count:  16319.0
-VN correct:  0.0 VN count:  60.0
-VN correct:  0.0 VN count:  112.0
-VN correct:  29.0 VN count:  20.0
-VN correct:  0.0 VN count:  54.0
-VN correct:  0.0 VN count:  308.0
-VN correct:  0.0 VN count:  169.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  2220.0 VN count:  6.0
-VN correct:  0.0 VN count:  260.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  0.0 VN count:  9230.0
-VN correct:  0.0 VN count:  26.0
-VN correct:  0.0 VN count:  143.0
-VN correct:  1642.0 VN count:  18715.0
-VN correct:  0.0 VN count:  10672.0
-VN correct:  3216.0 VN count:  15554.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  39.0
-VN correct:  1551.0 VN count:  13833.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  11150.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  256.0
-VN correct:  0.0 VN count:  4224.0
-VN correct:  0.0 VN count:  14976.0
-VN correct:  0.0 VN count:  54.0
-VN correct:  0.0 VN count:  42.0
-VN correct:  0.0 VN count:  210.0
-VN correct:  0.0 VN count:  396.0
-VN correct:  0.0 VN count:  440.0
-VN correct:  0.0 VN count:  15808.0
-VN correct:  0.0 VN count:  418.0
-VN correct:  0.0 VN count:  26.0
-VN correct:  0.0 VN count:  4301.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  10.0 VN count:  0.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  352.0
-VN correct:  0.0 VN count:  144.0
-VN correct:  0.0 VN count:  99.0
-VN correct:  0.0 VN count:  264.0
-VN correct:  0.0 VN count:  4590.0
-VN correct:  166.0 VN count:  25.0
-VN correct:  0.0 VN count:  3060.0
-VN correct:  0.0 VN count:  4826.0
-VN correct:  178.0 VN count:  50.0
-VN correct:  0.0 VN count:  9774.0
-VN correct:  0.0 VN count:  96.0
-   700) Train loss: nan    Train acc:  0.94%    Train rate:  783.7 sents/sec    Learning rate: 0.000039    Sample prob: 1.000000
-	Valid loss: 7.5434    Valid acc:  1.40%    Valid rate: 1957.0 sents/sec
-	log loss: nan	rel loss: 0.290906	srl loss: 2.400814	trig loss: 3.170307	pos loss: 0.000000	vn loss: 3.929029
+   700) Train loss: nan    Train acc: 27.28%    Train rate:  255.2 sents/sec    Learning rate: 0.000039    Sample prob: 1.000000
+	Valid loss: 5.2508    Valid acc: 39.10%    Valid rate: 1757.4 sents/sec
+	log loss: nan	rel loss: 0.130632	srl loss: 2.144602	trig loss: 1.585971	pos loss: 0.000000	vn loss: 0.945485
 
-VN correct:  2166.0 VN count:  3.0
-VN correct:  2196.0 VN count:  6.0
-VN correct:  0.0 VN count:  112.0
-VN correct:  0.0 VN count:  182.0
-VN correct:  0.0 VN count:  105.0
-VN correct:  0.0 VN count:  136.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  1060.0 VN count:  13940.0
-VN correct:  0.0 VN count:  374.0
-VN correct:  0.0 VN count:  5544.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  78.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  11151.0
-VN correct:  0.0 VN count:  4080.0
-VN correct:  0.0 VN count:  180.0
-VN correct:  0.0 VN count:  4100.0
-VN correct:  0.0 VN count:  440.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  0.0
-VN correct:  0.0 VN count:  128.0
-VN correct:  0.0 VN count:  156.0
-VN correct:  0.0 VN count:  5282.0
-VN correct:  0.0 VN count:  10125.0
-VN correct:  152.0 VN count:  30.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  0.0 VN count:  225.0
-VN correct:  0.0 VN count:  26.0
-VN correct:  0.0 VN count:  170.0
-VN correct:  0.0 VN count:  473.0
-VN correct:  0.0 VN count:  15655.0
-VN correct:  0.0 VN count:  4256.0
-VN correct:  0.0 VN count:  182.0
-VN correct:  2694.0 VN count:  13506.0
-VN correct:  0.0 VN count:  11144.0
-VN correct:  0.0 VN count:  65.0
-VN correct:  0.0 VN count:  162.0
-VN correct:  1512.0 VN count:  16906.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  340.0 VN count:  9831.0
-VN correct:  23.0 VN count:  0.0
-VN correct:  0.0 VN count:  9240.0
-VN correct:  1560.0 VN count:  13780.0
-VN correct:  1153.0 VN count:  14385.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  0.0 VN count:  200.0
-VN correct:  0.0 VN count:  11861.0
-VN correct:  363.0 VN count:  12150.0
-VN correct:  0.0 VN count:  4986.0
-VN correct:  0.0 VN count:  4284.0
-VN correct:  0.0 VN count:  207.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  3296.0
-VN correct:  0.0 VN count:  104.0
-VN correct:  634.0 VN count:  13927.0
-VN correct:  0.0 VN count:  240.0
-VN correct:  0.0 VN count:  182.0
-VN correct:  160.0 VN count:  10.0
-VN correct:  0.0 VN count:  54.0
-VN correct:  0.0 VN count:  8740.0
-VN correct:  0.0 VN count:  374.0
-VN correct:  0.0 VN count:  91.0
-VN correct:  0.0 VN count:  10668.0
-VN correct:  632.0 VN count:  11779.0
-VN correct:  1706.0 VN count:  14707.0
-VN correct:  0.0 VN count:  234.0
-VN correct:  162.0 VN count:  45.0
-VN correct:  0.0 VN count:  352.0
-VN correct:  667.0 VN count:  15717.0
-VN correct:  684.0 VN count:  12284.0
-VN correct:  12.0 VN count:  0.0
-VN correct:  0.0 VN count:  418.0
-VN correct:  0.0 VN count:  144.0
-VN correct:  550.0 VN count:  11679.0
-VN correct:  8.0 VN count:  0.0
-VN correct:  2142.0 VN count:  6.0
-VN correct:  0.0 VN count:  10098.0
-VN correct:  41352.0 VN count:  4114.0
-VN correct:  0.0 VN count:  396.0
-VN correct:  0.0 VN count:  8616.0
-VN correct:  1050.0 VN count:  16217.0
-VN correct:  292.0 VN count:  11293.0
-VN correct:  0.0 VN count:  6657.0
-VN correct:  0.0 VN count:  144.0
-VN correct:  0.0 VN count:  49.0
-VN correct:  0.0 VN count:  6952.0
-VN correct:  33.0 VN count:  12.0
-VN correct:  0.0 VN count:  420.0
-VN correct:  0.0 VN count:  169.0
-VN correct:  666.0 VN count:  14986.0
-VN correct:  167.0 VN count:  15.0
-VN correct:  158.0 VN count:  40.0
-VN correct:  0.0 VN count:  48.0
-VN correct:  0.0 VN count:  189.0
-VN correct:  0.0 VN count:  5225.0
-VN correct:  0.0 VN count:  117.0
-VN correct:  0.0 VN count:  52.0
-VN correct:  0.0 VN count:  6936.0
-VN correct:  0.0 VN count:  120.0
-   800) Train loss: nan    Train acc:  1.13%    Train rate:  836.7 sents/sec    Learning rate: 0.000045    Sample prob: 1.000000
-	Valid loss: 7.7952    Valid acc:  1.42%    Valid rate: 1962.6 sents/sec
-	log loss: nan	rel loss: 0.285262	srl loss: 2.349488	trig loss: 3.021959	pos loss: 0.000000	vn loss: 3.850770
+   800) Train loss: nan    Train acc: 33.06%    Train rate:  346.2 sents/sec    Learning rate: 0.000045    Sample prob: 1.000000
+	Valid loss: 4.9657    Valid acc: 43.38%    Valid rate: 1736.1 sents/sec
+	log loss: nan	rel loss: 0.114621	srl loss: 2.107760	trig loss: 1.403967	pos loss: 0.000000	vn loss: 1.024160
+
+   900) Train loss: nan    Train acc: 36.56%    Train rate:  277.2 sents/sec    Learning rate: 0.000050    Sample prob: 1.000000
+	Valid loss: 4.6166    Valid acc: 47.22%    Valid rate: 1715.0 sents/sec
+	log loss: nan	rel loss: 0.100082	srl loss: 2.010436	trig loss: 1.214289	pos loss: 0.000000	vn loss: 0.887261
+
+  1000) Train loss: nan    Train acc: 39.72%    Train rate:  307.6 sents/sec    Learning rate: 0.000056    Sample prob: 1.000000
+	Valid loss: 4.3591    Valid acc: 50.39%    Valid rate: 1712.4 sents/sec
+	log loss: nan	rel loss: 0.090490	srl loss: 1.950712	trig loss: 1.067837	pos loss: 0.000000	vn loss: 1.001075
+
+Elapsed time: 01:00:23:04
+Total time in prob_argmax: 16.729342
+Total time in forward: 8.005650
+Not tree: 9603
+Roots < 1: 110; Roots > 1: 5694; 2-cycles: -9603; n-cycles: -9603
+  Labeled   attachment score: 67999 / 145219 * 100 = 46.83 %
+  Unlabeled attachment score: 80500 / 145219 * 100 = 55.43 %
+  Label accuracy score:       88802 / 145219 * 100 = 61.15 %
+
+
+Number of Sentences    :        9603
+Number of Propositions :       23910
+Percentage of perfect props :  11.00
+
+              corr.  excess  missed    prec.    rec.      F1
+------------------------------------------------------------
+   Overall     8560   15829   45346    35.10   15.88   21.87
+----------
+      ARG0     3481    4198    7963    45.33   30.42   36.41
+      ARG1     3053    8203   15163    27.12   16.76   20.72
+      ARG2      608    1868    5821    24.56    9.46   13.66
+      ARG3        0       0     373     0.00    0.00    0.00
+      ARG4        2       1     356    66.67    0.56    1.11
+      ARG5        0       0      10     0.00    0.00    0.00
+      ARGA        0       0       3     0.00    0.00    0.00
+  ARGM-ADJ        0       0     232     0.00    0.00    0.00
+  ARGM-ADV        0       0    2089     0.00    0.00    0.00
+  ARGM-CAU        0       0     365     0.00    0.00    0.00
+  ARGM-COM        0       0      24     0.00    0.00    0.00
+  ARGM-DIR        3       4     450    42.86    0.66    1.30
+  ARGM-DIS      349     343    2029    50.43   14.68   22.74
+  ARGM-DSP        0       0       2     0.00    0.00    0.00
+  ARGM-EXT        0       0     175     0.00    0.00    0.00
+  ARGM-GOL        0       0      70     0.00    0.00    0.00
+  ARGM-LOC       13     171    1442     7.07    0.89    1.59
+  ARGM-LVB        0       0      50     0.00    0.00    0.00
+  ARGM-MNR        0       0    1275     0.00    0.00    0.00
+  ARGM-MOD      739     523    1105    58.56   40.08   47.59
+  ARGM-NEG      240      90     831    72.73   22.41   34.26
+  ARGM-PNC        0       0      87     0.00    0.00    0.00
+  ARGM-PRD        0       0     264     0.00    0.00    0.00
+  ARGM-PRP        0       0     335     0.00    0.00    0.00
+  ARGM-REC        0       0       8     0.00    0.00    0.00
+  ARGM-TMP       60     424    3664    12.40    1.61    2.85
+    R-ARG0       12       4     543    75.00    2.16    4.20
+    R-ARG1        0       0     456     0.00    0.00    0.00
+    R-ARG2        0       0      35     0.00    0.00    0.00
+    R-ARG3        0       0       6     0.00    0.00    0.00
+    R-ARG4        0       0       1     0.00    0.00    0.00
+R-ARGM-ADV        0       0       2     0.00    0.00    0.00
+R-ARGM-CAU        0       0       2     0.00    0.00    0.00
+R-ARGM-DIR        0       0       1     0.00    0.00    0.00
+R-ARGM-EXT        0       0       2     0.00    0.00    0.00
+R-ARGM-LOC        0       0      60     0.00    0.00    0.00
+R-ARGM-MNR        0       0      11     0.00    0.00    0.00
+R-ARGM-PRP        0       0       1     0.00    0.00    0.00
+R-ARGM-TMP        0       0      40     0.00    0.00    0.00
+------------------------------------------------------------
+         V    11689    8011   12221    59.34   48.89   53.61
+------------------------------------------------------------
+
+Attention UAS: 
+
+UAS: 55.43    LAS: 46.83
+POS: 81.03
+SRL acc: 59.66
+viterbi SRL F1: 21.87
+Writing model to saves/srl-vn-trial/parser-trained
+  1100) Train loss: nan    Train acc: 41.62%    Train rate:  261.7 sents/sec    Learning rate: 0.000061    Sample prob: 1.000000
+	Valid loss: 4.1922    Valid acc: 53.01%    Valid rate: 1707.7 sents/sec
+	log loss: nan	rel loss: 0.083279	srl loss: 1.871064	trig loss: 0.967779	pos loss: 0.000000	vn loss: 0.962958
+
+  1200) Train loss: nan    Train acc: 45.21%    Train rate:  313.5 sents/sec    Learning rate: 0.000067    Sample prob: 1.000000
+	Valid loss: 4.1147    Valid acc: 54.28%    Valid rate: 1706.5 sents/sec
+	log loss: nan	rel loss: 0.076590	srl loss: 1.863252	trig loss: 0.883847	pos loss: 0.000000	vn loss: 0.938167
+
+  1300) Train loss: nan    Train acc: 47.79%    Train rate:  307.4 sents/sec    Learning rate: 0.000073    Sample prob: 1.000000
+	Valid loss: 3.8791    Valid acc: 56.48%    Valid rate: 1697.0 sents/sec
+	log loss: nan	rel loss: 0.070403	srl loss: 1.830217	trig loss: 0.807347	pos loss: 0.000000	vn loss: 0.979712
+
+  1400) Train loss: nan    Train acc: 50.10%    Train rate:  314.8 sents/sec    Learning rate: 0.000078    Sample prob: 1.000000
+	Valid loss: 3.8330    Valid acc: 58.05%    Valid rate: 1701.4 sents/sec
+	log loss: nan	rel loss: 0.065522	srl loss: 1.783014	trig loss: 0.748861	pos loss: 0.000000	vn loss: 0.902800
+
+  1500) Train loss: nan    Train acc: 49.77%    Train rate:  247.9 sents/sec    Learning rate: 0.000084    Sample prob: 1.000000
+	Valid loss: 3.8172    Valid acc: 59.35%    Valid rate: 1700.0 sents/sec
+	log loss: nan	rel loss: 0.063250	srl loss: 1.757336	trig loss: 0.714299	pos loss: 0.000000	vn loss: 0.958856
+
+Elapsed time: 01:00:35:30
+Total time in prob_argmax: 16.813491
+Total time in forward: 6.068630
+Not tree: 9603
+Roots < 1: 125; Roots > 1: 4333; 2-cycles: -9603; n-cycles: -9603
+  Labeled   attachment score: 82193 / 145219 * 100 = 56.60 %
+  Unlabeled attachment score: 92379 / 145219 * 100 = 63.61 %
+  Label accuracy score:       98655 / 145219 * 100 = 67.94 %
+
+
+Number of Sentences    :        9603
+Number of Propositions :       23910
+Percentage of perfect props :  15.41
+
+              corr.  excess  missed    prec.    rec.      F1
+------------------------------------------------------------
+   Overall    12480   15550   41426    44.52   23.15   30.46
+----------
+      ARG0     4089    2134    7355    65.71   35.73   46.29
+      ARG1     4502    7830   13714    36.51   24.71   29.47
+      ARG2      958    2574    5471    27.12   14.90   19.24
+      ARG3        0       0     373     0.00    0.00    0.00
+      ARG4       35     106     323    24.82    9.78   14.03
+      ARG5        0       0      10     0.00    0.00    0.00
+      ARGA        0       0       3     0.00    0.00    0.00
+  ARGM-ADJ        0       0     232     0.00    0.00    0.00
+  ARGM-ADV       18      44    2071    29.03    0.86    1.67
+  ARGM-CAU        1       0     364   100.00    0.27    0.55
+  ARGM-COM        0       0      24     0.00    0.00    0.00
+  ARGM-DIR       15      39     438    27.78    3.31    5.92
+  ARGM-DIS      695     564    1683    55.20   29.23   38.22
+  ARGM-DSP        0       0       2     0.00    0.00    0.00
+  ARGM-EXT        0       0     175     0.00    0.00    0.00
+  ARGM-GOL        0       0      70     0.00    0.00    0.00
+  ARGM-LOC       55     367    1400    13.03    3.78    5.86
+  ARGM-LVB        0       0      50     0.00    0.00    0.00
+  ARGM-MNR       14      44    1261    24.14    1.10    2.10
+  ARGM-MOD     1176     660     668    64.05   63.77   63.91
+  ARGM-NEG      586     381     485    60.60   54.72   57.51
+  ARGM-PNC        0       0      87     0.00    0.00    0.00
+  ARGM-PRD        0       0     264     0.00    0.00    0.00
+  ARGM-PRP        8      32     327    20.00    2.39    4.27
+  ARGM-REC        0       0       8     0.00    0.00    0.00
+  ARGM-TMP      293     756    3431    27.93    7.87   12.28
+    R-ARG0       35      14     520    71.43    6.31   11.59
+    R-ARG1        0       5     456     0.00    0.00    0.00
+    R-ARG2        0       0      35     0.00    0.00    0.00
+    R-ARG3        0       0       6     0.00    0.00    0.00
+    R-ARG4        0       0       1     0.00    0.00    0.00
+R-ARGM-ADV        0       0       2     0.00    0.00    0.00
+R-ARGM-CAU        0       0       2     0.00    0.00    0.00
+R-ARGM-DIR        0       0       1     0.00    0.00    0.00
+R-ARGM-EXT        0       0       2     0.00    0.00    0.00
+R-ARGM-LOC        0       0      60     0.00    0.00    0.00
+R-ARGM-MNR        0       0      11     0.00    0.00    0.00
+R-ARGM-PRP        0       0       1     0.00    0.00    0.00
+R-ARGM-TMP        0       0      40     0.00    0.00    0.00
+------------------------------------------------------------
+         V    15975    4662    7935    77.41   66.81   71.72
+------------------------------------------------------------
+
+Attention UAS: 
+
+UAS: 63.61    LAS: 56.60
+POS: 86.02
+SRL acc: 64.15
+viterbi SRL F1: 30.46
+Writing model to saves/srl-vn-trial/parser-trained
+  1600) Train loss: nan    Train acc: 52.71%    Train rate:  299.6 sents/sec    Learning rate: 0.000089    Sample prob: 1.000000
+	Valid loss: 3.7585    Valid acc: 59.98%    Valid rate: 1703.8 sents/sec
+	log loss: nan	rel loss: 0.058802	srl loss: 1.751183	trig loss: 0.665699	pos loss: 0.000000	vn loss: 0.903476
+
+  1700) Train loss: nan    Train acc: 54.13%    Train rate:  301.7 sents/sec    Learning rate: 0.000095    Sample prob: 1.000000
+	Valid loss: 3.6542    Valid acc: 61.23%    Valid rate: 1700.9 sents/sec
+	log loss: nan	rel loss: 0.056509	srl loss: 1.709219	trig loss: 0.640674	pos loss: 0.000000	vn loss: 1.073169
+
+  1800) Train loss: nan    Train acc: 56.19%    Train rate:  325.6 sents/sec    Learning rate: 0.000101    Sample prob: 1.000000
+	Valid loss: 3.6066    Valid acc: 62.26%    Valid rate: 1690.8 sents/sec
+	log loss: nan	rel loss: 0.053285	srl loss: 1.709928	trig loss: 0.603770	pos loss: 0.000000	vn loss: 0.943291
+
+  1900) Train loss: nan    Train acc: 56.04%    Train rate:  284.1 sents/sec    Learning rate: 0.000106    Sample prob: 1.000000
+	Valid loss: 3.5260    Valid acc: 63.49%    Valid rate: 1699.5 sents/sec
+	log loss: nan	rel loss: 0.051912	srl loss: 1.679602	trig loss: 0.590609	pos loss: 0.000000	vn loss: 0.994927
+
+  2000) Train loss: nan    Train acc: 56.92%    Train rate:  247.2 sents/sec    Learning rate: 0.000112    Sample prob: 1.000000
+	Valid loss: 3.4743    Valid acc: 64.53%    Valid rate: 1697.1 sents/sec
+	log loss: nan	rel loss: 0.049679	srl loss: 1.644536	trig loss: 0.564415	pos loss: 0.000000	vn loss: 0.920950
+
+Elapsed time: 01:00:47:58
+Total time in prob_argmax: 16.635925
+Total time in forward: 6.063729
+Not tree: 9603
+Roots < 1: 180; Roots > 1: 3362; 2-cycles: -9603; n-cycles: -9603
+  Labeled   attachment score: 90481 / 145219 * 100 = 62.31 %
+  Unlabeled attachment score: 99884 / 145219 * 100 = 68.78 %
+  Label accuracy score:       104946 / 145219 * 100 = 72.27 %
+
+
+Number of Sentences    :        9603
+Number of Propositions :       23910
+Percentage of perfect props :  19.21
+
+              corr.  excess  missed    prec.    rec.      F1
+------------------------------------------------------------
+   Overall    15770   17189   38136    47.85   29.25   36.31
+----------
+      ARG0     5054    2931    6390    63.29   44.16   52.03
+      ARG1     5714    8694   12502    39.66   31.37   35.03
+      ARG2     1379    2929    5050    32.01   21.45   25.69
+      ARG3        0       0     373     0.00    0.00    0.00
+      ARG4       25      81     333    23.58    6.98   10.78
+      ARG5        0       0      10     0.00    0.00    0.00
+      ARGA        0       0       3     0.00    0.00    0.00
+  ARGM-ADJ        0       0     232     0.00    0.00    0.00
+  ARGM-ADV       96     276    1993    25.81    4.60    7.80
+  ARGM-CAU        3       4     362    42.86    0.82    1.61
+  ARGM-COM        0       0      24     0.00    0.00    0.00
+  ARGM-DIR       17      38     436    30.91    3.75    6.69
+  ARGM-DIS      825     383    1553    68.29   34.69   46.01
+  ARGM-DSP        0       0       2     0.00    0.00    0.00
+  ARGM-EXT        0       0     175     0.00    0.00    0.00
+  ARGM-GOL        0       0      70     0.00    0.00    0.00
+  ARGM-LOC       26     110    1429    19.12    1.79    3.27
+  ARGM-LVB        0       0      50     0.00    0.00    0.00
+  ARGM-MNR       36      43    1239    45.57    2.82    5.32
+  ARGM-MOD     1277     421     567    75.21   69.25   72.11
+  ARGM-NEG      727     408     344    64.05   67.88   65.91
+  ARGM-PNC        0       0      87     0.00    0.00    0.00
+  ARGM-PRD        0       0     264     0.00    0.00    0.00
+  ARGM-PRP        3       4     332    42.86    0.90    1.75
+  ARGM-REC        0       0       8     0.00    0.00    0.00
+  ARGM-TMP      478     825    3246    36.68   12.84   19.02
+    R-ARG0       90      26     465    77.59   16.22   26.83
+    R-ARG1       20      16     436    55.56    4.39    8.13
+    R-ARG2        0       0      35     0.00    0.00    0.00
+    R-ARG3        0       0       6     0.00    0.00    0.00
+    R-ARG4        0       0       1     0.00    0.00    0.00
+R-ARGM-ADV        0       0       2     0.00    0.00    0.00
+R-ARGM-CAU        0       0       2     0.00    0.00    0.00
+R-ARGM-DIR        0       0       1     0.00    0.00    0.00
+R-ARGM-EXT        0       0       2     0.00    0.00    0.00
+R-ARGM-LOC        0       0      60     0.00    0.00    0.00
+R-ARGM-MNR        0       0      11     0.00    0.00    0.00
+R-ARGM-PRP        0       0       1     0.00    0.00    0.00
+R-ARGM-TMP        0       0      40     0.00    0.00    0.00
+------------------------------------------------------------
+         V    17244    3289    6666    83.98   72.12   77.60
+------------------------------------------------------------
+
+Attention UAS: 
+
+UAS: 68.78    LAS: 62.31
+POS: 88.22
+SRL acc: 65.15
+viterbi SRL F1: 36.31
+Writing model to saves/srl-vn-trial/parser-trained
+  2100) Train loss: nan    Train acc: 58.93%    Train rate:  282.4 sents/sec    Learning rate: 0.000117    Sample prob: 1.000000
+	Valid loss: 3.4249    Valid acc: 65.37%    Valid rate: 1693.8 sents/sec
+	log loss: nan	rel loss: 0.048098	srl loss: 1.635821	trig loss: 0.544697	pos loss: 0.000000	vn loss: 0.981265
+
+  2200) Train loss: nan    Train acc: 59.94%    Train rate:  314.7 sents/sec    Learning rate: 0.000123    Sample prob: 1.000000
+	Valid loss: 3.4173    Valid acc: 66.16%    Valid rate: 1694.7 sents/sec
+	log loss: nan	rel loss: 0.046367	srl loss: 1.623376	trig loss: 0.528957	pos loss: 0.000000	vn loss: 0.960801
+
+  2300) Train loss: nan    Train acc: 60.79%    Train rate:  285.9 sents/sec    Learning rate: 0.000129    Sample prob: 1.000000
+	Valid loss: 3.3930    Valid acc: 67.23%    Valid rate: 1694.8 sents/sec
+	log loss: nan	rel loss: 0.044956	srl loss: 1.611816	trig loss: 0.511936	pos loss: 0.000000	vn loss: 0.971018
+
+  2400) Train loss: nan    Train acc: 61.82%    Train rate:  294.1 sents/sec    Learning rate: 0.000134    Sample prob: 1.000000
+	Valid loss: 3.3043    Valid acc: 68.63%    Valid rate: 1694.4 sents/sec
+	log loss: nan	rel loss: 0.043782	srl loss: 1.591214	trig loss: 0.500306	pos loss: 0.000000	vn loss: 0.903725
+
+  2500) Train loss: nan    Train acc: 64.89%    Train rate:  299.2 sents/sec    Learning rate: 0.000140    Sample prob: 1.000000
+	Valid loss: 3.2747    Valid acc: 69.53%    Valid rate: 1694.8 sents/sec
+	log loss: nan	rel loss: 0.040429	srl loss: 1.563751	trig loss: 0.468852	pos loss: 0.000000	vn loss: 0.929497
+
+Elapsed time: 01:01:00:28
+Total time in prob_argmax: 16.762307
+Total time in forward: 6.050245
+Not tree: 9603
+Roots < 1: 197; Roots > 1: 2748; 2-cycles: -9603; n-cycles: -9603
+  Labeled   attachment score: 98012 / 145219 * 100 = 67.49 %
+  Unlabeled attachment score: 106980 / 145219 * 100 = 73.67 %
+  Label accuracy score:       110818 / 145219 * 100 = 76.31 %
+
+
+Number of Sentences    :        9603
+Number of Propositions :       23910
+Percentage of perfect props :  21.40
+
+              corr.  excess  missed    prec.    rec.      F1
+------------------------------------------------------------
+   Overall    18400   17878   35506    50.72   34.13   40.81
+----------
+      ARG0     5147    2321    6297    68.92   44.98   54.43
+      ARG1     6548    7916   11668    45.27   35.95   40.07
+      ARG2     1751    3423    4678    33.84   27.24   30.18
+      ARG3        0       3     373     0.00    0.00    0.00
+      ARG4       51      91     307    35.92   14.25   20.40
+      ARG5        0       0      10     0.00    0.00    0.00
+      ARGA        0       0       3     0.00    0.00    0.00
+  ARGM-ADJ        0       0     232     0.00    0.00    0.00
+  ARGM-ADV      164     349    1925    31.97    7.85   12.61
+  ARGM-CAU       40      67     325    37.38   10.96   16.95
+  ARGM-COM        0       0      24     0.00    0.00    0.00
+  ARGM-DIR       54     145     399    27.14   11.92   16.56
+  ARGM-DIS     1168     707    1210    62.29   49.12   54.93
+  ARGM-DSP        0       0       2     0.00    0.00    0.00
+  ARGM-EXT        0       0     175     0.00    0.00    0.00
+  ARGM-GOL        0       0      70     0.00    0.00    0.00
+  ARGM-LOC      118     575    1337    17.03    8.11   10.99
+  ARGM-LVB        0       0      50     0.00    0.00    0.00
+  ARGM-MNR       60     129    1215    31.75    4.71    8.20
+  ARGM-MOD     1373     300     471    82.07   74.46   78.08
+  ARGM-NEG      810     226     261    78.19   75.63   76.89
+  ARGM-PNC        0       0      87     0.00    0.00    0.00
+  ARGM-PRD        0       0     264     0.00    0.00    0.00
+  ARGM-PRP       18      37     317    32.73    5.37    9.23
+  ARGM-REC        0       0       8     0.00    0.00    0.00
+  ARGM-TMP      850    1461    2874    36.78   22.82   28.17
+    R-ARG0      199     105     356    65.46   35.86   46.33
+    R-ARG1       49      23     407    68.06   10.75   18.56
+    R-ARG2        0       0      35     0.00    0.00    0.00
+    R-ARG3        0       0       6     0.00    0.00    0.00
+    R-ARG4        0       0       1     0.00    0.00    0.00
+R-ARGM-ADV        0       0       2     0.00    0.00    0.00
+R-ARGM-CAU        0       0       2     0.00    0.00    0.00
+R-ARGM-DIR        0       0       1     0.00    0.00    0.00
+R-ARGM-EXT        0       0       2     0.00    0.00    0.00
+R-ARGM-LOC        0       0      60     0.00    0.00    0.00
+R-ARGM-MNR        0       0      11     0.00    0.00    0.00
+R-ARGM-PRP        0       0       1     0.00    0.00    0.00
+R-ARGM-TMP        0       0      40     0.00    0.00    0.00
+------------------------------------------------------------
+         V    17170    3439    6740    83.31   71.81   77.14
+------------------------------------------------------------
+
+Attention UAS: 
+
+UAS: 73.67    LAS: 67.49
+POS: 89.83
+SRL acc: 65.13
+viterbi SRL F1: 40.81
+Writing model to saves/srl-vn-trial/parser-trained
+  2600) Train loss: nan    Train acc: 62.51%    Train rate:  238.3 sents/sec    Learning rate: 0.000145    Sample prob: 1.000000
+	Valid loss: 3.2428    Valid acc: 71.09%    Valid rate: 1698.6 sents/sec
+	log loss: nan	rel loss: 0.041862	srl loss: 1.573426	trig loss: 0.474803	pos loss: 0.000000	vn loss: 0.975895
+
+  2700) Train loss: nan    Train acc: 66.03%    Train rate:  329.9 sents/sec    Learning rate: 0.000151    Sample prob: 1.000000
+	Valid loss: 3.1711    Valid acc: 71.94%    Valid rate: 1690.7 sents/sec
+	log loss: nan	rel loss: 0.039220	srl loss: 1.548637	trig loss: 0.453359	pos loss: 0.000000	vn loss: 0.964835
+
+  2800) Train loss: nan    Train acc: 67.79%    Train rate:  313.3 sents/sec    Learning rate: 0.000156    Sample prob: 1.000000
+	Valid loss: 3.1173    Valid acc: 72.84%    Valid rate: 1693.2 sents/sec
+	log loss: nan	rel loss: 0.036692	srl loss: 1.518084	trig loss: 0.429564	pos loss: 0.000000	vn loss: 0.847359
+
+  2900) Train loss: nan    Train acc: 67.13%    Train rate:  255.2 sents/sec    Learning rate: 0.000162    Sample prob: 1.000000
+	Valid loss: 3.0968    Valid acc: 73.98%    Valid rate: 1696.1 sents/sec
+	log loss: nan	rel loss: 0.037061	srl loss: 1.509870	trig loss: 0.431128	pos loss: 0.000000	vn loss: 0.955248
+
+  3000) Train loss: nan    Train acc: 67.71%    Train rate:  295.1 sents/sec    Learning rate: 0.000168    Sample prob: 1.000000
+	Valid loss: 3.0554    Valid acc: 74.77%    Valid rate: 1685.3 sents/sec
+	log loss: nan	rel loss: 0.036955	srl loss: 1.507877	trig loss: 0.426469	pos loss: 0.000000	vn loss: 1.008811
+
+Elapsed time: 01:01:12:56
+Total time in prob_argmax: 16.641471
+Total time in forward: 6.102529
+Not tree: 9603
+Roots < 1: 168; Roots > 1: 1733; 2-cycles: -9603; n-cycles: -9603
+  Labeled   attachment score: 106169 / 145219 * 100 = 73.11 %
+  Unlabeled attachment score: 114452 / 145219 * 100 = 78.81 %
+  Label accuracy score:       117172 / 145219 * 100 = 80.69 %
+
+
+Number of Sentences    :        9603
+Number of Propositions :       23910
+Percentage of perfect props :  25.89
+
+              corr.  excess  missed    prec.    rec.      F1
+------------------------------------------------------------
+   Overall    21179   16154   32727    56.73   39.29   46.43
+----------
+      ARG0     5656    2234    5788    71.69   49.42   58.51
+      ARG1     7519    6853   10697    52.32   41.28   46.15
+      ARG2     2054    2615    4375    43.99   31.95   37.02
+      ARG3        2       1     371    66.67    0.54    1.06
+      ARG4       63     143     295    30.58   17.60   22.34
+      ARG5        0       0      10     0.00    0.00    0.00
+      ARGA        0       0       3     0.00    0.00    0.00
+  ARGM-ADJ        1       0     231   100.00    0.43    0.86
+  ARGM-ADV      272     472    1817    36.56   13.02   19.20
+  ARGM-CAU       96     135     269    41.56   26.30   32.21
+  ARGM-COM        0       0      24     0.00    0.00    0.00
+  ARGM-DIR       56     191     397    22.67   12.36   16.00
+  ARGM-DIS     1307     549    1071    70.42   54.96   61.74
+  ARGM-DSP        0       0       2     0.00    0.00    0.00
+  ARGM-EXT        0       0     175     0.00    0.00    0.00
+  ARGM-GOL        0       0      70     0.00    0.00    0.00
+  ARGM-LOC      177     497    1278    26.26   12.16   16.63
+  ARGM-LVB        0       0      50     0.00    0.00    0.00
+  ARGM-MNR       64     154    1211    29.36    5.02    8.57
+  ARGM-MOD     1460     163     384    89.96   79.18   84.22
+  ARGM-NEG      862     190     209    81.94   80.49   81.21
+  ARGM-PNC        0       0      87     0.00    0.00    0.00
+  ARGM-PRD        0       0     264     0.00    0.00    0.00
+  ARGM-PRP       44      98     291    30.99   13.13   18.45
+  ARGM-REC        0       0       8     0.00    0.00    0.00
+  ARGM-TMP     1199    1699    2525    41.37   32.20   36.21
+    R-ARG0      225      92     330    70.98   40.54   51.61
+    R-ARG1      120      64     336    65.22   26.32   37.50
+    R-ARG2        0       0      35     0.00    0.00    0.00
+    R-ARG3        0       0       6     0.00    0.00    0.00
+    R-ARG4        0       0       1     0.00    0.00    0.00
+R-ARGM-ADV        0       0       2     0.00    0.00    0.00
+R-ARGM-CAU        0       0       2     0.00    0.00    0.00
+R-ARGM-DIR        0       0       1     0.00    0.00    0.00
+R-ARGM-EXT        0       0       2     0.00    0.00    0.00
+R-ARGM-LOC        2       2      58    50.00    3.33    6.25
+R-ARGM-MNR        0       0      11     0.00    0.00    0.00
+R-ARGM-PRP        0       0       1     0.00    0.00    0.00
+R-ARGM-TMP        0       2      40     0.00    0.00    0.00
+------------------------------------------------------------
+         V    18214    2256    5696    88.98   76.18   82.08
+------------------------------------------------------------
+
+Attention UAS: 
+
+UAS: 78.81    LAS: 73.11
+POS: 91.24
+SRL acc: 68.41
+viterbi SRL F1: 46.43
+Writing model to saves/srl-vn-trial/parser-trained
+  3100) Train loss: nan    Train acc: 70.92%    Train rate:  328.8 sents/sec    Learning rate: 0.000173    Sample prob: 1.000000
+	Valid loss: 3.0368    Valid acc: 75.34%    Valid rate: 1687.8 sents/sec
+	log loss: nan	rel loss: 0.033466	srl loss: 1.465156	trig loss: 0.399149	pos loss: 0.000000	vn loss: 0.849789
+
+  3200) Train loss: nan    Train acc: 68.75%    Train rate:  258.8 sents/sec    Learning rate: 0.000179    Sample prob: 1.000000
+	Valid loss: 2.9732    Valid acc: 76.18%    Valid rate: 1685.9 sents/sec
+	log loss: nan	rel loss: 0.035286	srl loss: 1.477560	trig loss: 0.405020	pos loss: 0.000000	vn loss: 0.989566
+
+  3300) Train loss: nan    Train acc: 71.33%    Train rate:  318.8 sents/sec    Learning rate: 0.000184    Sample prob: 1.000000
+	Valid loss: 2.9827    Valid acc: 76.88%    Valid rate: 1688.0 sents/sec
+	log loss: nan	rel loss: 0.032481	srl loss: 1.460282	trig loss: 0.386375	pos loss: 0.000000	vn loss: 0.935394
+
+  3400) Train loss: nan    Train acc: 71.69%    Train rate:  266.5 sents/sec    Learning rate: 0.000190    Sample prob: 1.000000
+	Valid loss: 2.9040    Valid acc: 77.51%    Valid rate: 1687.8 sents/sec
+	log loss: nan	rel loss: 0.032061	srl loss: 1.434082	trig loss: 0.377159	pos loss: 0.000000	vn loss: 0.889431
+
+  3500) Train loss: nan    Train acc: 74.08%    Train rate:  352.4 sents/sec    Learning rate: 0.000196    Sample prob: 1.000000
+	Valid loss: 2.8733    Valid acc: 77.99%    Valid rate: 1690.8 sents/sec
+	log loss: nan	rel loss: 0.029971	srl loss: 1.426794	trig loss: 0.359309	pos loss: 0.000000	vn loss: 0.913170
+
+Elapsed time: 01:01:25:25
+Total time in prob_argmax: 16.459028
+Total time in forward: 6.100165
+Not tree: 9603
+Roots < 1: 224; Roots > 1: 878; 2-cycles: -9603; n-cycles: -9603
+  Labeled   attachment score: 111564 / 145219 * 100 = 76.82 %
+  Unlabeled attachment score: 119276 / 145219 * 100 = 82.14 %
+  Label accuracy score:       121761 / 145219 * 100 = 83.85 %
+
+
+Number of Sentences    :        9603
+Number of Propositions :       23910
+Percentage of perfect props :  29.10
+
+              corr.  excess  missed    prec.    rec.      F1
+------------------------------------------------------------
+   Overall    24130   16959   29776    58.73   44.76   50.80
+----------
+      ARG0     6312    2281    5132    73.46   55.16   63.00
+      ARG1     8686    7001    9530    55.37   47.68   51.24
+      ARG2     2343    2814    4086    45.43   36.44   40.45
+      ARG3        2       2     371    50.00    0.54    1.06
+      ARG4       63      71     295    47.01   17.60   25.61
+      ARG5        0       0      10     0.00    0.00    0.00
+      ARGA        0       0       3     0.00    0.00    0.00
+  ARGM-ADJ        2       0     230   100.00    0.86    1.71
+  ARGM-ADV      416     566    1673    42.36   19.91   27.09
+  ARGM-CAU      115     157     250    42.28   31.51   36.11
+  ARGM-COM        0       1      24     0.00    0.00    0.00
+  ARGM-DIR       59     158     394    27.19   13.02   17.61
+  ARGM-DIS     1341     446    1037    75.04   56.39   64.39
+  ARGM-DSP        0       0       2     0.00    0.00    0.00
+  ARGM-EXT        0       0     175     0.00    0.00    0.00
+  ARGM-GOL        0       0      70     0.00    0.00    0.00
+  ARGM-LOC      247     783    1208    23.98   16.98   19.88
+  ARGM-LVB        0       0      50     0.00    0.00    0.00
+  ARGM-MNR       50      66    1225    43.10    3.92    7.19
+  ARGM-MOD     1606     158     238    91.04   87.09   89.02
+  ARGM-NEG      887     135     184    86.79   82.82   84.76
+  ARGM-PNC        0       0      87     0.00    0.00    0.00
+  ARGM-PRD        0       0     264     0.00    0.00    0.00
+  ARGM-PRP       27      33     308    45.00    8.06   13.67
+  ARGM-REC        0       0       8     0.00    0.00    0.00
+  ARGM-TMP     1476    2008    2248    42.37   39.63   40.95
+    R-ARG0      340     205     215    62.39   61.26   61.82
+    R-ARG1      155      69     301    69.20   33.99   45.59
+    R-ARG2        0       0      35     0.00    0.00    0.00
+    R-ARG3        0       0       6     0.00    0.00    0.00
+    R-ARG4        0       0       1     0.00    0.00    0.00
+R-ARGM-ADV        0       0       2     0.00    0.00    0.00
+R-ARGM-CAU        0       0       2     0.00    0.00    0.00
+R-ARGM-DIR        0       0       1     0.00    0.00    0.00
+R-ARGM-EXT        0       0       2     0.00    0.00    0.00
+R-ARGM-LOC        3       4      57    42.86    5.00    8.96
+R-ARGM-MNR        0       0      11     0.00    0.00    0.00
+R-ARGM-PRP        0       0       1     0.00    0.00    0.00
+R-ARGM-TMP        0       1      40     0.00    0.00    0.00
+------------------------------------------------------------
+         V    19499    1967    4411    90.84   81.55   85.94
+------------------------------------------------------------
+
+Attention UAS: 
+
+UAS: 82.14    LAS: 76.82
+POS: 92.31
+SRL acc: 69.40
+viterbi SRL F1: 50.8
+Writing model to saves/srl-vn-trial/parser-trained
+  3600) Train loss: nan    Train acc: 72.39%    Train rate:  241.2 sents/sec    Learning rate: 0.000201    Sample prob: 1.000000
+	Valid loss: 2.9025    Valid acc: 78.61%    Valid rate: 1687.4 sents/sec
+	log loss: nan	rel loss: 0.030670	srl loss: 1.418334	trig loss: 0.361752	pos loss: 0.000000	vn loss: 0.916686
+
+  3700) Train loss: nan    Train acc: 74.06%    Train rate:  277.4 sents/sec    Learning rate: 0.000207    Sample prob: 1.000000
+	Valid loss: 2.8344    Valid acc: 78.90%    Valid rate: 1689.5 sents/sec
+	log loss: nan	rel loss: 0.029315	srl loss: 1.400658	trig loss: 0.348753	pos loss: 0.000000	vn loss: 0.883138
+
+  3800) Train loss: nan    Train acc: 74.26%    Train rate:  327.2 sents/sec    Learning rate: 0.000212    Sample prob: 1.000000
+	Valid loss: 2.8104    Valid acc: 79.43%    Valid rate: 1686.7 sents/sec
+	log loss: nan	rel loss: 0.029402	srl loss: 1.408364	trig loss: 0.348144	pos loss: 0.000000	vn loss: 0.928659
+
+  3900) Train loss: nan    Train acc: 74.47%    Train rate:  264.1 sents/sec    Learning rate: 0.000218    Sample prob: 1.000000
+	Valid loss: 2.8121    Valid acc: 80.03%    Valid rate: 1692.4 sents/sec
+	log loss: nan	rel loss: 0.028564	srl loss: 1.406275	trig loss: 0.339503	pos loss: 0.000000	vn loss: 0.963401
 

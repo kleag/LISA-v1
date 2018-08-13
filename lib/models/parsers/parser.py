@@ -579,6 +579,14 @@ class Parser(BaseParser):
         srl_logits_vn_transpose = tf.transpose(srl_logits_vn, [0, 2, 1])
         srl_output_vn = self.output_srl_gather(srl_logits_vn_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
 
+        vn_scores = tf.expand_dims(tf.nn.softmax(srl_output_vn['logits'], axis=2), axis=3)
+        print('VN scores shape: ', vn_scores)
+
+        vn_embeddings = vocabs[6].embedding_lookup(tf.tile(tf.reshape(tf.range(num_classes, dtype=tf.int32), [1, 1, num_classes]), [batch_size, bucket_size, 1]), moving_params=self.moving_params)
+
+        weighted_vn_embeddings = tf.reduce_sum(tf.multiply(vn_scores, vn_embeddings), axis=2)
+        print('weighted embeddings shape: ', weighted_vn_embeddings)
+
         return srl_output_vn
 
     def compute_srl_simple(srl_target):
@@ -598,7 +606,7 @@ class Parser(BaseParser):
       # vn_attn_weights = tf.nn.softmax(srl_output_vn['logits'], axis=2)
       #
       # # batch size x bucket size x num labels (53) x emb dim (100)
-      # # vn_embeddings = vocabs[6].embedding_lookup(tf.tile(tf.reshape(tf.range(num_classes, dtype=tf.int32), [1, 1, num_classes]), [batch_size, bucket_size, 1]), moving_params=self.moving_params)
+      # vn_embeddings = vocabs[6].embedding_lookup(tf.tile(tf.reshape(tf.range(num_classes, dtype=tf.int32), [1, 1, num_classes]), [batch_size, bucket_size, 1]), moving_params=self.moving_params)
       #
       # # batch size x bucket size x num_labels
       # vn_labels = tf.tile(tf.reshape(tf.range(num_vn_classes, dtype=tf.float32), [1, 1, num_vn_classes]),
@@ -674,7 +682,7 @@ class Parser(BaseParser):
     else:
       srl_output, srl_pred_reps, srl_role_reps = compute_srl(srl_targets, num_srl_classes)
       vn_output = compute_vn(srl_targets_vn, num_vn_classes)
-      srl_output = combine_pb_vn(vn_output, srl_pred_reps, srl_role_reps)
+      #srl_output = combine_pb_vn(vn_output, srl_pred_reps, srl_role_reps)
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

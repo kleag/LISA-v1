@@ -531,7 +531,7 @@ class Parser(BaseParser):
       pos_preds = inputs[:,:,2]
 
     ######## do SRL-specific stuff (rels) ########
-    def compute_srl(srl_target, num_classes):
+    def compute_srl(srl_target, vn_embeddings, num_classes):
       with tf.variable_scope('SRL-MLP', reuse=reuse):
         # project to get predicate and role representations?
         predicate_role_mlp = self.MLP(top_recur, self.predicate_mlp_size + self.role_mlp_size, n_splits=1)
@@ -549,9 +549,10 @@ class Parser(BaseParser):
         gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
         tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
         gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
+        derived_roles = tf.add(gathered_roles, vn_embeddings)
 
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
-        srl_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
+        srl_logits = self.bilinear_classifier_nary(gathered_predicates, derived_roles, num_classes)
         srl_logits_transpose = tf.transpose(srl_logits, [0, 2, 1])
         srl_output = self.output_srl_gather(srl_logits_transpose, srl_target, predicate_predictions, transition_params if self.viterbi_train else None, None)
         return srl_output, gathered_predicates, gathered_roles
@@ -573,21 +574,22 @@ class Parser(BaseParser):
         gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
         tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
         gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
+        preds_in_batch = tf.shape(gathered_roles)[0]
 
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
         srl_logits_vn = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
         srl_logits_vn_transpose = tf.transpose(srl_logits_vn, [0, 2, 1])
         srl_output_vn = self.output_srl_gather(srl_logits_vn_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
 
-        vn_scores = tf.expand_dims(tf.nn.softmax(srl_output_vn['logits'], axis=2), axis=3)
+        vn_scores = tf.reshape(tf.nn.softmax(srl_output_vn['logits'], axis=2), [preds_in_batch*bucket_size, num_classes])
         print('VN scores shape: ', vn_scores)
 
-        vn_embeddings = vocabs[6].embedding_lookup(tf.tile(tf.reshape(tf.range(num_classes, dtype=tf.int32), [1, 1, num_classes]), [batch_size, bucket_size, 1]), moving_params=self.moving_params)
+        vn_embeddings = vocabs[6].embedding_lookup(tf.range(num_classes), moving_params=self.moving_params)
 
-        weighted_vn_embeddings = tf.reduce_sum(tf.multiply(vn_scores, vn_embeddings), axis=2)
+        weighted_vn_embeddings = tf.reshape(tf.matmul(vn_scores, vn_embeddings), [preds_in_batch, bucket_size, 200])
         print('weighted embeddings shape: ', weighted_vn_embeddings)
 
-        return srl_output_vn
+        return srl_output_vn, weighted_vn_embeddings
 
     def compute_srl_simple(srl_target):
       with tf.variable_scope('SRL-MLP', reuse=reuse):
@@ -680,8 +682,8 @@ class Parser(BaseParser):
     elif self.srl_simple_tagging:
       srl_output = compute_srl_simple(srl_targets)
     else:
-      srl_output, srl_pred_reps, srl_role_reps = compute_srl(srl_targets, num_srl_classes)
-      vn_output = compute_vn(srl_targets_vn, num_vn_classes)
+      vn_output, vn_embeddings = compute_vn(srl_targets_vn, num_vn_classes)
+      srl_output, srl_pred_reps, srl_role_reps = compute_srl(srl_targets, vn_embeddings, num_srl_classes)
       #srl_output = combine_pb_vn(vn_output, srl_pred_reps, srl_role_reps)
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']

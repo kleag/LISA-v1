@@ -82,6 +82,8 @@ class Parser(BaseParser):
     top_recur = embed_inputs
 
     attn_weights_by_layer = {}
+    combine_with_vn = self.combine_with_vn
+    predict_vn = self.predict_vn
 
     hidden_size = self.num_heads * self.head_size
     self.print_once("n_recur: ", self.n_recur)
@@ -549,7 +551,10 @@ class Parser(BaseParser):
         gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
         tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
         gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
-        derived_roles = tf.add(gathered_roles, vn_embeddings)
+        if combine_with_vn:
+          derived_roles = tf.add(gathered_roles, vn_embeddings)
+        else:
+          derived_roles = gathered_roles
 
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
         srl_logits = self.bilinear_classifier_nary(gathered_predicates, derived_roles, num_classes)
@@ -582,12 +587,12 @@ class Parser(BaseParser):
         srl_output_vn = self.output_srl_gather(srl_logits_vn_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
 
         vn_scores = tf.reshape(tf.nn.softmax(srl_output_vn['logits'], axis=2), [preds_in_batch*bucket_size, num_classes])
-        print('VN scores shape: ', vn_scores)
+        #print('VN scores shape: ', vn_scores)
 
         vn_embeddings = vocabs[6].embedding_lookup(tf.range(num_classes), moving_params=self.moving_params)
 
         weighted_vn_embeddings = tf.reshape(tf.matmul(vn_scores, vn_embeddings), [preds_in_batch, bucket_size, 200])
-        print('weighted embeddings shape: ', weighted_vn_embeddings)
+        #print('weighted embeddings shape: ', weighted_vn_embeddings)
 
         return srl_output_vn, weighted_vn_embeddings
 
@@ -602,72 +607,6 @@ class Parser(BaseParser):
         srl_output['transition_params'] = tf.constant(0.)
         srl_output['correct'] = output['n_correct']
         return srl_output
-
-    def combine_pb_vn(srl_output_vn, srl_pred_reps, srl_role_reps):
-      # #vn_attn_weights = tf.expand_dims(tf.nn.softmax(srl_output_vn['logits'], axis=2), axis=3)
-      # vn_attn_weights = tf.nn.softmax(srl_output_vn['logits'], axis=2)
-      #
-      # # batch size x bucket size x num labels (53) x emb dim (100)
-      # vn_embeddings = vocabs[6].embedding_lookup(tf.tile(tf.reshape(tf.range(num_classes, dtype=tf.int32), [1, 1, num_classes]), [batch_size, bucket_size, 1]), moving_params=self.moving_params)
-      #
-      # # batch size x bucket size x num_labels
-      # vn_labels = tf.tile(tf.reshape(tf.range(num_vn_classes, dtype=tf.float32), [1, 1, num_vn_classes]),
-      #                     [batch_size, bucket_size, 1])
-      # # print('vn embeddings: ', vn_embeddings)
-      # # weighted_vn_embeddings = tf.reduce_sum(tf.multiply(vn_attn_weights, vn_embeddings), axis=2)
-      # weighted_vn_labels = tf.reduce_sum(tf.multiply(vn_attn_weights, vn_labels), axis=2)
-      #
-      # print('weighted labels: ', weighted_vn_labels)
-      #
-      # combined_rep = tf.add(srl_output_pb['logits'], weighted_vn_labels)
-      # print('new size: ', combined_rep)
-
-      with tf.variable_scope('VN-Arcs', reuse=True):
-        vn_scores = tf.nn.softmax(srl_output_vn['logits'], axis=2)
-        vn_scores = tf.reduce_mean(vn_scores, axis=[0,1])
-        print('vn scores: ', vn_scores)
-
-        # Has shape d x C_vn x d
-        vn_weights = tf.get_variable('Bilinear/Weights')
-        weights_shape = vn_weights.get_shape().as_list()
-
-        #print('VN Weights shape: ', weights_shape)
-        dim_d = weights_shape[0]
-
-        # Derived prop weights has shape d x C_prop x d
-        #prop_weights_derived = tf.zeros((dim_d, num_srl_classes, dim_d), dtype=tf.float32)
-        prop_derived_list = []
-
-        for key in range(num_srl_classes):
-          value = mappings[key]
-          if(hasattr(value, '__iter__')):
-            arg_weights = tf.zeros((dim_d, 1, dim_d))
-            for val in value:
-              weights_slice = tf.transpose(tf.gather(tf.transpose(vn_weights, (1, 0, 2)), [val]), (1, 0, 2))
-              #print('Weights slice ', weights_slice)
-              arg_weights = tf.add(arg_weights,  tf.multiply(weights_slice, vn_scores[val]))
-              #print('Arg weights shape: ', arg_weights)
-            prop_derived_list.append(arg_weights)
-          else:
-            #print(tf.shape(vn_weights[:,value,:]))
-            weights_slice = tf.transpose(tf.gather(tf.transpose(vn_weights, (1, 0, 2)), [value]), (1, 0, 2))
-            prop_derived_list.append(tf.multiply(weights_slice, vn_scores[value]))
-            #print(tf.shape(prop_derived_list[-1]))
-
-        #print(len(prop_derived_list))
-        prop_weights_derived = tf.squeeze(tf.stack(prop_derived_list, axis=1))
-        #prop_weights_derived = tf.Print(prop_weights_derived, [tf.shape(prop_weights_derived)], "Prop weights derived shape")
-
-      with tf.variable_scope('SRL-Arcs', reuse=True):
-        prop_weights = tf.get_variable('Bilinear/Weights')
-        combined_weights = tf.add(prop_weights_derived, prop_weights)
-        #print('Combined weights: ', combined_weights)
-
-        combined_logits = self.bilinear_classifier_nary(srl_pred_reps, srl_role_reps, num_srl_classes, True, combined_weights)
-        srl_logits_transpose = tf.transpose(combined_logits, [0, 2, 1])
-        srl_output_combined = self.output_srl_gather(srl_logits_transpose, srl_targets, predicate_predictions, transition_params if self.viterbi_train else None)
-
-        return srl_output_combined
 
     if self.role_loss_penalty == 0:
       # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))
@@ -688,7 +627,7 @@ class Parser(BaseParser):
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']
-    vn_loss = self.role_loss_penalty * vn_output['loss']
+    vn_loss = self.vn_loss_penalty * vn_output['loss']
     arc_loss = self.arc_loss_penalty * arc_output['loss']
     rel_loss = self.rel_loss_penalty * rel_output['loss']
 
@@ -716,7 +655,10 @@ class Parser(BaseParser):
     output['n_tokens'] = self.n_tokens
     output['accuracy'] = output['n_correct'] / output['n_tokens']
 
-    output['loss'] = srl_combined_loss + parse_combined_loss + multitask_loss_sum + pos_loss + vn_loss
+    if predict_vn:
+      output['loss'] = srl_combined_loss + parse_combined_loss + multitask_loss_sum + pos_loss + vn_loss
+    else:
+      output['loss'] = srl_combined_loss + parse_combined_loss + multitask_loss_sum + pos_loss
     # output['loss'] = srl_loss + predicate_loss + actual_parse_loss
     # output['loss'] = actual_srl_loss + arc_loss + rel_loss
 

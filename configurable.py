@@ -536,6 +536,17 @@ class Configurable(object):
   argparser.add_argument('--add_pos_to_input')
 
   @property
+  def combine_with_vn(self):
+    return self._config.getboolean('Training', 'combine_with_vn')
+  argparser.add_argument('--combine_with_vn')
+
+  @property
+  def predict_vn(self):
+    return self._config.getboolean('Training', 'predict_vn')
+
+  argparser.add_argument('--predict_vn')
+
+  @property
   def add_predicates_to_input(self):
     return self._config.getboolean('Training', 'add_predicates_to_input')
   argparser.add_argument('--add_predicates_to_input')

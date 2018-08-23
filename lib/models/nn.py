@@ -1309,6 +1309,10 @@ class NN(Configurable):
           cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
           cross_entropy *= mask
           loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
+
+      if annotated3D is not None:
+        pass
+        #srl_targets = tf.Print(srl_targets, [tf.shape(srl_targets)], "VN Targets shape ")
       correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
       return loss, correct
 
@@ -1318,6 +1322,10 @@ class NN(Configurable):
                    lambda: (tf.constant(0.), tf.constant(0.)))
 
     probabilities = tf.nn.softmax(logits_transposed)
+    if annotated3D is not None:
+      pass
+      #correct = tf.Print(correct, [correct], "VN correct ")
+      #count = tf.Print(count, [count], "VN count ")
 
     output = {
       'loss': loss,

@@ -197,7 +197,9 @@ class Dataset(Configurable):
             predicate_indices.append(j)
 
           buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + (annotation[annotated],) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags) + tuple(vn_tags)
-          #print(buff[i][j])
+          #print('SRL len: ', len(tuple(srl_tags)), 'VN len: ', len(tuple(vn_tags)))
+          #print('Buff: ', buff[i][j])
+          #print('Tags: ', buff[i][j][10:])
 
       # Expand sentences into one example per predicate
       if self.one_example_per_predicate:
@@ -309,8 +311,8 @@ class Dataset(Configurable):
       maxlen = np.max(np.sum(np.greater(data[:,:,0], 0), axis=1))
 
       #print('Data shape: ', data.shape)
-      #print('Data[0].shape: ', data[0].shape)
-      #print('Data[0][0] shape: ', data[0][0].shape)
+      #print('Data[1].shape: ', data[0].shape)
+      #print('Data[0][1] shape: ', data[0][0].shape)
 
       # np.set_printoptions(threshold=np.nan)
       # print("maxlen", maxlen)
@@ -326,12 +328,16 @@ class Dataset(Configurable):
       #for item in data:
       #  print('Item size: ', item.shape)
 
-      srl_total = data.shape[2] - 3
-      srl_vn_start = srl_total // 2
+      srl_total = data.shape[2] - 10
+      srl_vn_start = 10 + srl_total // 2
       srl_vn = data[:, :maxlen, srl_vn_start:]
       srl_pb = targets[:,:,3:]
-      #print(srl_vn, srl_pb)
-      #print(srl_total, srl_vn_start)
+      # for sentence in data:
+      #   for token in sentence:
+      #     if token[6] == 1:
+      #       print('SRL part: ', token[9: srl_vn_start], len(token[9: srl_vn_start]))
+      #       print('VN part: ', token[srl_vn_start:], len(token[srl_vn_start:]))
+      #print('SRL total: ', srl_total, 'SRL VN start: ', srl_vn_start)
       #print(targets[:,:,3:])
       #print(min(target_idxs), maxlen+max(target_idxs)+1)
 

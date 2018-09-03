@@ -1238,7 +1238,7 @@ class NN(Configurable):
     bucket_size = original_shape[1]
     num_labels = tf.shape(logits_transposed)[-1]
 
-    if annotated3D is not None:
+    if False:
       #tokens_to_keep = tf.Print(self.tokens_to_keep3D, [tf.count_nonzero(self.tokens_to_keep3D, dtype=tf.float32)], "tokenstokeep")
       #annotated = tf.Print(annotated3D, [tf.count_nonzero(annotated3D, dtype=tf.float32)], "annotated")
       tokens_to_keep3D = tf.cast(tf.logical_and(tf.cast(self.tokens_to_keep3D, dtype=tf.bool), tf.cast(annotated3D, dtype=tf.bool)), dtype=tf.float32)
@@ -1267,6 +1267,9 @@ class NN(Configurable):
 
     # num_triggers_in_batch x seq_len
     predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
+    if annotated3D is not None:
+      pass
+      #predictions = tf.Print(predictions, [tf.shape(predictions)], "VN Predictions shape")
 
     trigger_counts = tf.reduce_sum(trigger_predictions, -1)
 
@@ -1313,6 +1316,7 @@ class NN(Configurable):
       if annotated3D is not None:
         pass
         #srl_targets = tf.Print(srl_targets, [tf.shape(srl_targets)], "VN Targets shape ")
+
       correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
       return loss, correct
 

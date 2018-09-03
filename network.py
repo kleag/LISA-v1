@@ -312,7 +312,11 @@ class Network(Configurable):
               train_mul_loss[n] = l/n_train_iters
               multitask_losses_str += '\t%s loss: %f' % (n, train_mul_loss[n])
             print(multitask_losses_str)
-            #print('VN correct: ', n_train_vn_correct, 'VN Count: ', n_train_vn_count)
+            print('VN correct: ', n_train_vn_correct, 'VN Count: ', n_train_vn_count)
+            try:
+              print('VN accuracy: ', float(n_train_vn_correct)/n_train_vn_count)
+            except:
+              continue
             sys.stdout.flush()
             train_time = 0
             train_loss = 0

@@ -66,8 +66,13 @@ class Bucket(Configurable):
     # idxs = [word[1:] for word in sent]
     words = [word[0] for word in sent]
     idxs = [word[1:] for word in sent]
-    #for idx in idxs:
-      #print(len(idx), idx[3:])
+    # for i,idx in enumerate(idxs):
+    #   print('Word: ', words[i])
+    #   print('Annotated: ', idx[6])
+    #   srl_tags_len = len(idx) - 10
+    #   print('Tags length: ', srl_tags_len)
+    #   print('SRLs: ', idx[10: 10 + srl_tags_len//2])
+    #   print('VNs: ', idx[10 + srl_tags_len//2: ])
 
 
     self._sents.append(words)

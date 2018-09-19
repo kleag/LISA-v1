@@ -586,7 +586,16 @@ class Parser(BaseParser):
         srl_logits_vn_transpose = tf.transpose(srl_logits_vn, [0, 2, 1])
         srl_output_vn = self.output_srl_gather(srl_logits_vn_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
 
-        vn_scores = tf.reshape(tf.nn.softmax(srl_output_vn['logits'], axis=2), [preds_in_batch*bucket_size, num_classes])
+        trigger_counts = tf.reduce_sum(predicate_predictions, -1)
+        vn_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
+        vn_targets = tf.gather_nd(tf.transpose(vn_target, [0, 2, 1]), vn_targets_indices)
+
+        vn_targets_one_hot = tf.one_hot(vn_targets, depth=num_classes, axis=-1)
+        #vn_targets_one_hot = tf.Print(vn_targets_one_hot, [tf.shape(vn_targets_one_hot)], "one hot")
+        vn_logits = srl_output_vn['logits']
+        #vn_targets_one_hot = tf.Print(vn_targets_one_hot, [tf.shape(vn_targets_one_hot)], "vn logits")
+
+        vn_scores = tf.reshape(vn_targets_one_hot, [preds_in_batch*bucket_size, num_classes])
         #print('VN scores shape: ', vn_scores)
 
         vn_embeddings = vocabs[6].embedding_lookup(tf.range(num_classes), moving_params=self.moving_params)
@@ -689,6 +698,9 @@ class Parser(BaseParser):
     output['srl_logits'] = srl_output['logits']
     output['srl_correct'] = srl_output['correct']
     output['srl_count'] = srl_output['count']
+    output['vn_preds'] = vn_output['predictions']
+    output['vn_probs'] = vn_output['probabilities']
+    output['vn_logits'] = vn_output['logits']
     output['vn_correct'] = vn_output['correct']
     output['vn_count'] = vn_output['count']
     output['transition_params'] = transition_params if transition_params is not None else tf.constant(bilou_constraints)

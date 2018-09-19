@@ -332,10 +332,11 @@ class Dataset(Configurable):
       srl_vn_start = 10 + srl_total // 2
       srl_vn = data[:, :maxlen, srl_vn_start:]
       srl_pb = targets[:,:,3:]
-      # for sentence in data:
-      #   for token in sentence:
+      # for i,sentence in enumerate(data):
+      #   for j,token in enumerate(sentence):
       #     if token[6] == 1:
-      #       print('SRL part: ', token[9: srl_vn_start], len(token[9: srl_vn_start]))
+      #       print('Word: ', sents[i][j])
+      #       print('SRL part: ', token[10: srl_vn_start], len(token[10: srl_vn_start]))
       #       print('VN part: ', token[srl_vn_start:], len(token[srl_vn_start:]))
       #print('SRL total: ', srl_total, 'SRL VN start: ', srl_vn_start)
       #print(targets[:,:,3:])

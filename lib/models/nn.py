@@ -1317,6 +1317,8 @@ class NN(Configurable):
         pass
         #srl_targets = tf.Print(srl_targets, [tf.shape(srl_targets)], "VN Targets shape ")
 
+      predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
+      predictions = tf.Print(predictions, [tf.shape(predictions, tf.shape(srl_targets))], "predictions and targets")
       correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
       return loss, correct
 

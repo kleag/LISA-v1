@@ -552,6 +552,9 @@ class Network(Configurable):
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
+      vn_targets = feed_dict[dataset.srl_targets_vn]
+      #print('MB targets ', mb_targets[0])
+      #print('MB targets shape: ', mb_targets.shape)
       forward_start = time.time()
       probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_predicates, srl_predicate_targets, transition_params, attn_weights, attn_correct, pos_correct, pos_preds = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
@@ -788,7 +791,7 @@ class Network(Configurable):
           overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
           correct['F1'] = overall_f1
         except CalledProcessError as e:
-          print("Call to eval failed: %s" % e.output)
+          print("Call to eval failed: ", e)
 
       if self.eval_by_domain:
         srl_gold_fname_path = '/'.join(srl_gold_fname.split('/')[:-1])
@@ -829,7 +832,7 @@ class Network(Configurable):
                 # print(srl_eval)
                 str_d = srl_eval_d.split('\n')[6]
               except CalledProcessError as e:
-                print("Call to eval failed: %s" % e.output)
+                print("Call to eval failed: ", e)
                 str_d = ""
             print("%sSRL %s:" % ("viterbi " if viterbi else "", d))
             print(str_d)

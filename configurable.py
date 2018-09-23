@@ -98,9 +98,9 @@ class Configurable(object):
     return self._config.get('OS', 'srl_file')
   argparser.add_argument('--srl_file')
   @property
-  def trig_file(self):
-    return self._config.get('OS', 'trig_file')
-  argparser.add_argument('--trig_file')
+  def predicates_file(self):
+    return self._config.get('OS', 'predicate_file')
+  argparser.add_argument('--predicate_file')
   @property
   def domain_file(self):
     return self._config.get('OS', 'domain_file')
@@ -258,9 +258,9 @@ class Configurable(object):
     return self._config.getint('Sizes', 'embed_size')
   argparser.add_argument('--embed_size')
   @property
-  def trig_embed_size(self):
-    return self._config.getint('Sizes', 'trig_embed_size')
-  argparser.add_argument('--trig_embed_size')
+  def predicate_embed_size(self):
+    return self._config.getint('Sizes', 'predicate_embed_size')
+  argparser.add_argument('--predicate_embed_size')
   @property
   def recur_size(self):
     return self._config.getint('Sizes', 'recur_size')
@@ -279,14 +279,14 @@ class Configurable(object):
   argparser.add_argument('--info_mlp_size')
 
   @property
-  def trigger_mlp_size(self):
-    return self._config.getint('Sizes', 'trigger_mlp_size')
-  argparser.add_argument('--trigger_mlp_size')
+  def predicate_mlp_size(self):
+    return self._config.getint('Sizes', 'predicate_mlp_size')
+  argparser.add_argument('--predicate_mlp_size')
 
   @property
-  def trigger_pred_mlp_size(self):
-    return self._config.getint('Sizes', 'trigger_pred_mlp_size')
-  argparser.add_argument('--trigger_pred_mlp_size')
+  def predicate_pred_mlp_size(self):
+    return self._config.getint('Sizes', 'predicate_pred_mlp_size')
+  argparser.add_argument('--predicate_pred_mlp_size')
 
   @property
   def role_mlp_size(self):
@@ -492,11 +492,6 @@ class Configurable(object):
   argparser.add_argument('--mask_pairs')
 
   @property
-  def subsample_trigger_rate(self):
-    return self._config.getfloat('Training', 'subsample_trigger_rate')
-  argparser.add_argument('--subsample_trigger_rate')
-
-  @property
   def viterbi_train(self):
     return self._config.getboolean('Training', 'viterbi_train')
   argparser.add_argument('--viterbi_train')
@@ -507,14 +502,9 @@ class Configurable(object):
   argparser.add_argument('--viterbi_decode')
 
   @property
-  def trigger_str(self):
-    return self._config.get('Training', 'trigger_str')
-  argparser.add_argument('--trigger_str')
-
-  @property
-  def trigger_loss_penalty(self):
-    return self._config.getfloat('Training', 'trigger_loss_penalty')
-  argparser.add_argument('--trigger_loss_penalty')
+  def predicate_loss_penalty(self):
+    return self._config.getfloat('Training', 'predicate_loss_penalty')
+  argparser.add_argument('--predicate_loss_penalty')
 
   @property
   def role_loss_penalty(self):
@@ -537,9 +527,9 @@ class Configurable(object):
   argparser.add_argument('--add_pos_to_input')
 
   @property
-  def add_triggers_to_input(self):
-    return self._config.getboolean('Training', 'add_triggers_to_input')
-  argparser.add_argument('--add_triggers_to_input')
+  def add_predicates_to_input(self):
+    return self._config.getboolean('Training', 'add_predicates_to_input')
+  argparser.add_argument('--add_predicates_to_input')
 
   @property
   def save_attn_weights(self):
@@ -620,6 +610,11 @@ class Configurable(object):
   argparser.add_argument('--multitask_layers')
 
   @property
+  def predicate_str(self):
+    return self._config.get('Training', 'predicate_str')
+  argparser.add_argument('--predicate_str')
+
+  @property
   def inject_manual_attn(self):
     return self._config.getboolean('Training', 'inject_manual_attn')
   argparser.add_argument('--inject_manual_attn')
@@ -634,22 +629,9 @@ class Configurable(object):
   argparser.add_argument('--pos_layer')
 
   @property
-  def train_aux_trigger_layer(self):
-    return self._config.getboolean('Training', 'train_aux_trigger_layer')
-  argparser.add_argument('--train_aux_trigger_layer')
-  @property
-  def trigger_layer(self):
-    return self._config.getint('Training', 'trigger_layer')
-  argparser.add_argument('--trigger_layer')
-  @property
-  def aux_trigger_layer(self):
-    return self._config.getint('Training', 'aux_trigger_layer')
-  argparser.add_argument('--aux_trigger_layer')
-
-  @property
-  def aux_trigger_penalty(self):
-    return self._config.getfloat('Training', 'aux_trigger_penalty')
-  argparser.add_argument('--aux_trigger_penalty')
+  def predicate_layer(self):
+    return self._config.getint('Training', 'predicate_layer')
+  argparser.add_argument('--predicate_layer')
 
   @property
   def pos_penalty(self):
@@ -695,3 +677,38 @@ class Configurable(object):
   def hard_attn(self):
     return self._config.getboolean('Training', 'hard_attn')
   argparser.add_argument('--hard_attn')
+
+  @property
+  def full_parse(self):
+    return self._config.getboolean('Training', 'full_parse')
+  argparser.add_argument('--full_parse')
+
+  @property
+  def sampling_schedule(self):
+    return self._config.get('Training', 'sampling_schedule')
+  argparser.add_argument('--sampling_schedule')
+
+  @property
+  def sample_prob(self):
+    return self._config.getfloat('Training', 'sample_prob')
+  argparser.add_argument('--sample_prob')
+
+  @property
+  def ff_kernel(self):
+    return self._config.getint('Training', 'ff_kernel')
+  argparser.add_argument('--ff_kernel')
+
+  @property
+  def one_example_per_predicate(self):
+    return self._config.getboolean('Training', 'one_example_per_predicate')
+  argparser.add_argument('--one_example_per_predicate')
+
+  @property
+  def srl_simple_tagging(self):
+    return self._config.getboolean('Training', 'srl_simple_tagging')
+  argparser.add_argument('--srl_simple_tagging')
+
+  @property
+  def label_smoothing(self):
+    return self._config.getfloat('Training', 'label_smoothing')
+  argparser.add_argument('--label_smoothing')

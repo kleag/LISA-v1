@@ -427,12 +427,12 @@ def conv_hidden_relu(inputs,
                      hidden_size,
                      output_size,
                      dropout,
-                     nonlinearity):
+                     nonlinearity,
+                     kernel):
   """Hidden layer with RELU activation followed by linear projection."""
   with tf.variable_scope("conv_hidden_relu", [inputs]):
     inputs = tf.expand_dims(inputs, 1)
     in_size = inputs.get_shape().as_list()[-1]
-    kernel = 3
     params1 = tf.get_variable("ff1", [1, 1, in_size, hidden_size])
     params2 = tf.get_variable("ff2", [1, kernel, hidden_size, hidden_size])
     params3 = tf.get_variable("ff3", [1, 1, hidden_size, output_size])
@@ -577,7 +577,7 @@ class NN(Configurable):
 
   # =============================================================
   def transformer(self, inputs, hidden_size, num_heads, attn_dropout, relu_dropout, prepost_dropout, relu_hidden_size,
-                  nonlinearity, reuse, num_capsule_heads, manual_attn=None, hard_attn=False):
+                  nonlinearity, kernel, reuse, num_capsule_heads, manual_attn=None, hard_attn=False):
     """"""
     # input_size = inputs.get_shape().as_list()[-1]
     lengths = tf.reshape(tf.to_int64(self.sequence_lengths), [-1])
@@ -597,7 +597,7 @@ class NN(Configurable):
 
     with tf.variable_scope("ffnn"):
       x = layer_norm(x, reuse)
-      y = conv_hidden_relu(x, relu_hidden_size, hidden_size, relu_dropout, nonlinearity)
+      y = conv_hidden_relu(x, relu_hidden_size, hidden_size, relu_dropout, nonlinearity, kernel)
       x = tf.add(x, tf.nn.dropout(y, prepost_dropout))
 
     return x, attn_weights
@@ -1037,6 +1037,7 @@ class NN(Configurable):
       'n_correct': n_correct,
       'n_tokens': self.n_tokens,
       'accuracy': accuracy,
+      'count': self.n_tokens,
       'loss': loss
     }
 
@@ -1222,7 +1223,7 @@ class NN(Configurable):
 
     # logits are triggers_in_batch x num_classes x seq_len
     # targets are batch x seq_len x num_targets
-    # trigger_label_indices are batch x seq_len (1/0)
+    # trigger_predictions are batch x seq_len (1/0)
 
     # transpose to triggers_in_batch x seq_len x num_classes
     # logits_transposed = tf.transpose(logits, [0, 2, 1])
@@ -1230,6 +1231,7 @@ class NN(Configurable):
     original_shape = tf.shape(targets)
     batch_size = original_shape[0]
     bucket_size = original_shape[1]
+    num_labels = tf.shape(logits_transposed)[-1]
 
     # need to repeat each of these once for each target in the sentence
     # mask = tf.gather_nd(tf.tile(tf.transpose(self.tokens_to_keep3D, [0, 2, 1]), [1, bucket_size, 1]),
@@ -1252,11 +1254,17 @@ class NN(Configurable):
     # num_triggers_in_batch x seq_len
     predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
 
+    trigger_counts = tf.reduce_sum(trigger_predictions, -1)
+
     def compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params):
       # batch*num_targets x seq_len
-      trigger_counts = tf.reduce_sum(trigger_predictions, -1)
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
+
+      # srl_targets_indices = tf.Print(srl_targets_indices, [batch_size, bucket_size, tf.shape(logits_transposed), tf.shape(targets), tf.shape(srl_targets_transposed), tf.shape(srl_targets_indices)], summarize=10)
+
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
+
+
 
       if transition_params is not None:
         seq_lens = tf.reduce_sum(mask, 1)
@@ -1266,13 +1274,32 @@ class NN(Configurable):
                                                                               transition_params=transition_params)
         loss = tf.reduce_mean(-log_likelihood)
       else:
-        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
-        cross_entropy *= mask
-        loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
+        if self.label_smoothing > 0:
+          srl_targets_onehot = tf.one_hot(indices=srl_targets, depth=num_labels, axis=-1)
+          # srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.reduce_sum(trigger_counts), tf.shape(logits_transposed), tf.shape(srl_targets), tf.shape(srl_targets_onehot)], "srl logits", summarize=200)
+          # srl_targets_onehot = tf.Print(srl_targets_onehot, [logits_transposed], "srl logits", summarize=200)
+          #
+          # srl_targets_onehot = tf.Print(srl_targets_onehot, [srl_targets], "srl targets", summarize=200)
+          # srl_targets_onehot = tf.Print(srl_targets_onehot, [srl_targets_onehot], "srl targets onehot", summarize=200)
+
+          orig_logits_shape = tf.shape(logits_transposed)
+          loss = tf.losses.softmax_cross_entropy(logits=tf.reshape(logits_transposed, [-1, num_labels]),
+                                                 onehot_labels=tf.reshape(srl_targets_onehot, [-1, num_labels]),
+                                                 weights=tf.reshape(mask, [-1]),
+                                                 label_smoothing=self.label_smoothing,
+                                                 reduction=tf.losses.Reduction.SUM_BY_NONZERO_WEIGHTS)
+          # cross_entropy = tf.Print(cross_entropy, [cross_entropy], "cross entropy", summarize=200)
+          # cross_entropy = tf.reshape(cross_entropy, [orig_logits_shape[0], orig_logits_shape[1]])
+
+        else:
+          cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits_transposed, labels=srl_targets)
+          cross_entropy *= mask
+          loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
       correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
       return loss, correct
 
-    loss, correct = tf.cond(tf.greater(tf.shape(targets)[2], 0),
+    compute_loss = tf.logical_and(tf.greater(tf.shape(targets)[2], 0), tf.greater(tf.reduce_sum(trigger_counts), 0))
+    loss, correct = tf.cond(compute_loss,
                    lambda: compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params),
                    lambda: (tf.constant(0.), tf.constant(0.)))
 
@@ -1290,7 +1317,7 @@ class NN(Configurable):
 
     return output
 
-  def output_trigger(self, logits, predicate_targets, predicate_true_start_idx):
+  def output_predicates(self, logits, predicate_targets, predicate_true_start_idx):
     """"""
 
     # logits are batch x seq_len x 2
@@ -1306,13 +1333,6 @@ class NN(Configurable):
     # (t4) f1 v0 f3
     # srl_targets = targets[:,:,3:]
 
-    # get indices of trigger labels in srl_targets
-    # tile_multiples = tf.concat([tf.ones(tf.shape(tf.shape(srl_targets)), dtype=tf.int32), tf.shape(trigger_label_indices)], axis=0)
-    # targets_tile = tf.tile(tf.expand_dims(srl_targets, -1), tile_multiples)
-    # trigger_indices = tf.cast(tf.where(tf.reduce_any(tf.equal(targets_tile, trigger_label_indices), -1)), tf.int32)
-    # idx = tf.stack([trigger_indices[:,0], trigger_indices[:,1]], -1)
-    # targets = tf.scatter_nd(idx, tf.ones([tf.shape(idx)[0]], dtype=tf.int32), [batch_size, bucket_size])
-
     cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=predicate_targets)
 
     cross_entropy *= tf.squeeze(self.tokens_to_keep3D, -1)
@@ -1325,12 +1345,12 @@ class NN(Configurable):
     correct = tf.reduce_sum(tf.cast(tf.equal(predictions, predicate_targets), tf.float32) * squeezed_mask)
     predictions *= int_mask
 
-    trigger_predictions = tf.where(tf.greater(predictions, predicate_true_start_idx), tf.ones_like(predictions), tf.zeros_like(predictions))
-    trigger_predictions *= int_mask
+    predicate_predictions = tf.where(tf.greater(predictions, predicate_true_start_idx), tf.ones_like(predictions), tf.zeros_like(predictions))
+    predicate_predictions *= int_mask
 
     output = {
       'loss': loss,
-      'trigger_predictions': trigger_predictions,
+      'predicate_predictions': predicate_predictions,
       'predictions': predictions * tf.cast(tf.squeeze(self.tokens_to_keep3D, -1), tf.int32),
       'logits': logits,
       # 'gold_trigger_predictions': tf.transpose(predictions, [0, 2, 1]),
@@ -1645,6 +1665,13 @@ class NN(Configurable):
     """"""
     
     return np.argmax(tag_probs[:,Vocab.ROOT:], axis=1)+Vocab.ROOT
+
+  def get_sample_prob(self, step):
+    if self.sampling_schedule == 'constant':
+      return tf.constant(self.sample_prob)
+    if self.sampling_schedule == 'sigmoid':
+      #   y = k / (k + np.exp(x / k))
+      return self.sample_prob/(self.sample_prob+tf.exp(tf.multiply(step, (1/self.sample_prob))))
 
   # =============================================================
   def check_cycles_svd(self, parse_preds, length):

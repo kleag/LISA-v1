@@ -50,6 +50,7 @@ class Dataset(Configurable):
 
     self.inputs = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')
     self.targets = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='targets')
+    self.step = tf.placeholder_with_default(0., shape=None, name='step')
     self.builder = builder()
   
   #=============================================================
@@ -104,11 +105,16 @@ class Dataset(Configurable):
   #=============================================================
   def _process_buff(self, buff):
     """"""
+
+    # tmp_f = open("debug_data_%s" % self.name, 'w')
     
-    words, tags, rels, srls, trigs, domains = self.vocabs
+    words, tags, rels, srls, predicates, domains = self.vocabs
     srl_start_field = srls.conll_idx[0]
     sents = 0
     toks = 0
+    examples = 0
+    total_predicates = 0
+    buff2 = []
     for i, sent in enumerate(buff):
       # if not self.conll2012 or (self.conll2012 and len(list(sent)) > 1):
       # print(sent, len(sent))
@@ -116,6 +122,7 @@ class Dataset(Configurable):
       sent_len = len(sent)
       num_fields = len(sent[0])
       srl_take_indices = [idx for idx in range(srl_start_field, srl_start_field + sent_len) if idx < num_fields - 1 and (self.train_on_nested or np.all(['/' not in sent[j][idx] for j in range(sent_len)]))]
+      predicate_indices = []
       for j, token in enumerate(sent):
         toks += 1
         if self.conll:
@@ -136,20 +143,64 @@ class Dataset(Configurable):
 
           # srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in range(srl_start_field, srl_start_field + sent_len)]
           srl_fields = [token[idx] for idx in srl_take_indices] # todo can we use fancy indexing here?
-          srl_fields += ['O'] * (sent_len - len(srl_take_indices)) #np.any([s in self.trigger_indices for s in srl_tags])
+          srl_fields += ['O'] * (sent_len - len(srl_take_indices))
           srl_tags = [srls[s][0] for s in srl_fields]
 
           if self.joint_pos_predicates:
-            is_trigger = token[trigs.conll_idx[0]] != '-' and (self.train_on_nested or self.trigger_str in srl_fields)
-            trigger_str = str(is_trigger) + '/' + gold_tag
+            is_predicate = token[predicates.conll_idx[0]] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
+            tok_predicate_str = str(is_predicate) + '/' + gold_tag
           else:
-            is_trigger = token[trigs.conll_idx] != '-' and (self.train_on_nested or self.trigger_str in srl_fields)
-            trigger_str = str(is_trigger)
+            is_predicate = token[predicates.conll_idx] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
+            tok_predicate_str = str(is_predicate)
 
-          buff[i][j] = (word,) + words[word] + tags[auto_tag] + trigs[trigger_str] + domains[domain] + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
-        # sent.insert(0, ('root', Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, Vocab.ROOT, 0, Vocab.ROOT))
-    print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
-    return buff
+          if is_predicate:
+            predicate_indices.append(j)
+
+          buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
+
+      # Expand sentences into one example per predicate
+      if self.one_example_per_predicate:
+        # grab the sent
+        # should be sent_len x sent_elements
+        sent = np.array(buff[i])
+        # print(sent)
+        is_predicate_idx = 4
+        srl_start_idx = 10
+        word_part = sent[:, 0].astype('O')
+        srl_part = sent[:, srl_start_idx:].astype(np.int32)
+        rest_part = sent[:, 1:srl_start_idx].astype(np.int32)
+        # print("orig sent (%d):" % len(predicate_indices), sent[:, :8+len(predicate_indices)])
+        # print("orig preds:", [map(lambda x: srls[int(x)], t) for t in sent[:, srl_start_idx:srl_start_idx+len(predicate_indices)]])
+        if predicate_indices:
+          for k, p_idx in enumerate(predicate_indices):
+            # should be sent_len x sent_elements
+            rest_part[:, is_predicate_idx-1] = predicates["False"][0]
+            rest_part[p_idx, is_predicate_idx-1] = predicates["True"][0]
+            correct_srls = srl_part[:, k]
+            new_sent = np.concatenate([np.expand_dims(word_part, -1), rest_part, np.expand_dims(correct_srls, -1)], axis=1)
+            buff2.append(new_sent)
+            # print("new sent:", new_sent)
+            # print("new preds:", map(lambda x: srls[int(x)], new_sent[:, -1]))
+            # tokens_str = ' '.join(word_part)
+            # labels_str = ' '.join(map(lambda x: srls[x], correct_srls))
+            ## idx, tokens, labels
+            # print("%d %s ||| %s" % (p_idx, tokens_str, labels_str), file=tmp_f)
+            total_predicates += 1
+            examples += 1
+        else:
+           new_sent = np.concatenate([np.expand_dims(word_part, -1), rest_part], axis=1)
+           buff2.append(new_sent)
+           examples += 1
+      # else:
+      #   buff2.append(np.concatenate[np.expand_dims(word_part, -1), rest_part, srl_part], axis=1) #(sent[0],) + map(int, sent[1:]))
+      #   examples += 1
+    # tmp_f.close()
+    if self.one_example_per_predicate:
+      print("Loaded %d sentences with %d tokens, %d examples (%d predicates) (%s)" % (sents, toks, examples, total_predicates, self.name))
+      return buff2
+    else:
+      print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
+      return buff
   
   #=============================================================
   def reset(self, sizes):
@@ -208,8 +259,8 @@ class Dataset(Configurable):
       data = self[bkt_idx].data[bkt_mb]
       sents = self[bkt_idx].sents[bkt_mb]
       maxlen = np.max(np.sum(np.greater(data[:,:,0], 0), axis=1))
-      np.set_printoptions(threshold=np.nan)
 
+      # np.set_printoptions(threshold=np.nan)
       # print("maxlen", maxlen)
       # print("maxlen+max(target_idxs)", maxlen+max(target_idxs))
       # print("data.shape[2]", data.shape[2])

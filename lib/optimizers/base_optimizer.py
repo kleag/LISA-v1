@@ -31,7 +31,7 @@ class BaseOptimizer(Configurable):
   def __init__(self, *args, **kwargs):
     """"""
     
-    self._global_step = kwargs.pop('global_step', tf.Variable(0., trainable=False))
+    self._global_step = kwargs.pop('global_step', tf.Variable(0., trainable=False, name="global_step"))
     super(BaseOptimizer, self).__init__(*args, **kwargs)
     self._accumulators = {}
     return

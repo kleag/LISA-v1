@@ -46,6 +46,8 @@ class BaseParser(NN):
     """"""
     
     for tokens, golds, parse_preds, rel_preds in zip(inputs, targets, predictions[0], predictions[1]):
+      # print("tokens", tokens)
+      # print("golds", golds)
       for l, (token, gold, parse, rel) in enumerate(zip(tokens, golds, parse_preds, rel_preds)):
         if token[0] > 0:
           word = vocabs[0][token[0]]
@@ -149,7 +151,7 @@ class BaseParser(NN):
 
       # num_srls = targets.shape[-1]-non_srl_targets_len
       # sent will contain 7 things non-srl, including one thing from targets
-      sent = -np.ones((length, 2*num_pred_srls+num_gold_srls+14), dtype=int)
+      sent = -np.ones((length, 2*num_pred_srls+num_gold_srls+15), dtype=int)
 
       # print("srl targets", targets[tokens, 3:])
       # print("srl triggers", np.sum(np.where(targets[tokens, 3:] == trigger_idx)))
@@ -163,18 +165,18 @@ class BaseParser(NN):
       # print("targets", targets)
       # print("tokens", tokens)
       sent[:,0] = tokens # 1 = index
-      sent[:,1:6] = inputs[tokens,:] # 2,3,4,5,6 inputs[0, 1, 2, 3, 4] = word, word, auto_tag, predicate t/f, domain
-      sent[:,6] = targets[tokens, 0] # 5 targets[0] = gold_tag
-      sent[:,7] = parse_preds[tokens] # 6 = pred parse head
-      sent[:,8] = rel_preds[tokens] # 7 = pred parse label
-      sent[:,9] = targets[tokens, 1] # 8 = gold parse head
-      sent[:,10] = targets[tokens, 2] # 9 = gold parse label
-      sent[:,11] = pos_pred[tokens] # 10 = predicted pos label
-      sent[:,12] = num_gold_srls # 11 = num gold predicates in sent
-      sent[:,13] = num_pred_srls  # 12 = num predicted predicates in sent
-      sent[:,14:14+num_pred_srls] = pred_trigger_indices # indices of predicted predicates
+      sent[:,1:7] = inputs[tokens,:] # 2,3,4,5,6,7 inputs[0, 1, 2, 3, 4, 5] = word, word, auto_tag, predicate t/f, domain, sent id
+      sent[:,7] = targets[tokens, 0] # 5 targets[0] = gold_tag
+      sent[:,8] = parse_preds[tokens] # 6 = pred parse head
+      sent[:,9] = rel_preds[tokens] # 7 = pred parse label
+      sent[:,10] = targets[tokens, 1] # 8 = gold parse head
+      sent[:,11] = targets[tokens, 2] # 9 = gold parse label
+      sent[:,12] = pos_pred[tokens] # 10 = predicted pos label
+      sent[:,13] = num_gold_srls # 11 = num gold predicates in sent
+      sent[:,14] = num_pred_srls  # 12 = num predicted predicates in sent
+      sent[:,15:15+num_pred_srls] = pred_trigger_indices # indices of predicted predicates
       # save trigger indices
-      sent[:,14+num_pred_srls:14+num_gold_srls+num_pred_srls] = targets[tokens, non_srl_targets_len:num_gold_srls+non_srl_targets_len] # gold srl tags
+      sent[:,15+num_pred_srls:15+num_gold_srls+num_pred_srls] = targets[tokens, non_srl_targets_len:num_gold_srls+non_srl_targets_len] # gold srl tags
       # print("trigger tokens", srl_trigger[tokens])
       # print("indices", np.where(srl_trigger[tokens] == 1)[0])
       # print("srl_pred", srl_pred)
@@ -184,11 +186,9 @@ class BaseParser(NN):
       # print("pred_trigger_indices", pred_trigger_indices)
       # print("s_pred", s_pred.shape, s_pred)
 
-
-
       if len(s_pred.shape) == 1:
         s_pred = np.expand_dims(s_pred, -1)
-      sent[:,14+num_pred_srls+num_gold_srls:] = s_pred
+      sent[:,15+num_pred_srls+num_gold_srls:] = s_pred
       sents.append(sent)
     return sents, total_time, roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total, non_trees_total, non_tree_preds, n_tokens
   
@@ -246,9 +246,11 @@ class BaseParser(NN):
   #=============================================================
   @property
   def input_idxs(self):
-    return (0, 1, 2, 3, 4)
+    # word, word, auto_tag, predicate t/f, domain, sent id
+    return (0, 1, 2, 3, 4, 5)
   @property
   def target_idxs(self):
     # need to add target indices here?
     # up to max len?
-    return (5, 6, 7)
+    # gold tag, gold parse head, gold parse rel
+    return (6, 7, 8)

@@ -34,26 +34,26 @@ def sigmoid(x):
 #===============================================================
 def orthonormal_initializer(input_size, output_size):
   """"""
-  
-  print(tf.get_variable_scope().name)
-  I = np.eye(output_size)
-  lr = .1
-  eps = .05/(output_size + input_size)
-  success = False
-  tries = 0
-  while not success and tries < 10:
-    Q = np.random.randn(input_size, output_size) / np.sqrt(output_size)
-    for i in xrange(100):
-      QTQmI = Q.T.dot(Q) - I
-      loss = np.sum(QTQmI**2 / 2)
-      Q2 = Q**2
-      Q -= lr*Q.dot(QTQmI) / (np.abs(Q2 + Q2.sum(axis=0, keepdims=True) + Q2.sum(axis=1, keepdims=True) - 1) + eps)
-      if np.max(Q) > 1e6 or loss > 1e6 or not np.isfinite(loss):
-        tries += 1
-        lr /= 2
-      else:
+
+  if not tf.get_variable_scope().reuse:
+    print(tf.get_variable_scope().name)
+    I = np.eye(output_size)
+    lr = .1
+    eps = .05 / (output_size + input_size)
+    success = False
+    while not success:
+      Q = np.random.randn(input_size, output_size) / np.sqrt(output_size)
+      for i in xrange(100):
+        QTQmI = Q.T.dot(Q) - I
+        loss = np.sum(QTQmI ** 2 / 2)
+        Q2 = Q ** 2
+        Q -= lr * Q.dot(QTQmI) / (np.abs(Q2 + Q2.sum(axis=0, keepdims=True) + Q2.sum(axis=1, keepdims=True) - 1) + eps)
+        if np.isnan(Q[0, 0]):
+          lr /= 2
+          break
+      if np.isfinite(loss) and np.max(Q) < 1e6:
         success = True
-  if success:
+      eps *= 2
     print('Orthogonal pretrainer loss: %.2e' % loss)
   else:
     print('Orthogonal pretrainer failed, using non-orthogonal random matrix')

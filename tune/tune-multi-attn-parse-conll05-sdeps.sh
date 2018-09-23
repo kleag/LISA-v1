@@ -13,7 +13,7 @@ fi
 echo "Writing to $OUT_LOG"
 
 #num_gpus=100
-num_gpus=18
+num_gpus=4
 
 lrs="0.04" # 0.06"
 mus="0.9"
@@ -22,7 +22,8 @@ epsilons="1e-12"
 warmup_steps="4000"
 batch_sizes="5000"
 
-trans_layers="4" # 3
+trans_layers="4" # "10 8 6" # 3
+cnn_layers="2"
 cnn_dims="1024" # 768
 num_heads="8" #4 8"
 head_sizes="64"
@@ -30,14 +31,15 @@ relu_hidden_sizes="256"
 
 parents_penalties="0.1"
 #grandparents_penalties="0.0 0.1 1.0 0.01 10.0 0.0001"
-parents_layers="parents:0 parents:1 parents:2"
+parents_layers="parents:2" # "parents:4 no"
 #grandparents_layers="grandparents:2 grandparents:3 no"
-children_layers="no" #children:1 children:2 no"
-trigger_layers="-2 -1 1"
+predicate_layers="1"
+scheduled_sampling="constant=1.0" # constant=0.0 sigmoid=64000 sigmoid=32000"
+use_full_parse="True False"
 
 reps="2"
 
-# 3*3*2 = 18
+# 2*4 = 8
 
 # array to hold all the commands we'll distribute
 declare -a commands
@@ -49,66 +51,78 @@ for lr in ${lrs[@]}; do
             for epsilon in ${epsilons[@]}; do
                 for warmup_steps in ${warmup_steps[@]}; do
                     for cnn_dim in ${cnn_dims[@]}; do
-                        for trans_layer in ${trans_layers[@]}; do
-                            for num_head in ${num_heads[@]}; do
-                                for head_size in ${head_sizes[@]}; do
-                                    for relu_hidden_size in ${relu_hidden_sizes[@]}; do
-                                        for batch_size in ${batch_sizes[@]}; do
-                                            for parents_penalty in ${parents_penalties[@]}; do
-                                                for parents_layer in ${parents_layers[@]}; do
-                                                    for children_layer in ${children_layers[@]}; do
-                                                        for trigger_layer in ${trigger_layers[@]}; do
-                                                            for rep in `seq $reps`; do
-                                                                fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$children_layer-$trigger_layer"
-                                                                multitask_layer=""
-                                                                orig_parents_layer=$parents_layer
-                                                                if [[ "$parents_layer" == "no" ]]; then
-                                                                    parents_layer=""
-                                                                else
-                                                                    multitask_layer=$parents_layer
-                                                                fi
-                                                                orig_children_layer=$children_layer
-                                                                if [[ "$children_layer" == "no" ]]; then
-                                                                    children_layer=""
-                                                                else
-                                                                    if [[ "$multitask_layer" != "" ]]; then
-                                                                        multitask_layer="$multitask_layer;"
-                                                                    fi
-                                                                    multitask_layer="$multitask_layer$children_layer"
-                                                                fi
+                        for cnn_layer in ${cnn_layers[@]}; do
+                            for trans_layer in ${trans_layers[@]}; do
+                                for num_head in ${num_heads[@]}; do
+                                    for head_size in ${head_sizes[@]}; do
+                                        for relu_hidden_size in ${relu_hidden_sizes[@]}; do
+                                            for batch_size in ${batch_sizes[@]}; do
+                                                for parents_penalty in ${parents_penalties[@]}; do
+                                                    for parents_layer in ${parents_layers[@]}; do
+                                                        for predicate_layer in ${predicate_layers[@]}; do
+                                                            for full_parse in ${use_full_parse[@]}; do
+                                                                for ss in ${scheduled_sampling[@]}; do
+                                                                    for rep in `seq $reps`; do
+    #                                                                    if [[ "$cnn_layer" != "2" || "$trans_layer" != "10" ]]; then
+                                                                            fname_append="$rep-$lr-$mu-$nu-$epsilon-$warmup_steps-$batch_size-$cnn_dim-$cnn_layer-$trans_layer-$num_head-$head_size-$relu_hidden_size-$parents_penalty-$parents_layer-$predicate_layer-$ss-$full_parse"
+                                                                            orig_parents_layer=$parents_layer
+                                                                            if [[ "$parents_layer" == "no" ]]; then
+                                                                                parents_layer=""
+                                                                            fi
 
-                                                                partition="titanx-long"
-                                                                if [[ $i -le 10 ]]; then
-                                                                    partition="m40-long"
-                                                                fi
+                                                                            partition="titanx-long"
+#                                                                            if [[ "$trans_layers" == "10" && "$cnn_layers" == "2" ]]; then
+#                                                                                partition="m40-long"
+#                                                                            fi
 
-                                                                commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G python network.py  \
-                                                                --config_file config/trans-conll05-bio-manualattn-sdeps.cfg \
-                                                                --save_dir $OUT_LOG/scores-$fname_append \
-                                                                --save_every 500 \
-                                                                --train_iters 5000000 \
-                                                                --train_batch_size $batch_size \
-                                                                --test_batch_size $batch_size \
-                                                                --warmup_steps $warmup_steps \
-                                                                --learning_rate $lr \
-                                                                --cnn_dim $cnn_dim \
-                                                                --n_recur $trans_layer \
-                                                                --num_heads $num_head \
-                                                                --head_size $head_size \
-                                                                --relu_hidden_size $relu_hidden_size \
-                                                                --mu $mu \
-                                                                --nu $nu \
-                                                                --epsilon $epsilon \
-                                                                --trigger_layer $trigger_layer \
-                                                                --multitask_layers \"$multitask_layer\" \
-                                                                --multitask_penalties \"parents:$parents_penalty;children:$parents_penalty\"
-                                                                --eval_by_domain False \
-                                                                --eval_srl True \
-                                                                --save True \
-                                                                &> $OUT_LOG/train-$fname_append.log")
-                                                                i=$((i + 1))
-                                                                parents_layer=$orig_parents_layer
-                                                                children_layer=$orig_children_layer
+                                                                            rel_loss_penalty=0.0
+                                                                            arc_loss_penalty=0.0
+                                                                            if [[ "$full_parse" == "True" ]]; then
+                                                                                rel_loss_penalty=1.0
+                                                                                arc_loss_penalty=1.0
+                                                                            fi
+
+                                                                            ss_arr=(${ss//=/ })
+                                                                            sampling_sched=${ss_arr[0]}
+                                                                            sample_prob=${ss_arr[1]}
+
+
+                                                                            commands+=("srun --gres=gpu:1 --partition=$partition --mem=24G --time=120:00:00 python network.py  \
+                                                                            --config_file config/trans-conll05-bio-manualattn-sdeps-bilinear.cfg \
+                                                                            --save_dir $OUT_LOG/scores-$fname_append \
+                                                                            --save_every 500 \
+                                                                            --train_iters 5000000 \
+                                                                            --train_batch_size $batch_size \
+                                                                            --test_batch_size $batch_size \
+                                                                            --warmup_steps $warmup_steps \
+                                                                            --learning_rate $lr \
+                                                                            --cnn_dim $cnn_dim \
+                                                                            --cnn_layers $cnn_layer \
+                                                                            --n_recur $trans_layer \
+                                                                            --num_heads $num_head \
+                                                                            --head_size $head_size \
+                                                                            --relu_hidden_size $relu_hidden_size \
+                                                                            --mu $mu \
+                                                                            --nu $nu \
+                                                                            --epsilon $epsilon \
+                                                                            --predicate_layer $predicate_layer \
+                                                                            --multitask_layers \"$parents_layer\" \
+                                                                            --multitask_penalties \"parents:$parents_penalty\"
+                                                                            --eval_by_domain False \
+                                                                            --eval_srl True \
+                                                                            --eval_parse True \
+                                                                            --full_parse $full_parse \
+                                                                            --arc_loss_penalty $arc_loss_penalty \
+                                                                            --rel_loss_penalty $rel_loss_penalty \
+                                                                            --sampling_schedule $sampling_sched \
+                                                                            --sample_prob $sample_prob \
+                                                                            --save True \
+                                                                            &> $OUT_LOG/train-$fname_append.log")
+                                                                            i=$((i + 1))
+                                                                            parents_layer=$orig_parents_layer
+    #                                                                    fi
+                                                                    done
+                                                                done
                                                             done
                                                         done
                                                     done

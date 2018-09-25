@@ -47,12 +47,12 @@ function gdrive_download () {
 The `gdrive_download` function takes two parameters: Google Drive id and filename. You can find model names and their
 corresponding ids in this table:
 
-| Model         | ID                                |
-| ------------- | --------------------------------- |
-| sa-conll05    | 1Qj5idT0A-OQlN24HRoHAt9G2P-CrW9zb |
-| lisa-conll05  | 1XW3qWWMONnQt0lPyj0_t5KdcD7hF8k4F |
-| sa-conll12    | 1kGAs73-5HtM9UY4IAHYmFXiyYDQomzo5 |
-| lisa-conll12  | 1V9-lB-TrOxvProqiJ5Tx1cFUdHkTyjbw |
+| Model           | ID                                  |
+| --------------- | ----------------------------------- |
+| `sa-conll05`    | `1Qj5idT0A-OQlN24HRoHAt9G2P-CrW9zb` |
+| `lisa-conll05`  | `1XW3qWWMONnQt0lPyj0_t5KdcD7hF8k4F` |
+| `sa-conll12`    | `1kGAs73-5HtM9UY4IAHYmFXiyYDQomzo5` |
+| `lisa-conll12`  | `1V9-lB-TrOxvProqiJ5Tx1cFUdHkTyjbw` |
 
 To download and evaluate e.g. the `lisa-conll05` model:
 ```bash

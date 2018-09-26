@@ -69,6 +69,11 @@ tar xzvf models/lisa-conll05.tar.gz -C models
 python network.py --load --test --test_eval --load_dir models/lisa-conll05 --config_file models/lisa-conll05/config.cfg 
 ```
 
+To evaluate it on the Brown test set:
+```bash
+python network.py --load --test --test_eval --load_dir models/lisa-conll05 --config_file models/lisa-conll05/config.cfg --test_file $CONLL05/test.brown.gz.parse.sdeps.combined.bio --gold_test_props_file $CONLL05/conll2005-test-brown-gold-props.txt --gold_test_parse_file $CONLL05/conll2005-test-brown-gold-parse.txt
+```
+
 Evaluating with ELMo embeddings:
 ----
 First, download the [pre-trained ELMo model and options](https://allennlp.org/elmo) into a directory called `elmo_model`:
@@ -152,18 +157,31 @@ python network.py --config_file config/lisa-conll05.conf --save_dir model
 Results
 ====
 
-CoNLL-2005 results with released models (dev, WSJ test, Brown test):
+CoNLL-2005 results for released models (dev, WSJ test, Brown test):
 
-| Model                     | P     | R     | F1    |     | P     | R     | F1    |
-| ------------------------- | ----- | ----- | ----- | --- | ----- | ----- | ----- | 
-| `sa-conll05`              | 83.52 | 81.28 | 82.39 |     | 84.17 | 83.28 | 83.72 |
-| `lisa-conll05`            | 83.10 | 81.39 | 82.24 |     | 84.07 | 83.16 | 83.61 |
-| `lisa-conll05` +D&M       | 84.44 | 82.89 | 83.66 |     | 85.98 | 84.85 | 85.41 |
-| `lisa-conll05` +Gold      | 87.91 | 85.73 | 86.81 |     | ---   | ---   | ---   |
+| Model                       | P       | R       | F1      |     | P     | R     | F1    |     | P     | R     | F1    |
+| --------------------------- | ------- | ------- | ------- | --- | ----- | ----- | ----- | --- | ----- | ----- | ----- |
+| `sa-conll05`                | 83.52   | 81.28   | 82.39   |     | 84.17 | 83.28 | 83.72 |     | 72.98 | 70.10 | 71.51 |
+| `lisa-conll05`              | 83.10   | 81.39   | 82.24   |     | 84.07 | 83.16 | 83.61 |     | 73.32 | 70.56 | 71.91 |
+| `lisa-conll05` +D&M         | 84.44   | 82.89   | 83.66   |     | 85.98 | 84.85 | 85.41 |     | 75.93 | 73.45 | 74.67 |
+| `lisa-conll05` *+Gold*      | *87.91* | *85.73* | *86.81* |     | ---   | ---   | ---   |     | ---   | ---   | ---   |
 |||||||||
-| `sa-conll05-elmo`         | 85.78 | 84.74 | 85.26 |     | 86.21 | 85.98 | 86.09 |
-| `lisa-conll05-elmo`       | 86.07 | 84.64 | 85.35 |     | 86.69 | 86.42 | 86.55 |
-| `lisa-conll05-elmo` +D&M  | 85.83 | 84.51 | 85.17 |     | 87.13 | 86.67 | 86.90 |
-| `lisa-conll05-elmo` +Gold | 88.51 | 86.77 | 87.63 |     | ---   | ---   | ---   |
+| `sa-conll05-elmo`           | 85.78   | 84.74   | 85.26   |     | 86.21 | 85.98 | 86.09 |     | 77.10 | 75.61 | 76.35 |
+| `lisa-conll05-elmo`         | 86.07   | 84.64   | 85.35   |     | 86.69 | 86.42 | 86.55 |     | 78.95 | 77.17 | 78.05 |
+| `lisa-conll05-elmo` +D&M    | 85.83   | 84.51   | 85.17   |     | 87.13 | 86.67 | 86.90 |     | 79.02 | 77.49 | 78.25 |
+| `lisa-conll05-elmo` *+Gold* | *88.51* | *86.77* | *87.63* |     | ---   | ---   | ---   |     | ---   | ---   | ---   |
 
 
+CoNLL-2012 results for released models (dev, test):
+
+| Model                       | P       | R       | F1      |     | P     | R     | F1    |
+| --------------------------- | ------- | ------- | ------- | --- | ----- | ----- | ----- |  
+| `sa-conll12`                | 82.22   | 79.35   | 80.76   |     | 82.50 | 79.50 | 80.97 |
+| `lisa-conll12`              | 81.70   | 79.28   | 80.47   |     | 81.69 | 78.96 | 80.30 |
+| `lisa-conll12` +D&M         | 83.48   | 81.13   | 82.29   |     | 83.65 | 81.14 | 82.37 | 
+| `lisa-conll12` +Gold        | 87.61   | 84.87   | 86.22   |     | ---   | ---   | ---   |
+|||||||||
+| `sa-conll12-elmo`           | 84.35   | 82.82   | 83.58   |     | 84.51 | 82.82 | 83.66 |
+| `lisa-conll12-elmo`         | 84.52   | 82.98   | 83.75   |     | 84.45 | 82.86 | 83.65 |
+| `lisa-conll12-elmo` +D&M    | 84.32   | 83.09   | 83.70   |     | 84.44 | 83.12 | 83.77 |
+| `lisa-conll12-elmo` *+Gold* | *88.20* | *86.56* | *87.37* |     | ---   | ---   | ---   |

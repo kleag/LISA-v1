@@ -149,3 +149,21 @@ To train a model with save directory `model` using the configuration file `lisa-
 python network.py --config_file config/lisa-conll05.conf --save_dir model
 ```
 
+Results
+====
+
+CoNLL-2005 results with released models (dev, WSJ test, Brown test):
+
+| Model                     | P     | R     | F1    |     | P     | R     | F1    |
+| ------------------------- | ----- | ----- | ----- | --- | ----- | ----- | ----- | 
+| `sa-conll05`              | 83.52 | 81.28 | 82.39 |     | 84.17 | 83.28 | 83.72 |
+| `lisa-conll05`            | 83.10 | 81.39 | 82.24 |     | 84.07 | 83.16 | 83.61 |
+| `lisa-conll05` +D&M       | 84.44 | 82.89 | 83.66 |     | 85.98 | 84.85 | 85.41 |
+| `lisa-conll05` +Gold      | 87.91 | 85.73 | 86.81 |     | ---   | ---   | ---   |
+|||||||||
+| `sa-conll05-elmo`         | 85.78 | 84.74 | 85.26 |     | 86.21 | 85.98 | 86.09 |
+| `lisa-conll05-elmo`       | 86.07 | 84.64 | 85.35 |     | 86.69 | 86.42 | 86.55 |
+| `lisa-conll05-elmo` +D&M  | 85.83 | 84.51 | 85.17 |     | 87.13 | 86.67 | 86.90 |
+| `lisa-conll05-elmo` +Gold | 88.51 | 86.77 | 87.63 |     | ---   | ---   | ---   |
+
+

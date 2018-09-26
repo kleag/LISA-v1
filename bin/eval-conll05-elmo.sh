@@ -22,9 +22,12 @@ brown_test_props_file=$data_dir/conll2005-test-brown-gold-props.txt
 brown_test_parse_file=$data_dir/conll2005-test-brown-gold-parse.txt
 
 # D&M injected
-dm_valid_file=lstm_predicted_parses_elmo/parse_preds-conll2005-lstm-dev24.tsv.replaced
-dm_wsj_test_file=lstm_predicted_parses_elmo/parse_preds-conll2005-lstm-test.tsv.replaced
-dm_brown_test_file=lstm_predicted_parses_elmo/parse_preds-conll2005-lstm-test-brown.tsv.replaced
+#dm_valid_file=lstm_predicted_parses_elmo/parse_preds-conll2005-lstm-dev24.tsv.replaced
+#dm_wsj_test_file=lstm_predicted_parses_elmo/parse_preds-conll2005-lstm-test.tsv.replaced
+#dm_brown_test_file=lstm_predicted_parses_elmo/parse_preds-conll2005-lstm-test-brown.tsv.replaced
+dm_valid_file=lstm_predicted_parses_elmo_new/parse_preds-conll2005-lstm-dev24.tsv.replaced
+dm_wsj_test_file=lstm_predicted_parses_elmo_new/parse_preds-conll2005-lstm-test.tsv.replaced
+dm_brown_test_file=lstm_predicted_parses_elmo_new/parse_preds-conll2005-lstm-test-brown.tsv.replaced
 
 if [[ "$parse_config" == "dm" || "$parse_config" == "gold" ]]; then
     gold_attn_at_train="False"
@@ -73,7 +76,9 @@ python $DOZAT_ROOT/network.py \
     --test_file $wsj_test_file \
     --gold_test_props_file $wsj_test_props_file \
     --gold_dev_parse_file $valid_parse_file \
-    --gold_test_parse_file $wsj_test_parse_file
+    --gold_test_parse_file $wsj_test_parse_file \
+    --max_dev_batch_size 246 #183
+
 
 # Brown test
 python $DOZAT_ROOT/network.py \
@@ -88,4 +93,5 @@ python $DOZAT_ROOT/network.py \
     --test_file $brown_test_file \
     --gold_test_props_file $brown_test_props_file \
     --gold_dev_parse_file $valid_parse_file \
-    --gold_test_parse_file $brown_test_parse_file
+    --gold_test_parse_file $brown_test_parse_file \
+    --max_dev_batch_size 246 #183

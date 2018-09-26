@@ -49,16 +49,24 @@ class Parser(BaseParser):
     self.sequence_lengths = tf.reshape(tf.reduce_sum(self.tokens_to_keep3D, [1, 2]), [-1,1])
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params
-    
-    if self.add_to_pretrained:
-      word_inputs, pret_inputs = vocabs[0].embedding_lookup(inputs[:, :, 0], inputs[:, :, 1],
-                                                            moving_params=self.moving_params)
-      word_inputs += pret_inputs
+
+    if self.use_elmo:
+      print("using elmo w/ reuse = ", reuse)
+      with tf.variable_scope(tf.get_variable_scope(), reuse=reuse):
+      # # with tf.variable_scope('elmo', reuse=reuse):
+      #   from lib.models.bilm import ElmoLSTMEncoder
+      #   elmo_encoder = ElmoLSTMEncoder(dataset)
+        word_inputs = dataset.elmo_encoder.embed_text()
     else:
-      word_inputs = vocabs[0].embedding_lookup(inputs[:, :, 1], moving_params=self.moving_params)
-    if self.word_l2_reg > 0:
-      unk_mask = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,1], vocabs[0].UNK)), 2)
-      word_loss = self.word_l2_reg*tf.nn.l2_loss((word_inputs - pret_inputs) * unk_mask)
+      if self.add_to_pretrained:
+        word_inputs, pret_inputs = vocabs[0].embedding_lookup(inputs[:, :, 0], inputs[:, :, 1],
+                                                              moving_params=self.moving_params)
+        word_inputs += pret_inputs
+      else:
+        word_inputs = vocabs[0].embedding_lookup(inputs[:, :, 1], moving_params=self.moving_params)
+      if self.word_l2_reg > 0:
+        unk_mask = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,1], vocabs[0].UNK)), 2)
+        word_loss = self.word_l2_reg*tf.nn.l2_loss((word_inputs - pret_inputs) * unk_mask)
     inputs_to_embed = [word_inputs]
     if self.add_pos_to_input:
       pos_inputs = vocabs[1].embedding_lookup(inputs[:, :, 2], moving_params=self.moving_params)
@@ -70,7 +78,7 @@ class Parser(BaseParser):
       predicate_embed_inputs = vocabs[4].embedding_lookup(inputs[:, :, 3], moving_params=self.moving_params)
       embed_inputs = tf.concat([embed_inputs, predicate_embed_inputs], axis=2)
     
-    top_recur = embed_inputs
+    top_recur = tf.nn.dropout(embed_inputs, self.input_dropout if self.moving_params is None else 1.0)
 
     attn_weights_by_layer = {}
 
@@ -153,7 +161,7 @@ class Parser(BaseParser):
 
     ##### Functions for predicting parse, Dozat-style #####
     def get_parse_logits(parse_inputs):
-      if self.full_parse:
+      if self.full_parse or (self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.):
         ######## do parse-specific stuff (arcs) ########
         with tf.variable_scope('MLP', reuse=reuse):
           dep_mlp, head_mlp = self.MLP(parse_inputs, self.class_mlp_size + self.attn_mlp_size, n_splits=2)
@@ -384,9 +392,9 @@ class Parser(BaseParser):
     if not self.full_parse and self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.0:
       arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(parse_pred_inputs)
 
-    arc_output = self.output_svd(arc_logits, targets[:,:,1])
+    arc_output = self.output_svd(arc_logits, targets[:, :, 1])
     if moving_params is None:
-      predictions = targets[:,:,1]
+      predictions = targets[:, :, 1]
     else:
       predictions = arc_output['predictions']
     parse_probs = arc_output['probabilities']

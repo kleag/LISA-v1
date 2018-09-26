@@ -384,6 +384,10 @@ class Configurable(object):
   def relu_dropout(self):
     return self._config.getfloat('Dropout', 'relu_dropout')
   argparser.add_argument('--relu_dropout')
+  @property
+  def input_dropout(self):
+    return self._config.getfloat('Dropout', 'input_dropout')
+  argparser.add_argument('--input_dropout')
   
   #=============================================================
   # [Learning rate]
@@ -684,6 +688,11 @@ class Configurable(object):
   argparser.add_argument('--full_parse')
 
   @property
+  def use_elmo(self):
+    return self._config.getboolean('Training', 'use_elmo')
+  argparser.add_argument('--use_elmo')
+
+  @property
   def sampling_schedule(self):
     return self._config.get('Training', 'sampling_schedule')
   argparser.add_argument('--sampling_schedule')
@@ -692,6 +701,16 @@ class Configurable(object):
   def sample_prob(self):
     return self._config.getfloat('Training', 'sample_prob')
   argparser.add_argument('--sample_prob')
+
+  @property
+  def max_test_batch_size(self):
+    return self._config.getint('Training', 'max_test_batch_size')
+  argparser.add_argument('--max_test_batch_size')
+
+  @property
+  def max_dev_batch_size(self):
+    return self._config.getint('Training', 'max_dev_batch_size')
+  argparser.add_argument('--max_dev_batch_size')
 
   @property
   def ff_kernel(self):

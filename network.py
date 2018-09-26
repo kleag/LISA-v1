@@ -71,11 +71,11 @@ class Network(Configurable):
 
     if self.conll:
       vocab_files = [(self.word_file, 1, 'Words', self.embed_size),
-                     (self.tag_file, [3, 4], 'Tags', 0),
+                     (self.tag_file, [3, 4], 'Tags', self.embed_size if self.add_pos_to_input else 0),
                      (self.rel_file, 7, 'Rels', 0)]
     elif self.conll2012:
       vocab_files = [(self.word_file, 3, 'Words', self.embed_size),
-                     (self.tag_file, [5, 4], 'Tags', 0), # auto, gold
+                     (self.tag_file, [5, 4], 'Tags', self.embed_size if self.add_pos_to_input else 0), # auto, gold
                      (self.rel_file, 7, 'Rels', 0),
                      (self.srl_file, range(14, 50), 'SRLs', 0),
                      (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10,
@@ -183,6 +183,7 @@ class Network(Configurable):
         for j, (feed_dict, _) in enumerate(self.train_minibatches()):
           # train_inputs = feed_dict[self._trainset.inputs]
           train_targets = feed_dict[self._trainset.targets]
+
           start_time = time.time()
 
           if profile:
@@ -1036,7 +1037,8 @@ if __name__ == '__main__':
 
         # decode with & without viterbi
         network.test(sess, False, validate=True)
-        network.test(sess, True, validate=True)
+        if network.eval_srl and (network.viterbi_decode or network.viterbi_train):
+          network.test(sess, True, validate=True)
 
         # Actually evaluate on test data
         if args.test_eval:

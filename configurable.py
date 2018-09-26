@@ -687,6 +687,7 @@ class Configurable(object):
     return self._config.getboolean('Training', 'full_parse')
   argparser.add_argument('--full_parse')
 
+  @property
   def use_elmo(self):
     return self._config.getboolean('Training', 'use_elmo')
   argparser.add_argument('--use_elmo')

@@ -78,7 +78,7 @@ wget -P elmo_model https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x409
 ```
 In order for the model to fit in memory you may want to reduce `max_characters_per_token` to 25 in the options file:
 ```bash
-
+sed 's/"max_characters_per_token": [0-9][0-9]*/"max_characters_per_token": 25/' elmo_model/elmo_2x4096_512_2048cnn_2xhighway_options.json
 ```
 
 Run the D&M+ELMo parser
@@ -96,7 +96,7 @@ Here are the corresponding ids if you wish to [download via command line](#Downl
 | Model             | ID                                  |
 | ----------------- | ----------------------------------- |
 | `dm-conll05-elmo` | `1uVJna6ddiJCWelU384ssJrnBJGWlPUML` |
-| `dm-conll12-elmo` | `TODO` |
+| `dm-conll12-elmo` | `1TQJN0DPxgjCq0fHGZ1Z455fn-ORBENQc` |
 
 To download and evaluate e.g. the `dm-conll05-elmo` parser, you can do the following:
 ```bash

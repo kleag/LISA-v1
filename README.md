@@ -88,10 +88,10 @@ Code for running the D&M+ELMo parser that we use in our paper can be found in th
 git checkout elmo-parser-stable
 ```
 
-If you haven't already, [download the pre-trained ELMo model](#Evaluating-with-ELMo-embeddings).
+If you haven't already, [download the pre-trained ELMo model](#evaluating-with-elmo-embeddings).
 
 Pre-trained parser models are available via [Google Drive](https://drive.google.com/drive/u/1/folders/1E0Jn05VFqZTbbVcDoM5DEIHEFzD91iLs). 
-Here are the corresponding ids if you wish to [download via command line](#Download-and-evaluate-a-pre-trained-model):
+Here are the corresponding ids if you wish to [download via command line](#download-and-evaluate-a-pre-trained-model):
 
 | Model             | ID                                  |
 | ----------------- | ----------------------------------- |
@@ -110,12 +110,12 @@ python network.py --load --test --test_eval --load_dir models/dm-conll05-elmo --
 Evaluate LISA using the D&M parse
 ----
 
-Once you've [run the D&M+ELMo parser](#Run-the-D&M+ELMo-parser), you may want to provide that parse to LISA.
+Once you've [run the D&M+ELMo parser](#run-the-d&m+elmo-parser), you may want to provide that parse to LISA.
 You can do this by: (1) creating a new test file that contains the D&M predicted parses rather than gold parses, 
 then (2) providing this new test file to LISA and passing a command line flag which instructs LISA to predict 
 using the provided parse information (rather than its own predicted parses, which is the default behavior).
 
-To create a new test file, first [run the parser](#Run-the-D&M+ELMo-parser) with the test file for which you would like to predict parses.
+To create a new test file, first [run the parser](#run-the-d&m+elmo-parser) with the test file for which you would like to predict parses.
 If you ran the parser under `models/dm-conll05-elmo`, then there should be a new file generated: 
 `models/dm-conll05-elmo/parse_preds.tsv`. Below we assume the original test file resides under the directory defined in
 the environment variable `$CONLL05`. To create a new test file with parse heads and labels replaced with the predicted ones,

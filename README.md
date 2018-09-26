@@ -55,7 +55,7 @@ corresponding ids in this table:
 | `lisa-conll05`       | `1XW3qWWMONnQt0lPyj0_t5KdcD7hF8k4F` |
 | `sa-conll12`         | `1kGAs73-5HtM9UY4IAHYmFXiyYDQomzo5` |
 | `lisa-conll12`       | `1V9-lB-TrOxvProqiJ5Tx1cFUdHkTyjbw` |
-| -------------------- | ----------------------------------- |
+|                      |                                     |
 | `sa-conll05-elmo`    | `1RX-1YlHQPLRiJGzKF_KHjbNiVCyICRWZ` |
 | `lisa-conll05-elmo`  | `1J5wrZUQ7UIVpbZjd7RtbO3EcYE5aRBJ7` |
 | `sa-conll12-elmo`    | `1HZ_LTKHa-msrBp73KhdIJvx4tw5UMP2W` |

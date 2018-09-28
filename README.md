@@ -51,20 +51,20 @@ corresponding ids in this table:
 
 | Model                | ID                                  |
 | -------------------- | ----------------------------------- |
-| `sa-conll05`         | `1Qj5idT0A-OQlN24HRoHAt9G2P-CrW9zb` |
-| `lisa-conll05`       | `1XW3qWWMONnQt0lPyj0_t5KdcD7hF8k4F` |
-| `sa-conll12`         | `1kGAs73-5HtM9UY4IAHYmFXiyYDQomzo5` |
+| `sa-conll05`         | `1OygfdFs5Q8Fn1MN8oLnwVhIqCgCZBx11` |
+| `lisa-conll05`       | `1XyfyjjjQVJK16XhqHoY9GK8GDOqZX2qk` |
+| `sa-conll12`         | `1cpveFb380WZoTZ_VpJSRqUzupGODX40A` |
 | `lisa-conll12`       | `1V9-lB-TrOxvProqiJ5Tx1cFUdHkTyjbw` |
 |                      |                                     |
 | `sa-conll05-elmo`    | `1RX-1YlHQPLRiJGzKF_KHjbNiVCyICRWZ` |
 | `lisa-conll05-elmo`  | `1J5wrZUQ7UIVpbZjd7RtbO3EcYE5aRBJ7` |
 | `sa-conll12-elmo`    | `1HZ_LTKHa-msrBp73KhdIJvx4tw5UMP2W` |
-| `lisa-conll12-elmo`  | `1LbToM5Fbk4yvglvse0X6Q5c0NjHV6HY0` |
+| `lisa-conll12-elmo`  | `1iqmcJtfG2XkK5gzQHmLVjPxt1PUrC9uF` |
 
 To download and evaluate e.g. the `lisa-conll05` model using GloVe embeddings:
 ```bash
 mkdir -p models
-gdrive_download 1XW3qWWMONnQt0lPyj0_t5KdcD7hF8k4F models/lisa-conll05.tar.gz
+gdrive_download 1XyfyjjjQVJK16XhqHoY9GK8GDOqZX2qk models/lisa-conll05.tar.gz
 tar xzvf models/lisa-conll05.tar.gz -C models
 python network.py --load --test --test_eval --load_dir models/lisa-conll05 --config_file models/lisa-conll05/config.cfg 
 ```

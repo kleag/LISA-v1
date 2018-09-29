@@ -49,24 +49,27 @@ function gdrive_download () {
 The `gdrive_download` function takes two parameters: Google Drive ID and filename. You can find model names and their
 corresponding ids in this table:
 
-| Model                | ID                                  |
-| -------------------- | ----------------------------------- |
-| `sa-conll05`         | `1OygfdFs5Q8Fn1MN8oLnwVhIqCgCZBx11` |
-| `lisa-conll05`       | `1XyfyjjjQVJK16XhqHoY9GK8GDOqZX2qk` |
-| `sa-conll12`         | `1cpveFb380WZoTZ_VpJSRqUzupGODX40A` |
-| `lisa-conll12`       | `1V9-lB-TrOxvProqiJ5Tx1cFUdHkTyjbw` |
-|                      |                                     |
-| `sa-conll05-elmo`    | `1RX-1YlHQPLRiJGzKF_KHjbNiVCyICRWZ` |
-| `lisa-conll05-elmo`  | `1J5wrZUQ7UIVpbZjd7RtbO3EcYE5aRBJ7` |
-| `sa-conll12-elmo`    | `1HZ_LTKHa-msrBp73KhdIJvx4tw5UMP2W` |
-| `lisa-conll12-elmo`  | `1iqmcJtfG2XkK5gzQHmLVjPxt1PUrC9uF` |
+| Model                     | ID                                  |
+| ------------------------- | ----------------------------------- |
+| `sa-conll05`              | `1OygfdFs5Q8Fn1MN8oLnwVhIqCgCZBx11` |
+| `lisa-conll05`            | `1XyfyjjjQVJK16XhqHoY9GK8GDOqZX2qk` |
+| `sa-conll12`              | `1cpveFb380WZoTZ_VpJSRqUzupGODX40A` |
+| `lisa-conll12`            | `1V9-lB-TrOxvProqiJ5Tx1cFUdHkTyjbw` |
+|                           |                                     |
+| `sa-conll05-gold-preds`   | `1qMUXUZwqzygHqYJq_8jqm_maniHg3POK` |
+| `lisa-conll05-gold-preds` | `1rwazpyIqIOIfiNqca1Tk5MEA5qM6Rhf1` |
+|                           |                                     |
+| `sa-conll05-elmo`         | `1RX-1YlHQPLRiJGzKF_KHjbNiVCyICRWZ` |
+| `lisa-conll05-elmo`       | `1J5wrZUQ7UIVpbZjd7RtbO3EcYE5aRBJ7` |
+| `sa-conll12-elmo`         | `1KBaPr7jwXYuOlBDBePrSiohG-85mv8qJ` |
+| `lisa-conll12-elmo`       | `1Qvh4WHX7u_UaLt-QAZcCGbo0uOlvG-EN` |
 
 To download and evaluate e.g. the `lisa-conll05` model using GloVe embeddings:
 ```bash
 mkdir -p models
 gdrive_download 1XyfyjjjQVJK16XhqHoY9GK8GDOqZX2qk models/lisa-conll05.tar.gz
 tar xzvf models/lisa-conll05.tar.gz -C models
-python network.py --load --test --test_eval --load_dir models/lisa-conll05 --config_file models/lisa-conll05/config.cfg 
+python network.py --load --test --test_eval --config_file models/lisa-conll05/config.cfg 
 ```
 
 To evaluate it on the Brown test set:
@@ -101,7 +104,7 @@ Here are the corresponding ids if you wish to [download via command line](#downl
 | Model             | ID                                  |
 | ----------------- | ----------------------------------- |
 | `dm-conll05-elmo` | `1uVJna6ddiJCWelU384ssJrnBJGWlPUML` |
-| `dm-conll12-elmo` | `1TQJN0DPxgjCq0fHGZ1Z455fn-ORBENQc` |
+| `dm-conll12-elmo` | `1dxW4D8xu-WHg-mbe5oGx8DUx22WY8228` |
 
 To download and evaluate e.g. the `dm-conll05-elmo` parser, you can do the following:
 ```bash
@@ -109,7 +112,7 @@ git checkout elmo-parser-stable
 mkdir -p models
 gdrive_download 1uVJna6ddiJCWelU384ssJrnBJGWlPUML models/dm-conll05-elmo.tar.gz
 tar xzvf models/dm-conll05-elmo.tar.gz -C models
-python network.py --load --test --test_eval --load_dir models/dm-conll05-elmo --config_file models/dm-conll05-elmo/config.cfg 
+python network.py --load --test --test_eval --config_file models/dm-conll05-elmo/config.cfg 
 ```
 
 Evaluate LISA using the D&M parse
@@ -131,7 +134,7 @@ you can use the following script:
 
 Now, you can run LISA evaluation using this test file instead of the original one, and tell LISA to use gold parses:
 ```bash
-python network.py --load --test --test_eval --load_dir models/lisa-conll05 --config_file models/lisa-conll05/config.cfg --test_file test.wsj.gz.parse.sdeps.combined.bio.predicted --gold_attn_at_train False 
+python network.py --load --test --test_eval --config_file models/lisa-conll05/config.cfg --test_file test.wsj.gz.parse.sdeps.combined.bio.predicted --gold_attn_at_train False 
 ```
 
 **Note that when you change the command line params (as above), `config.cfg` will be rewritten with the latest configuration settings. 
@@ -142,7 +145,7 @@ Evaluate LISA using the gold parse
 ----
 Similarly, you can easily evaluate LISA using the original, gold parses. To do so on the dev set only, omit the `--test_eval` flag:
 ```bash
-python network.py --load --test --gold_attn_at_train False --load_dir models/lisa-conll05 --config_file models/lisa-conll05/config.cfg
+python network.py --load --test --gold_attn_at_train False --config_file models/lisa-conll05/config.cfg
 ```
 
 Train a model:
@@ -157,7 +160,7 @@ python network.py --config_file config/lisa-conll05.conf --save_dir model
 Results
 ====
 
-CoNLL-2005 results for released models (dev, WSJ test, Brown test):
+CoNLL-2005 results for released models w/ predicted predicates (dev, WSJ test, Brown test):
 
 | Model                       | P       | R       | F1      |     | P     | R     | F1    |     | P     | R     | F1    |
 | --------------------------- | ------- | ------- | ------- | --- | ----- | ----- | ----- | --- | ----- | ----- | ----- |
@@ -171,7 +174,25 @@ CoNLL-2005 results for released models (dev, WSJ test, Brown test):
 | `lisa-conll05-elmo` +D&M    | 85.83   | 84.51   | 85.17   |     | 87.13 | 86.67 | 86.90 |     | 79.02 | 77.49 | 78.25 |
 | `lisa-conll05-elmo` *+Gold* | *88.51* | *86.77* | *87.63* |     | ---   | ---   | ---   |     | ---   | ---   | ---   |
 
+CoNLL-2005 results for released models w/ gold predicates (dev, WSJ test, Brown test):
+
+| Model                             | P       | R       | F1      |     | P     | R     | F1    |     | P     | R     | F1    |
+| --------------------------------- | ------- | ------- | ------- | --- | ----- | ----- | ----- | --- | ----- | ----- | ----- |
+| `sa-conll05-gold-preds`           | 83.12   | 82.81   | 82.97   |     | 84.80 | 84.13 | 84.46 |     | 74.83 | 72.81 | 73.81 |
+| `lisa-conll05-gold-preds`         | 83.60   | 83.74   | 83.67   |     | 84.72 | 84.57 | 84.64 |     | 74.77 | 74.32 | 74.55 |
+| `lisa-conll05-gold-preds` +D&M    | 85.38   | 85.89   | 85.63   |     | 86.58 | 86.60 | 86.59 |     | 77.43 | 77.08 | 77.26 |
+| `lisa-conll05-gold-preds` *+Gold* | *89.11* | *89.38* | *89.25* |     | ---   | ---   | ---   |     | ---   | ---   | ---   |
 
 CoNLL-2012 results for released models (dev, test):
 
-TODO
+| Model                       | P       | R       | F1      |     | P     | R     | F1    |
+| --------------------------- | ------- | ------- | ------- | --- | ----- | ----- | ----- |  
+| `sa-conll12`                | 82.32   | 79.76   | 81.02   |     | 82.55 | 80.02 | 81.26 |
+| `lisa-conll12`              | 81.77   | 79.69   | 80.72   |     | 81.79 | 79.45 | 80.60 |
+| `lisa-conll12` +D&M         | 83.58   | 81.56   | 82.55   |     | 83.71 | 81.61 | 82.65 | 
+| `lisa-conll12` *+Gold*      | *87.73* | *85.31* | *86.51* |     | ---   | ---   | ---   |
+|||||||||
+| `sa-conll12-elmo`           | 84.09   | 82.40   | 83.24   |     | 84.28 | 82.21 | 83.23 |
+| `lisa-conll12-elmo`         | 84.34   | 82.73   | 83.53   |     | 84.27 | 82.47 | 83.36 |
+| `lisa-conll12-elmo` +D&M    | 84.30   | 82.98   | 83.64   |     | 84.41 | 82.87 | 83.63 |
+| `lisa-conll12-elmo` *+Gold* | *88.12* | *86.40* | *87.25* |     | ---   | ---   | ---   |

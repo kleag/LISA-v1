@@ -196,3 +196,15 @@ CoNLL-2012 results for released models (dev, test):
 | `lisa-conll12-elmo`         | 84.34   | 82.73   | 83.53   |     | 84.27 | 82.47 | 83.36 |
 | `lisa-conll12-elmo` +D&M    | 84.30   | 82.98   | 83.64   |     | 84.41 | 82.87 | 83.63 |
 | `lisa-conll12-elmo` *+Gold* | *88.12* | *86.40* | *87.25* |     | ---   | ---   | ---   |
+
+CoNLL-2005 dependency parsing results for released models (dev (section 24), WSJ test, Brown test):
+
+| Model                       | UAS     | LAS     |     | UAS    | LAS    |    | UAS    | LAS    | 
+| --------------------------- | ------- | ------- | --- | ------ | ------ |--- | ------ | ------ |
+| `dm-conll05-elmo`           | 95.25   | 92.54   |     | 96.47  | 93.94  |    | 93.53  | 89.62  |
+
+CoNLL-2012 dependency parsing results for released models (dev, test):
+
+| Model                       | UAS     | LAS     |     | UAS    | LAS    |
+| --------------------------- | ------- | ------- | --- | ------ | ------ |
+| `dm-conll12-elmo`           | 95.30   | 92.51   |     | 95.30  | 93.05  |

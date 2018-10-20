@@ -386,57 +386,63 @@ class Network(Configurable):
     return
 
 
-  def convert_bilou(self, indices):
-    strings = map(lambda i: self._vocabs[3][i], indices)
+  def convert_bilou(self, indices, labeltype):
+    if labeltype == 'propbank':
+      strings = map(lambda i: self._vocabs[3][i], indices)
+    else:
+      strings = map(lambda i: self._vocabs[6][i], indices)
     converted = []
     started_types = []
     # print(strings)
-    for i, s in enumerate(strings):
-      label_parts = s.split('/')
-      curr_len = len(label_parts)
-      combined_str = ''
-      Itypes = []
-      Btypes = []
-      for idx, label in enumerate(label_parts):
-        bilou = label[0]
-        label_type = label[2:]
-        props_str = ''
-        if bilou == 'I':
-          Itypes.append(label_type)
+    try:
+      for i, s in enumerate(strings):
+        label_parts = s.split('/')
+        curr_len = len(label_parts)
+        combined_str = ''
+        Itypes = []
+        Btypes = []
+        for idx, label in enumerate(label_parts):
+          bilou = label[0]
+          label_type = label[2:]
           props_str = ''
-        elif bilou == 'O':
-          curr_len = 0
-          props_str = ''
-        elif bilou == 'U':
-          # need to check whether last one was ended
-          props_str = '(' + label_type + ('*)' if idx == len(label_parts) - 1 else "")
-        elif bilou == 'B':
-          # need to check whether last one was ended
-          props_str = '(' + label_type
-          started_types.append(label_type)
-          Btypes.append(label_type)
-        elif bilou == 'L':
-          props_str = ')'
+          if bilou == 'I':
+            Itypes.append(label_type)
+            props_str = ''
+          elif bilou == 'O':
+            curr_len = 0
+            props_str = ''
+          elif bilou == 'U':
+            # need to check whether last one was ended
+            props_str = '(' + label_type + ('*)' if idx == len(label_parts) - 1 else "")
+          elif bilou == 'B':
+            # need to check whether last one was ended
+            props_str = '(' + label_type
+            started_types.append(label_type)
+            Btypes.append(label_type)
+          elif bilou == 'L':
+            props_str = ')'
+            started_types.pop()
+            curr_len -= 1
+          combined_str += props_str
+        while len(started_types) > curr_len:
+          converted[-1] += ')'
           started_types.pop()
-          curr_len -= 1
-        combined_str += props_str
-      while len(started_types) > curr_len:
+        while len(started_types) < len(Itypes) + len(Btypes):
+          combined_str = '(' + Itypes[-1] + combined_str
+          started_types.append(Itypes[-1])
+          Itypes.pop()
+        if not combined_str:
+          combined_str = '*'
+        elif combined_str[0] == "(" and combined_str[-1] != ")":
+          combined_str += '*'
+        elif combined_str[-1] == ")" and combined_str[0] != "(":
+          combined_str = '*' + combined_str
+        converted.append(combined_str)
+      while len(started_types) > 0:
         converted[-1] += ')'
         started_types.pop()
-      while len(started_types) < len(Itypes) + len(Btypes):
-        combined_str = '(' + Itypes[-1] + combined_str
-        started_types.append(Itypes[-1])
-        Itypes.pop()
-      if not combined_str:
-        combined_str = '*'
-      elif combined_str[0] == "(" and combined_str[-1] != ")":
-        combined_str += '*'
-      elif combined_str[-1] == ")" and combined_str[0] != "(":
-        combined_str = '*' + combined_str
-      converted.append(combined_str)
-    while len(started_types) > 0:
-      converted[-1] += ')'
-      started_types.pop()
+    except:
+      print(strings)
     return converted
 
   def parens_check(self, srl_preds_str):
@@ -525,12 +531,12 @@ class Network(Configurable):
       filename = self.valid_file
       minibatches = self.valid_minibatches
       dataset = self._validset
-      op = self.ops['test_op'][:15]
+      op = self.ops['test_op'][:20]
     else:
       filename = self.test_file
       minibatches = self.test_minibatches
       dataset = self._testset
-      op = self.ops['test_op'][15:]
+      op = self.ops['test_op'][20:]
     
     all_predictions = [[]]
     all_sents = [[]]
@@ -556,9 +562,9 @@ class Network(Configurable):
       #print('MB targets ', mb_targets[0])
       #print('MB targets shape: ', mb_targets.shape)
       forward_start = time.time()
-      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_predicates, srl_predicate_targets, transition_params, attn_weights, attn_correct, pos_correct, pos_preds = sess.run(op, feed_dict=feed_dict)
+      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_predicates, srl_predicate_targets, vn_probs, vn_preds, vn_logits, vn_correct, vn_count, transition_params, attn_weights, attn_correct, pos_correct, pos_preds = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
-      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_predicates, srl_predicate_targets, pos_preds, transition_params if viterbi else None)
+      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_predicates, srl_predicate_targets, pos_preds,  vn_preds, vn_logits, transition_params if viterbi else None)
       n_tokens += n_tokens_batch
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
@@ -696,6 +702,7 @@ class Network(Configurable):
     if self.eval_srl:
       # load the real gold preds file
       srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
+      vn_gold_fname = self.gold_dev_vn_props_file if validate else self.gold_test_vn_props_file
 
       # save SRL gold output for debugging purposes
       srl_sanity_fname = os.path.join(self.save_dir, 'srl_sanity.tsv')
@@ -713,7 +720,7 @@ class Network(Configurable):
           srl_preds = preds[:, 15+num_pred_srls+num_gold_srls:]
           srl_golds = preds[:, 15+num_pred_srls:15+num_gold_srls+num_pred_srls]
           srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)
-          srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+          srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
           # todo if you want golds in here get it from the props file
           # srl_golds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_golds)]))
           # print(srl_golds_str)
@@ -755,15 +762,16 @@ class Network(Configurable):
           # print("preds", preds)
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
-          srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
+          srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls: 15 + num_gold_srls + 2*num_pred_srls]
+          vn_preds = preds[:, 15 + num_gold_srls + 2*num_pred_srls:]
           if self.one_example_per_predicate:
-            # srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
             predicate_indices = np.where(preds[:, 4] == 1)[0]
             # print("predicate indices", predicate_indices)
           else:
             predicate_indices = preds[0, 15:15+num_pred_srls]
           # print("predicate indices", predicate_indices)
-          srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+          srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
+          #vn_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(vn_preds)]))
           # if len(predicate_indices) == 0:
           # if preds[0,6] < 4:
           #   print("preds", preds)
@@ -782,6 +790,48 @@ class Network(Configurable):
             print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
           f.write('\n')
 
+      vn_preds_fname = os.path.join(self.save_dir, 'vn_preds.tsv')
+      # print("writing srl preds file: %s" % srl_preds_fname)
+      with open(vn_preds_fname, 'w') as f:
+        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
+          # for each word, if predicate print word, otherwise -
+          # then all the SRL labels
+          preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
+          words = all_sents[bkt_idx][idx]
+          # if len(preds.shape) < 2:
+          #   preds = np.reshape(preds, [1, preds.shape[0]])
+          # print("preds", preds)
+          num_gold_srls = preds[0, 13]
+          num_pred_srls = preds[0, 14]
+          srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls: 15 + num_gold_srls + 2*num_pred_srls]
+          vn_preds = preds[:, 15 + num_gold_srls + 2*num_pred_srls:]
+          if self.one_example_per_predicate:
+            predicate_indices = np.where(preds[:, 4] == 1)[0]
+            # print("predicate indices", predicate_indices)
+          else:
+            predicate_indices = preds[0, 15:15+num_pred_srls]
+          # print("predicate indices", predicate_indices)
+          srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
+          print(srl_preds, srl_preds_str, vn_preds)
+          vn_preds_str = map(list, zip(*[self.convert_bilou(j, 'verbnet') for j in np.transpose(vn_preds)]))
+          # if len(predicate_indices) == 0:
+          # if preds[0,6] < 4:
+          #   print("preds", preds)
+          #   print("predicate inds", predicate_indices)
+          #   print("srl_preds_str", srl_preds_str)
+          #   print("srl_preds", srl_preds)
+          #   print("words", words)
+          for i, word in enumerate(words):
+            pred = vn_preds_str[i] if vn_preds_str else []
+            word_str = word if i in predicate_indices else '-'
+            fields = (word_str,) + tuple(pred)
+            owpl_str = '\t'.join(fields)
+            f.write(owpl_str + "\n")
+          if not self.parens_check(np.transpose(vn_preds_str)):
+            print(np.transpose(vn_preds_str))
+            print(map(lambda i: self._vocabs[3][i], np.transpose(vn_preds)))
+          f.write('\n')
+
       srl_acc = (srl_correct_total / srl_count_total)*100.0
 
       with open(os.devnull, 'w') as devnull:
@@ -790,6 +840,15 @@ class Network(Configurable):
           print(srl_eval)
           overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
           correct['F1'] = overall_f1
+        except CalledProcessError as e:
+          print("Call to eval failed: ", e)
+
+      with open('perlerror', 'w') as errorfile:
+        try:
+          vn_eval = check_output(["perl", "bin/srl-eval.pl", vn_gold_fname, vn_preds_fname], stderr=errorfile)
+          print(vn_eval)
+          overall_vn_f1 = float(vn_eval.split('\n')[6].split()[-1])
+          correct['VNF1'] = overall_vn_f1
         except CalledProcessError as e:
           print("Call to eval failed: ", e)
 
@@ -811,7 +870,7 @@ class Network(Configurable):
                 num_pred_srls = preds[0, 14]
                 srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
                 predicate_indices = preds[:, 15:15 + num_pred_srls]
-                srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+                srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
                 domain = '-'
                 for i, (word, p) in enumerate(zip(words, preds)):
                   domain = self._vocabs[5][p[5]]
@@ -866,6 +925,7 @@ class Network(Configurable):
     print('POS: %.2f' % pos_accuracy)
     print('SRL acc: %.2f' % (srl_acc))
     print('%sSRL F1: %s' % ("viterbi " if viterbi else "", correct["F1"]))
+    print('Verbnet F1: %s' % correct["VNF1"])
     return correct
   
   #=============================================================
@@ -964,6 +1024,11 @@ class Network(Configurable):
                       valid_output['srl_count'],
                       valid_output['srl_predicates'],
                       valid_output['srl_predicate_targets'],
+                      valid_output['vn_probs'],
+                      valid_output['vn_preds'],
+                      valid_output['vn_logits'],
+                      valid_output['vn_correct'],
+                      valid_output['vn_count'],
                       valid_output['transition_params'],
                       valid_output['attn_weights'],
                       valid_output['attn_correct'],
@@ -979,6 +1044,11 @@ class Network(Configurable):
                       test_output['srl_count'],
                       test_output['srl_predicates'],
                       test_output['srl_predicate_targets'],
+                      test_output['vn_probs'],
+                      test_output['vn_preds'],
+                      test_output['vn_logits'],
+                      test_output['vn_correct'],
+                      test_output['vn_count'],
                       test_output['transition_params'],
                       test_output['attn_weights'],
                       test_output['attn_correct'],

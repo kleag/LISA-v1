@@ -36,6 +36,7 @@ class Parser(BaseParser):
     targets = dataset.targets
     srl_targets = dataset.srl_targets_pb
     srl_targets_vn = dataset.srl_targets_vn
+    #srl_targets_vn = tf.Print(srl_targets_vn, [tf.shape(srl_targets), tf.shape(srl_targets_vn), srl_targets[0], srl_targets_vn[0]], "PB and VN")
     annotated = dataset.annotated
     #print(inputs.shape, targets.shape)
     step = dataset.step
@@ -84,6 +85,7 @@ class Parser(BaseParser):
     attn_weights_by_layer = {}
     combine_with_vn = self.combine_with_vn
     predict_vn = self.predict_vn
+    use_gold_vn_train = self.gold_train_vn
 
     hidden_size = self.num_heads * self.head_size
     self.print_once("n_recur: ", self.n_recur)
@@ -586,17 +588,22 @@ class Parser(BaseParser):
         srl_logits_vn_transpose = tf.transpose(srl_logits_vn, [0, 2, 1])
         srl_output_vn = self.output_srl_gather(srl_logits_vn_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
 
-        trigger_counts = tf.reduce_sum(predicate_predictions, -1)
-        vn_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
-        vn_targets = tf.gather_nd(tf.transpose(vn_target, [0, 2, 1]), vn_targets_indices)
+        if use_gold_vn_train:
+          trigger_counts = tf.reduce_sum(predicate_predictions, -1)
+          vn_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
+          vn_targets_gathered = tf.gather_nd(tf.transpose(vn_target, [0,2,1]), vn_targets_indices)
+          #vn_targets = tf.Print(vn_targets, [tf.shape(vn_targets), tf.shape(srl_logits_vn_transpose), vn_targets[0][0]])
 
-        vn_targets_one_hot = tf.one_hot(vn_targets, depth=num_classes, axis=-1)
-        #vn_targets_one_hot = tf.Print(vn_targets_one_hot, [tf.shape(vn_targets_one_hot)], "one hot")
-        vn_logits = srl_output_vn['logits']
-        #vn_targets_one_hot = tf.Print(vn_targets_one_hot, [tf.shape(vn_targets_one_hot)], "vn logits")
+          vn_targets_one_hot = tf.one_hot(vn_targets_gathered, depth=num_classes, axis=-1)
+          #vn_targets_one_hot = tf.Print(vn_targets_one_hot, [tf.shape(vn_targets_one_hot), vn_targets_one_hot[0][0]], "one hot")
+          vn_logits = srl_output_vn['logits']
+          #vn_targets_one_hot = tf.Print(vn_targets_one_hot, [tf.shape(vn_targets_one_hot)], "vn logits")
 
-        vn_scores = tf.reshape(vn_targets_one_hot, [preds_in_batch*bucket_size, num_classes])
-        #print('VN scores shape: ', vn_scores)
+          vn_scores = tf.reshape(vn_targets_one_hot, [preds_in_batch*bucket_size, num_classes])
+          #print('VN scores shape: ', vn_scores)
+
+        else:
+          vn_scores = tf.reshape(tf.nn.softmax(srl_output_vn['logits'], axis=2), [preds_in_batch*bucket_size, num_classes])
 
         vn_embeddings = vocabs[6].embedding_lookup(tf.range(num_classes), moving_params=self.moving_params)
 

@@ -63,7 +63,7 @@ class BaseParser(NN):
     return
   
   #=============================================================
-  def validate(self, mb_inputs, mb_targets, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, transition_params=None):
+  def validate(self, mb_inputs, mb_targets, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, vn_preds, vn_logits, transition_params=None):
     """"""
     
     sents = []
@@ -117,11 +117,13 @@ class BaseParser(NN):
       # num_triggers x seq_len
       # print(srl_preds)
       srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
+      vn_pred = vn_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
 
-      # print("srl pred", len(srl_pred), srl_pred)
+      #print("srl pred", len(vn_pred), vn_pred)
 
       if transition_params is not None and num_pred_srls > 0:
         srl_unary_scores = srl_logits[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
+        vn_unary_scores = vn_logits[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
         # print("unary scores shape", srl_unary_scores.shape)
         for pred_idx, single_pred_unary_scores in enumerate(srl_unary_scores):
           viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(single_pred_unary_scores, transition_params)
@@ -151,7 +153,7 @@ class BaseParser(NN):
 
       # num_srls = targets.shape[-1]-non_srl_targets_len
       # sent will contain 7 things non-srl, including one thing from targets
-      sent = -np.ones((length, 2*num_pred_srls+num_gold_srls+15), dtype=int)
+      sent = -np.ones((length, 3*num_pred_srls+num_gold_srls+15), dtype=int)
 
       # print("srl targets", targets[tokens, 3:])
       # print("srl triggers", np.sum(np.where(targets[tokens, 3:] == trigger_idx)))
@@ -182,13 +184,19 @@ class BaseParser(NN):
       # print("srl_pred", srl_pred)
       # print("srl_pred where", srl_pred[:,np.where(srl_trigger[tokens] == 1)[0]])
       s_pred = np.transpose(srl_pred)
+      vn_pred_trans = np.transpose(vn_pred)
       # print("srl_pred", srl_pred.shape, srl_pred)
       # print("pred_trigger_indices", pred_trigger_indices)
-      # print("s_pred", s_pred.shape, s_pred)
+      #print("s_pred", s_pred.shape, s_pred)
+      #print("v_pred", vn_pred_trans.shape, vn_pred_trans)
 
       if len(s_pred.shape) == 1:
         s_pred = np.expand_dims(s_pred, -1)
-      sent[:,15+num_pred_srls+num_gold_srls:] = s_pred
+      if len(vn_pred_trans.shape) == 1:
+        vn_pred_trans = np.expand_dims(vn_pred_trans, -1)
+      sent[:,15+num_pred_srls+num_gold_srls:15+2*num_pred_srls+num_gold_srls] = s_pred
+      sent[:, 15+2*num_pred_srls+num_gold_srls:] = vn_pred_trans
+      #print(num_pred_srls, num_gold_srls, s_pred.shape[1], sent.shape[1])
       sents.append(sent)
     return sents, total_time, roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total, non_trees_total, non_tree_preds, n_tokens
   

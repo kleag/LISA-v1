@@ -1238,7 +1238,7 @@ class NN(Configurable):
     bucket_size = original_shape[1]
     num_labels = tf.shape(logits_transposed)[-1]
 
-    if False:
+    if annotated3D is not None:
       #tokens_to_keep = tf.Print(self.tokens_to_keep3D, [tf.count_nonzero(self.tokens_to_keep3D, dtype=tf.float32)], "tokenstokeep")
       #annotated = tf.Print(annotated3D, [tf.count_nonzero(annotated3D, dtype=tf.float32)], "annotated")
       tokens_to_keep3D = tf.cast(tf.logical_and(tf.cast(self.tokens_to_keep3D, dtype=tf.bool), tf.cast(annotated3D, dtype=tf.bool)), dtype=tf.float32)
@@ -1267,6 +1267,8 @@ class NN(Configurable):
 
     # num_triggers_in_batch x seq_len
     predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
+
+    #mask = tf.Print(mask, [tf.shape(mask), tf.shape(predictions)], "mask and predictions")
     if annotated3D is not None:
       pass
       #predictions = tf.Print(predictions, [tf.shape(predictions)], "VN Predictions shape")
@@ -1274,11 +1276,12 @@ class NN(Configurable):
     trigger_counts = tf.reduce_sum(trigger_predictions, -1)
 
     def compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params):
-      # batch*num_targets x seq_len
+      # batch*num_targets x seq_len -- num_triggers?
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
 
       #srl_targets_indices = tf.Print(srl_targets_indices, [batch_size, bucket_size, tf.shape(logits_transposed), tf.shape(targets), tf.shape(srl_targets_transposed), tf.shape(srl_targets_indices)], summarize=10)
 
+      # num_triggers_in_batch x seq_len
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
 
       if transition_params is not None:
@@ -1317,9 +1320,11 @@ class NN(Configurable):
         pass
         #srl_targets = tf.Print(srl_targets, [tf.shape(srl_targets)], "VN Targets shape ")
 
-      predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
-      predictions = tf.Print(predictions, [tf.shape(predictions, tf.shape(srl_targets))], "predictions and targets")
-      correct = tf.reduce_sum(tf.cast(tf.equal(predictions, srl_targets), tf.float32))
+      #predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
+      #predictions = tf.Print(predictions, [tf.shape(predictions, tf.shape(srl_targets))], "predictions and targets")
+      correct_unmasked = tf.cast(tf.equal(predictions, srl_targets), tf.float32)
+      correct_masked = correct_unmasked * mask
+      correct = tf.reduce_sum(correct_masked)
       return loss, correct
 
     compute_loss = tf.logical_and(tf.greater(tf.shape(targets)[2], 0), tf.greater(tf.reduce_sum(trigger_counts), 0))

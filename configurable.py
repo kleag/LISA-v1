@@ -153,6 +153,16 @@ class Configurable(object):
   argparser.add_argument('--gold_test_props_file')
 
   @property
+  def gold_dev_vn_props_file(self):
+    return self._config.get('OS', 'gold_dev_vn_props_file')
+  argparser.add_argument('--gold_dev_vn_props_file')
+
+  @property
+  def gold_test_vn_props_file(self):
+    return self._config.get('OS', 'gold_test_vn_props_file')
+  argparser.add_argument('--gold_test_vn_props_file')
+
+  @property
   def gold_dev_parse_file(self):
     return self._config.get('OS', 'gold_dev_parse_file')
   argparser.add_argument('--gold_dev_parse_file')
@@ -548,8 +558,12 @@ class Configurable(object):
   @property
   def predict_vn(self):
     return self._config.getboolean('Training', 'predict_vn')
-
   argparser.add_argument('--predict_vn')
+
+  @property
+  def gold_train_vn(self):
+    return self._config.getboolean('Training', 'gold_train_vn')
+  argparser.add_argument('--gold_train_vn')
 
   @property
   def add_predicates_to_input(self):

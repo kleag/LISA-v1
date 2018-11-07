@@ -63,7 +63,7 @@ class BaseParser(NN):
     return
   
   #=============================================================
-  def validate(self, mb_inputs, mb_targets, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, vn_preds, vn_logits, transition_params=None):
+  def validate(self, mb_inputs, mb_targets, annotated, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, vn_preds, vn_logits, transition_params=None):
     """"""
     
     sents = []
@@ -91,7 +91,7 @@ class BaseParser(NN):
     # print("srl_trigger", srl_triggers.shape, srl_triggers)
     srl_pred_idx = 0
     n_tokens = 0.
-    for inputs, targets, parse_probs, rel_probs, n_cycle, len_2_cycle, srl_trigger, srl_trigger_target, pos_pred in zip(mb_inputs, mb_targets, mb_parse_probs, mb_rel_probs, n_cycles, len_2_cycles, srl_triggers, srl_trigger_targets, pos_preds):
+    for inputs, targets, annot, parse_probs, rel_probs, n_cycle, len_2_cycle, srl_trigger, srl_trigger_target, pos_pred in zip(mb_inputs, mb_targets, annotated, mb_parse_probs, mb_rel_probs, n_cycles, len_2_cycles, srl_triggers, srl_trigger_targets, pos_preds):
       tokens_to_keep = np.greater(inputs[:,0], Vocab.ROOT)
       length = np.sum(tokens_to_keep)
       n_tokens += length
@@ -118,6 +118,8 @@ class BaseParser(NN):
       # print(srl_preds)
       srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
       vn_pred = vn_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
+
+      #print('Annotation: ', annot, 'Verbnet: ', vn_pred)
 
       #print("srl pred", len(vn_pred), vn_pred)
 
@@ -153,19 +155,21 @@ class BaseParser(NN):
 
       # num_srls = targets.shape[-1]-non_srl_targets_len
       # sent will contain 7 things non-srl, including one thing from targets
-      sent = -np.ones((length, 3*num_pred_srls+num_gold_srls+15), dtype=int)
+      sent = -np.ones((length, 3*num_pred_srls+num_gold_srls+16), dtype=int)
 
       # print("srl targets", targets[tokens, 3:])
       # print("srl triggers", np.sum(np.where(targets[tokens, 3:] == trigger_idx)))
 
-      # print("inputs", inputs[tokens])
+      #print("inputs", inputs.shape)
       # print("srl pred shape", srl_pred.shape)
       # print("srl pred", srl_pred)
       # print("srl pred[tokens]", srl_pred[tokens])
       # print("num_srls", num_srls)
-      # print("targets shape", targets.shape)
+      #print("targets shape", targets.shape)
       # print("targets", targets)
-      # print("tokens", tokens)
+      #print("tokens", tokens.shape)
+      #print('Annotation shape: ', annot.shape)
+
       sent[:,0] = tokens # 1 = index
       sent[:,1:7] = inputs[tokens,:] # 2,3,4,5,6,7 inputs[0, 1, 2, 3, 4, 5] = word, word, auto_tag, predicate t/f, domain, sent id
       sent[:,7] = targets[tokens, 0] # 5 targets[0] = gold_tag
@@ -176,9 +180,10 @@ class BaseParser(NN):
       sent[:,12] = pos_pred[tokens] # 10 = predicted pos label
       sent[:,13] = num_gold_srls # 11 = num gold predicates in sent
       sent[:,14] = num_pred_srls  # 12 = num predicted predicates in sent
-      sent[:,15:15+num_pred_srls] = pred_trigger_indices # indices of predicted predicates
+      sent[:,15] = annot[0]
+      sent[:,16:16+num_pred_srls] = pred_trigger_indices # indices of predicted predicates
       # save trigger indices
-      sent[:,15+num_pred_srls:15+num_gold_srls+num_pred_srls] = targets[tokens, non_srl_targets_len:num_gold_srls+non_srl_targets_len] # gold srl tags
+      sent[:,16+num_pred_srls:16+num_gold_srls+num_pred_srls] = targets[tokens, non_srl_targets_len:num_gold_srls+non_srl_targets_len] # gold srl tags
       # print("trigger tokens", srl_trigger[tokens])
       # print("indices", np.where(srl_trigger[tokens] == 1)[0])
       # print("srl_pred", srl_pred)
@@ -194,8 +199,8 @@ class BaseParser(NN):
         s_pred = np.expand_dims(s_pred, -1)
       if len(vn_pred_trans.shape) == 1:
         vn_pred_trans = np.expand_dims(vn_pred_trans, -1)
-      sent[:,15+num_pred_srls+num_gold_srls:15+2*num_pred_srls+num_gold_srls] = s_pred
-      sent[:, 15+2*num_pred_srls+num_gold_srls:] = vn_pred_trans
+      sent[:,16+num_pred_srls+num_gold_srls:16+2*num_pred_srls+num_gold_srls] = s_pred
+      sent[:, 16+2*num_pred_srls+num_gold_srls:] = vn_pred_trans
       #print(num_pred_srls, num_gold_srls, s_pred.shape[1], sent.shape[1])
       sents.append(sent)
     return sents, total_time, roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total, non_trees_total, non_tree_preds, n_tokens

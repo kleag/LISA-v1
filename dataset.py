@@ -135,6 +135,7 @@ class Dataset(Configurable):
 
       # indices of SRLs from 14 to end of sentence
       #print('SRL start field: ', srl_start_field)
+      ##
       srl_take_indices = [idx for idx in range(srl_start_field, srl_start_field + sent_len) if idx < num_fields - 1 and (self.train_on_nested or np.all(['/' not in sent[j][idx] for j in range(sent_len)]))]
       predicate_indices = []
       for j, token in enumerate(sent):
@@ -149,7 +150,7 @@ class Dataset(Configurable):
         elif self.conll2012:
           word, auto_tag, gold_tag, head, rel, annotated = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[8], token[rels.conll_idx], token[1]
           domain = token[0].split('/')[0]
-          #print(word, auto_tag, gold_tag, head, rel)
+          #print(word, auto_tag, gold_tag, head, rel, annotated)
           if rel == 'root':
             head = j
           else:
@@ -158,9 +159,13 @@ class Dataset(Configurable):
           # srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in range(srl_start_field, srl_start_field + sent_len)]
           srl_fields_full = [token[idx] for idx in srl_take_indices] # todo can we use fancy indexing here?
 
+          #print('SRL fields full: ', srl_fields_full)
+
           # split propbank from verbnet labels e.g. Agent=ARG0
           srl_vn_labels = [tuple(srl_str.split('=')) for srl_str in srl_fields_full]
           srl_fields = [srl_str[1] if len(srl_str) > 1 else srl_str[0] for srl_str in srl_vn_labels]
+
+          #print('SRL fields: ', srl_fields, len(srl_fields))
           vn_fields = []
           for srl_str in srl_vn_labels:
             if len(srl_str) > 1:
@@ -169,13 +174,14 @@ class Dataset(Configurable):
               vn_fields.append('O')
             elif srl_str[0].split('-')[1] == 'V':
               vn_fields.append('V')
-            elif srl_str[0] == 'B-ARGA' or srl_str[0] == 'I-ARGA':
-              vn_fields.append('ARGA')
+            # elif srl_str[0] == 'B-ARGA' or srl_str[0] == 'I-ARGA':
+            #   vn_fields.append('ARGA')
             elif srl_str[0].startswith(('B-ARGM', 'I-ARGM', 'B-R-ARGM', 'B-C-ARGM', 'I-R-ARGM', 'I-C-ARGM')):
               vn_fields.append('-'.join(srl_str[0].split('-')[-2:]))
             else:
               vn_fields.append('NoLabel')
           #vn_fields = [srl_str[0] if len(srl_str) > 1 else 'NoLabel' if srl_str[0] is not 'O' else 'O' for srl_str in srl_vn_labels]
+          #print('VN fields: ', vn_fields, len(vn_fields))
 
           srl_fields += ['O'] * (sent_len - len(srl_take_indices))
           srl_tags = [srls[s][0] for s in srl_fields]
@@ -332,12 +338,17 @@ class Dataset(Configurable):
       srl_vn_start = 10 + srl_total // 2
       srl_vn = data[:, :maxlen, srl_vn_start:]
       srl_pb = targets[:,:,3:]
+      # print('Sents len: ', len(sents))
       # for i,sentence in enumerate(data):
+      #   print('Curr sent len: ', len(sents[i]))
       #   for j,token in enumerate(sentence):
-      #     if token[6] == 1:
+      #     print('Annotation: ', token[6])
+      #     try:
       #       print('Word: ', sents[i][j])
-      #       print('SRL part: ', token[10: srl_vn_start], len(token[10: srl_vn_start]))
-      #       print('VN part: ', token[srl_vn_start:], len(token[srl_vn_start:]))
+      #     except IndexError:
+      #       print('No word')
+      #     #print('SRL part: ', token[10: srl_vn_start], len(token[10: srl_vn_start]))
+      #     print('VN part: ', token[srl_vn_start:], len(token[srl_vn_start:]))
       #print('SRL total: ', srl_total, 'SRL VN start: ', srl_vn_start)
       #print(targets[:,:,3:])
       #print(min(target_idxs), maxlen+max(target_idxs)+1)
@@ -349,6 +360,11 @@ class Dataset(Configurable):
         self.srl_targets_vn: data[:, :maxlen, srl_vn_start:],
         self.annotated: data[:,:maxlen, 6]
       })
+
+      annot = feed_dict[self.annotated]
+      inp = feed_dict[self.inputs]
+      # print('Annotation shape: ', annot.shape, 'Input shape: ', inp.shape)
+      # print('Annotation: ', annot[0], 'Input: ', inp[0])
       yield feed_dict, sents
   
   #=============================================================

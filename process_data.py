@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import re
+
 conll_fname = sys.argv[1]
 semlink_fname = sys.argv[2]
 out_fname = sys.argv[3]
@@ -20,16 +21,17 @@ with open(conll_fname) as conll_file:
                     sentid = 0
                 split_conll_line.insert(2, str(sentid))
                 buff.append(split_conll_line)
-                #print(split_conll_line[0], split_conll_line[2], split_conll_line[4])
+                # print(split_conll_line[0], split_conll_line[2], split_conll_line[4])
                 oldkey = split_conll_line[0]
             else:
                 conll_key = (buff[0][0], buff[0][2])
                 buff_array = np.array(buff, dtype=object)
                 # all pred-arg SRL tags
-                frames = buff_array[:,15:-1]
+                frames = buff_array[:, 15:-1]
+                last_col = buff_array[:, -1]
                 words = buff_array[:, 4]
                 # column containing root form of verb
-                preds_col = buff_array[:,10]
+                preds_col = buff_array[:, 10]
                 num_preds = frames.shape[1]
                 pred_array = np.empty((num_preds), dtype=object)
                 for i in range(frames.shape[0]):
@@ -51,7 +53,7 @@ with open(conll_fname) as conll_file:
                             annotated = True
                             semlink_buff.append(split_semlink_line)
 
-                #print(conll_key, len(semlink_buff), lens)
+                # print(conll_key, len(semlink_buff), lens)
                 sem_pred_list = []
                 sem_arg_list = []
                 for semlink_line in semlink_buff:
@@ -72,25 +74,25 @@ with open(conll_fname) as conll_file:
                 counter = 0
                 for i in range(num_preds):
                     conll_pred = pred_array[i]
-                    conll_args = frames[:,i]
+                    conll_args = frames[:, i]
                     for j in range(counter, len(sem_pred_list)):
                         sem_pred = sem_pred_list[j]
                         sem_args = sem_arg_list[j]
                         if conll_pred == sem_pred:
                             counter = j + 1
 
-                            for k,entry in enumerate(conll_args):
+                            for k, entry in enumerate(conll_args):
                                 argflag = False
-                                if entry not in ['B-V','O']:
-                                    if entry.startswith(('B-','I-')):
-                                        if entry.startswith(('B-C-','I-C-', 'B-R-','I-R-')):
+                                if entry not in ['B-V', 'O']:
+                                    if entry.startswith(('B-', 'I-')):
+                                        if entry.startswith(('B-C-', 'I-C-', 'B-R-', 'I-R-')):
                                             conll_arg = entry[4:]
                                         else:
                                             conll_arg = entry[2:]
                                     else:
                                         conll_arg = entry
                                     if '=' in conll_arg:
-                                        print(num_preds, conll_key, conll_pred, i,j,k,conll_pred, conll_arg)
+                                        print(num_preds, conll_key, conll_pred, i, j, k, conll_pred, conll_arg)
                                     for sem_arg in sem_args:
                                         if '=' in sem_arg:
                                             pb_part, vn_part = sem_arg.split('=')
@@ -101,7 +103,7 @@ with open(conll_fname) as conll_file:
                                             else:
                                                 vn_part = pb_part
                                         if conll_arg == pb_part:
-                                            frames[k,i] = vn_part + '=' + frames[k,i]
+                                            frames[k, i] = vn_part + '=' + frames[k, i]
                                             argflag = True
                                             break
 
@@ -109,16 +111,13 @@ with open(conll_fname) as conll_file:
                                         pass
                                         print(conll_key, conll_arg)
 
-                                            #print(frames[k,i], sem_pred, conll_arg, sem_arg, vn_part)
+                                        # print(frames[k,i], sem_pred, conll_arg, sem_arg, vn_part)
 
                             break
-                for i,token in enumerate(buff):
-                    #print(token[0] + '\t' + str(annotated) + '\t' + '\t'.join(token[1:15]) + '\t' + '\t'.join(frames[i]) + '\n')
-                    out_file.write(token[0] + '\t' + str(annotated) + '\t' + '\t'.join(token[1:15]) + '\t' + '\t'.join(frames[i]) + '\n')
+                for i, token in enumerate(buff):
+                    print(token[0] + '\t' + str(annotated) + '\t' + '\t'.join(token[1:15]) + '\t' + '\t'.join(frames[i]) + '\n')
+                    out_file.write(token[0] + '\t' + str(annotated) + '\t' + '\t'.join(token[1:15]) + '\t' + '\t'.join(
+                        frames[i]) + '\t' + last_col[i] + '\n')
                 buff = []
                 sentid += 1
                 out_file.write('\n')
-
-
-
-

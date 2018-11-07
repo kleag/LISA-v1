@@ -394,7 +394,7 @@ class Network(Configurable):
     converted = []
     started_types = []
     # print(strings)
-    try:
+    if labeltype == 'propbank':
       for i, s in enumerate(strings):
         label_parts = s.split('/')
         curr_len = len(label_parts)
@@ -441,8 +441,35 @@ class Network(Configurable):
       while len(started_types) > 0:
         converted[-1] += ')'
         started_types.pop()
-    except:
-      print(strings)
+
+    else:
+      try:
+        for label in strings:
+          if len(started_types) == 0:
+            if label == 'O':
+              converted.append('*')
+            else:
+              converted.append('(' + label + '*')
+              started_types.append(label)
+          else:
+              if label == 'O':
+                converted[-1] = converted[-1] + ')'
+                converted.append('*')
+                started_types = []
+              else:
+                if label == started_types[-1]:
+                  converted.append('*')
+                else:
+                  converted[-1] = converted[-1] + ')'
+                  converted.append('(' + label + '*')
+                  started_types = [label]
+
+        if len(started_types) > 0:
+          converted[-1] += ')'
+
+      except:
+        print('Exception!! Original preds: ', strings, 'Converted: ', converted)
+
     return converted
 
   def parens_check(self, srl_preds_str):
@@ -555,16 +582,22 @@ class Network(Configurable):
     attn_correct_counts = {}
     pos_correct_total = 0.
     n_tokens = 0.
+    global_annot_count = 0
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
       vn_targets = feed_dict[dataset.srl_targets_vn]
+      annotated = feed_dict[dataset.annotated]
+
+      # print('Inputs shape and annot', mb_inputs.shape, annotated.shape)
+      # print('Inputs and annotation', mb_inputs[0], annotated[0])
+
       #print('MB targets ', mb_targets[0])
       #print('MB targets shape: ', mb_targets.shape)
       forward_start = time.time()
       probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_predicates, srl_predicate_targets, vn_probs, vn_preds, vn_logits, vn_correct, vn_count, transition_params, attn_weights, attn_correct, pos_correct, pos_preds = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
-      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_predicates, srl_predicate_targets, pos_preds,  vn_preds, vn_logits, transition_params if viterbi else None)
+      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, annotated, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_predicates, srl_predicate_targets, pos_preds,  vn_preds, vn_logits, transition_params if viterbi else None)
       n_tokens += n_tokens_batch
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
@@ -791,6 +824,7 @@ class Network(Configurable):
           f.write('\n')
 
       vn_preds_fname = os.path.join(self.save_dir, 'vn_preds.tsv')
+      #print(annotated.shape, len(data_indices))
       # print("writing srl preds file: %s" % srl_preds_fname)
       with open(vn_preds_fname, 'w') as f:
         for p_idx, (bkt_idx, idx) in enumerate(data_indices):
@@ -798,21 +832,27 @@ class Network(Configurable):
           # then all the SRL labels
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
           words = all_sents[bkt_idx][idx]
+
           # if len(preds.shape) < 2:
           #   preds = np.reshape(preds, [1, preds.shape[0]])
           # print("preds", preds)
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
-          srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls: 15 + num_gold_srls + 2*num_pred_srls]
-          vn_preds = preds[:, 15 + num_gold_srls + 2*num_pred_srls:]
+          annotation = preds[0,15]
+          if annotation == 0:
+              continue
+          #print('Annotation: ', annotation)
+          #global_annot_count += annotation
+          srl_preds = preds[:, 16 + num_gold_srls + num_pred_srls: 16 + num_gold_srls + 2*num_pred_srls]
+          vn_preds = preds[:, 16 + num_gold_srls + 2*num_pred_srls:]
           if self.one_example_per_predicate:
             predicate_indices = np.where(preds[:, 4] == 1)[0]
             # print("predicate indices", predicate_indices)
           else:
-            predicate_indices = preds[0, 15:15+num_pred_srls]
+            predicate_indices = preds[0, 16:16+num_pred_srls]
           # print("predicate indices", predicate_indices)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
-          print(srl_preds, srl_preds_str, vn_preds)
+          #print(srl_preds, srl_preds_str, vn_preds)
           vn_preds_str = map(list, zip(*[self.convert_bilou(j, 'verbnet') for j in np.transpose(vn_preds)]))
           # if len(predicate_indices) == 0:
           # if preds[0,6] < 4:
@@ -820,7 +860,8 @@ class Network(Configurable):
           #   print("predicate inds", predicate_indices)
           #   print("srl_preds_str", srl_preds_str)
           #   print("srl_preds", srl_preds)
-          #   print("words", words)
+          #print("words", words)
+          # print("vn preds: ", vn_preds_str)
           for i, word in enumerate(words):
             pred = vn_preds_str[i] if vn_preds_str else []
             word_str = word if i in predicate_indices else '-'
@@ -828,8 +869,9 @@ class Network(Configurable):
             owpl_str = '\t'.join(fields)
             f.write(owpl_str + "\n")
           if not self.parens_check(np.transpose(vn_preds_str)):
-            print(np.transpose(vn_preds_str))
-            print(map(lambda i: self._vocabs[3][i], np.transpose(vn_preds)))
+            print('Parantheses check failed: ', np.transpose(vn_preds_str))
+            #print(np.transpose(vn_preds_str))
+            #print(map(lambda i: self._vocabs[3][i], np.transpose(vn_preds)))
           f.write('\n')
 
       srl_acc = (srl_correct_total / srl_count_total)*100.0
@@ -848,9 +890,13 @@ class Network(Configurable):
           vn_eval = check_output(["perl", "bin/srl-eval.pl", vn_gold_fname, vn_preds_fname], stderr=errorfile)
           print(vn_eval)
           overall_vn_f1 = float(vn_eval.split('\n')[6].split()[-1])
-          correct['VNF1'] = overall_vn_f1
+          try:
+            correct['VNF1'] = overall_vn_f1
+          except:
+            correct['VNF1'] = 0
         except CalledProcessError as e:
           print("Call to eval failed: ", e)
+          correct['VNF1'] = 0
 
       if self.eval_by_domain:
         srl_gold_fname_path = '/'.join(srl_gold_fname.split('/')[:-1])
@@ -926,6 +972,7 @@ class Network(Configurable):
     print('SRL acc: %.2f' % (srl_acc))
     print('%sSRL F1: %s' % ("viterbi " if viterbi else "", correct["F1"]))
     print('Verbnet F1: %s' % correct["VNF1"])
+    print('Annotated sents: ', global_annot_count)
     return correct
   
   #=============================================================

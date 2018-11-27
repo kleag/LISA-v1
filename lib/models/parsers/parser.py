@@ -36,7 +36,9 @@ class Parser(BaseParser):
     targets = dataset.targets
     srl_targets = dataset.srl_targets_pb
     srl_targets_vn = dataset.srl_targets_vn
-    #srl_targets_vn = tf.Print(srl_targets_vn, [tf.shape(srl_targets), tf.shape(srl_targets_vn), srl_targets[0], srl_targets_vn[0]], "PB and VN")
+    nolabel_mask = tf.where(tf.equal(srl_targets_vn, 1))
+    #srl_targets_vn = tf.Print(srl_targets_vn, [tf.shape(srl_targets_vn), tf.shape(nolabel_mask), nolabel_mask[0]], "PB and VN")
+
     annotated = dataset.annotated
     #print(inputs.shape, targets.shape)
     step = dataset.step

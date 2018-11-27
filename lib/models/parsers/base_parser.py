@@ -122,6 +122,7 @@ class BaseParser(NN):
       #print('Annotation: ', annot, 'Verbnet: ', vn_pred)
 
       #print("srl pred", len(vn_pred), vn_pred)
+      #print('srl logits shape: ', srl_logits.shape, 'vn logits shape: ', vn_logits.shape)
 
       if transition_params is not None and num_pred_srls > 0:
         srl_unary_scores = srl_logits[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]

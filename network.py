@@ -735,7 +735,6 @@ class Network(Configurable):
     if self.eval_srl:
       # load the real gold preds file
       srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
-      vn_gold_fname = self.gold_dev_vn_props_file if validate else self.gold_test_vn_props_file
 
       # save SRL gold output for debugging purposes
       srl_sanity_fname = os.path.join(self.save_dir, 'srl_sanity.tsv')
@@ -795,13 +794,13 @@ class Network(Configurable):
           # print("preds", preds)
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
-          srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls: 15 + num_gold_srls + 2*num_pred_srls]
-          vn_preds = preds[:, 15 + num_gold_srls + 2*num_pred_srls:]
+          srl_preds = preds[:, 16 + num_gold_srls + num_pred_srls: 16 + num_gold_srls + 2*num_pred_srls]
+          #vn_preds = preds[:, 15 + num_gold_srls + 2*num_pred_srls:]
           if self.one_example_per_predicate:
             predicate_indices = np.where(preds[:, 4] == 1)[0]
             # print("predicate indices", predicate_indices)
           else:
-            predicate_indices = preds[0, 15:15+num_pred_srls]
+            predicate_indices = preds[0, 16:16+num_pred_srls]
           # print("predicate indices", predicate_indices)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
           #vn_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(vn_preds)]))
@@ -823,6 +822,19 @@ class Network(Configurable):
             print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
           f.write('\n')
 
+        srl_acc = (srl_correct_total / srl_count_total) * 100.0
+
+      with open(os.devnull, 'w') as devnull:
+        try:
+          srl_eval = check_output(["perl", "bin/srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)
+          print(srl_eval)
+          overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
+          correct['F1'] = overall_f1
+        except CalledProcessError as e:
+          print("Call to eval failed: ", e)
+
+    if True:
+      vn_gold_fname = self.gold_dev_vn_props_file if validate else self.gold_test_vn_props_file
       vn_preds_fname = os.path.join(self.save_dir, 'vn_preds.tsv')
       #print(annotated.shape, len(data_indices))
       # print("writing srl preds file: %s" % srl_preds_fname)
@@ -843,14 +855,14 @@ class Network(Configurable):
               continue
           #print('Annotation: ', annotation)
           #global_annot_count += annotation
-          srl_preds = preds[:, 16 + num_gold_srls + num_pred_srls: 16 + num_gold_srls + 2*num_pred_srls]
+          #srl_preds = preds[:, 16 + num_gold_srls + num_pred_srls: 16 + num_gold_srls + 2*num_pred_srls]
           vn_preds = preds[:, 16 + num_gold_srls + 2*num_pred_srls:]
           if self.one_example_per_predicate:
             predicate_indices = np.where(preds[:, 4] == 1)[0]
             # print("predicate indices", predicate_indices)
           else:
             predicate_indices = preds[0, 16:16+num_pred_srls]
-          # print("predicate indices", predicate_indices)
+          #print("predicate indices", predicate_indices)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
           #print(srl_preds, srl_preds_str, vn_preds)
           vn_preds_str = map(list, zip(*[self.convert_bilou(j, 'verbnet') for j in np.transpose(vn_preds)]))
@@ -873,17 +885,6 @@ class Network(Configurable):
             #print(np.transpose(vn_preds_str))
             #print(map(lambda i: self._vocabs[3][i], np.transpose(vn_preds)))
           f.write('\n')
-
-      srl_acc = (srl_correct_total / srl_count_total)*100.0
-
-      with open(os.devnull, 'w') as devnull:
-        try:
-          srl_eval = check_output(["perl", "bin/srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)
-          print(srl_eval)
-          overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
-          correct['F1'] = overall_f1
-        except CalledProcessError as e:
-          print("Call to eval failed: ", e)
 
       with open('perlerror', 'w') as errorfile:
         try:

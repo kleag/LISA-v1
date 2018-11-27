@@ -51,7 +51,7 @@ my $ntargets = 0;  # number of target verbs
 my %E;             # evaluation results
 my %C;             # confusion matrix
 
-my %excluded = ( V => 1);
+my %excluded = ( V => 1, NoLabel => 1);
 
 ##
 

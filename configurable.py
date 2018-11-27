@@ -693,6 +693,11 @@ class Configurable(object):
   argparser.add_argument('--eval_srl')
 
   @property
+  def eval_vn(self):
+    return self._config.getboolean('Training', 'eval_vn')
+  argparser.add_argument('--eval_vn')
+
+  @property
   def eval_by_domain(self):
     return self._config.getboolean('Training', 'eval_by_domain')
   argparser.add_argument('--eval_by_domain')

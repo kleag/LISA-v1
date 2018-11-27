@@ -1252,6 +1252,7 @@ class NN(Configurable):
     #                     tf.where(tf.equal(trigger_predictions, 1)))
     mask_tiled = tf.reshape(tf.tile(tf.squeeze(tokens_to_keep3D, -1), [1, bucket_size]), [batch_size, bucket_size, bucket_size])
     mask = tf.gather_nd(mask_tiled, tf.where(tf.equal(trigger_predictions, 1)))
+    #mask = tf.Print(mask, [tf.shape(mask)], "mask shape")
     count = tf.cast(tf.count_nonzero(mask), tf.float32)
 
     # now we have k sets of targets for the k frames
@@ -1275,7 +1276,7 @@ class NN(Configurable):
 
     trigger_counts = tf.reduce_sum(trigger_predictions, -1)
 
-    def compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params):
+    def compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, annotated3D):
       # batch*num_targets x seq_len -- num_triggers?
       srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
 
@@ -1297,15 +1298,29 @@ class NN(Configurable):
           # srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.reduce_sum(trigger_counts), tf.shape(logits_transposed), tf.shape(srl_targets), tf.shape(srl_targets_onehot)], "srl logits", summarize=200)
           # srl_targets_onehot = tf.Print(srl_targets_onehot, [logits_transposed], "srl logits", summarize=200)
           #
-          # srl_targets_onehot = tf.Print(srl_targets_onehot, [srl_targets], "srl targets", summarize=200)
-          # srl_targets_onehot = tf.Print(srl_targets_onehot, [srl_targets_onehot], "srl targets onehot", summarize=200)
+          #srl_targets_onehot = tf.Print(srl_targets_onehot, [num_labels, tf.shape(srl_targets_onehot)], "srl targets", summarize=200)
+          #srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(srl_targets_onehot)], "srl targets onehot", summarize=200)
 
           orig_logits_shape = tf.shape(logits_transposed)
+
+          if annotated3D is not None:
+            new_mask = mask
+            #num_labels = tf.Print(num_labels, [num_labels, tf.shape(srl_targets_onehot)], "num labels")
+            # todo don't hardcode num_labels
+            class_weights_np = np.ones(50, dtype=np.float32)
+            class_weights_np[2] = 0
+            class_weights_np[0] = 0
+            class_weights = tf.convert_to_tensor(class_weights_np)
+            sample_weights = tf.reduce_sum(tf.multiply(srl_targets_onehot, class_weights), 2)
+            #sample_weights = tf.Print(sample_weights, [tf.shape(sample_weights), sample_weights], "class weights", summarize=10)
+            new_mask = tf.cast(tf.logical_and(tf.cast(sample_weights, tf.bool), tf.cast(mask, tf.bool)), tf.float32)
+          else:
+            new_mask = mask
 
           # Backprop into logits?
           loss = tf.losses.softmax_cross_entropy(logits=tf.reshape(logits_transposed, [-1, num_labels]),
                                                  onehot_labels=tf.reshape(srl_targets_onehot, [-1, num_labels]),
-                                                 weights=tf.reshape(mask, [-1]),
+                                                 weights=tf.reshape(new_mask, [-1]),
                                                  label_smoothing=self.label_smoothing,
                                                  reduction=tf.losses.Reduction.SUM_BY_NONZERO_WEIGHTS)
           # cross_entropy = tf.Print(cross_entropy, [cross_entropy], "cross entropy", summarize=200)
@@ -1329,7 +1344,7 @@ class NN(Configurable):
 
     compute_loss = tf.logical_and(tf.greater(tf.shape(targets)[2], 0), tf.greater(tf.reduce_sum(trigger_counts), 0))
     loss, correct = tf.cond(compute_loss,
-                   lambda: compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params),
+                   lambda: compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, annotated3D),
                    lambda: (tf.constant(0.), tf.constant(0.)))
 
     probabilities = tf.nn.softmax(logits_transposed)

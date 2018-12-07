@@ -51,7 +51,8 @@ my $ntargets = 0;  # number of target verbs
 my %E;             # evaluation results
 my %C;             # confusion matrix
 
-my %excluded = ( V => 1, NoLabel => 1);
+my %excluded = ( V => 1);
+my %ignored = ( NoLabel => 1);
 
 ##
 
@@ -303,8 +304,10 @@ sub evaluate_proposition {
     }
     foreach $a (@{$o->{ms}}) {
 	if (!$excluded{$a->type}) {
-	    $e{ms}++;
-	    $e{T}{$a->type}{ms}++;
+	    if (!$ignored{$a->type}) {
+	        $e{ms}++;
+	        $e{T}{$a->type}{ms}++;
+	    }
 	}
 	else {
 	    $e{E}{$a->type}{ms}++;
@@ -1096,48 +1099,58 @@ sub discriminate_args {
 	my $e = $a->end;
 
 	my $gold = $ARGS{$s}{$e};
+
+
 	if (!defined($gold)) {
 	    push @{$out->{op}}, $a;
 	}
-	elsif ($gold->single and $a->single) {
-	    if (!$check_type or ($gold->type eq $a->type)) {
-		!$check_type and push @{$out->{eq}}, $gold;
-		push @{$out->{ok}}, $a;
-		delete($ARGS{$s}{$e});
-	    }
-	    else {
-		push @{$out->{op}}, $a;
-	    }
-	}
-	elsif (!$gold->single and $a->single) {
-	    push @{$out->{op}}, $a;
-	}
-	elsif ($gold->single and !$a->single) {
-	    push @{$out->{op}}, $a;
-	}
 	else {
-	    # Check phrases of arg
-	    my %P;
-	    my $ok = (!$check_type or ($gold->type eq $a->type));
-	    $ok and map { $P{ $_->start.".".$_->end } = 1 } $gold->phrases;
-	    my @P = $a->phrases;
-	    while ($ok and @P) {
-		my $p = shift @P;
-		if ($P{ $p->start.".".$p->end }) {
-		    delete $P{ $p->start.".".$p->end }
-		}
-		else {
-		    $ok = 0;
-		}
+	    my $gv = $gold->type;
+	    if ($gv eq 'NoLabel') {
+	        #print "$gv\n";
+	        ;
 	    }
-	    if ($ok and !(values %P)) {
-		!$check_type and push @{$out->{eq}}, $gold;
-		push @{$out->{ok}}, $a;
-		delete $ARGS{$s}{$e}
-	    }
-	    else {
-		push @{$out->{op}}, $a;
-	    }
+
+        elsif ($gold->single and $a->single) {
+            if (!$check_type or ($gold->type eq $a->type)) {
+            !$check_type and push @{$out->{eq}}, $gold;
+            push @{$out->{ok}}, $a;
+            delete($ARGS{$s}{$e});
+            }
+            else {
+            push @{$out->{op}}, $a;
+            }
+        }
+        elsif (!$gold->single and $a->single) {
+            push @{$out->{op}}, $a;
+        }
+        elsif ($gold->single and !$a->single) {
+            push @{$out->{op}}, $a;
+        }
+        else {
+            # Check phrases of arg
+            my %P;
+            my $ok = (!$check_type or ($gold->type eq $a->type));
+            $ok and map { $P{ $_->start.".".$_->end } = 1 } $gold->phrases;
+            my @P = $a->phrases;
+            while ($ok and @P) {
+            my $p = shift @P;
+            if ($P{ $p->start.".".$p->end }) {
+                delete $P{ $p->start.".".$p->end }
+            }
+            else {
+                $ok = 0;
+            }
+            }
+            if ($ok and !(values %P)) {
+            !$check_type and push @{$out->{eq}}, $gold;
+            push @{$out->{ok}}, $a;
+            delete $ARGS{$s}{$e}
+            }
+            else {
+            push @{$out->{op}}, $a;
+            }
+        }
 	}
     }
 

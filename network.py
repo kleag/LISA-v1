@@ -749,8 +749,8 @@ class Network(Configurable):
           words = all_sents[bkt_idx][idx]
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
-          srl_preds = preds[:, 15+num_pred_srls+num_gold_srls:]
-          srl_golds = preds[:, 15+num_pred_srls:15+num_gold_srls+num_pred_srls]
+          srl_preds = preds[:, 16+num_pred_srls+num_gold_srls:]
+          srl_golds = preds[:, 16+num_pred_srls:16+num_gold_srls+num_pred_srls]
           srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
           # todo if you want golds in here get it from the props file
@@ -782,6 +782,7 @@ class Network(Configurable):
 
       # save SRL output
       srl_preds_fname = os.path.join(self.save_dir, 'srl_preds.tsv')
+      global_pred_indices = None
       # print("writing srl preds file: %s" % srl_preds_fname)
       with open(srl_preds_fname, 'w') as f:
         for p_idx, (bkt_idx, idx) in enumerate(data_indices):
@@ -801,6 +802,7 @@ class Network(Configurable):
             # print("predicate indices", predicate_indices)
           else:
             predicate_indices = preds[0, 16:16+num_pred_srls]
+          global_pred_indices = predicate_indices
           # print("predicate indices", predicate_indices)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
           #vn_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(vn_preds)]))
@@ -855,7 +857,7 @@ class Network(Configurable):
               continue
           #print('Annotation: ', annotation)
           #global_annot_count += annotation
-          #srl_preds = preds[:, 16 + num_gold_srls + num_pred_srls: 16 + num_gold_srls + 2*num_pred_srls]
+          srl_preds = preds[:, 16 + num_gold_srls + num_pred_srls: 16 + num_gold_srls + 2*num_pred_srls]
           vn_preds = preds[:, 16 + num_gold_srls + 2*num_pred_srls:]
           if self.one_example_per_predicate:
             predicate_indices = np.where(preds[:, 4] == 1)[0]
@@ -863,6 +865,7 @@ class Network(Configurable):
           else:
             predicate_indices = preds[0, 16:16+num_pred_srls]
           #print("predicate indices", predicate_indices)
+          #predicate_indices = global_pred_indices
           srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
           #print(srl_preds, srl_preds_str, vn_preds)
           vn_preds_str = map(list, zip(*[self.convert_bilou(j, 'verbnet') for j in np.transpose(vn_preds)]))
@@ -915,8 +918,8 @@ class Network(Configurable):
                 words = all_sents[bkt_idx][idx]
                 num_gold_srls = preds[0, 13]
                 num_pred_srls = preds[0, 14]
-                srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
-                predicate_indices = preds[:, 15:15 + num_pred_srls]
+                srl_preds = preds[:, 16 + num_gold_srls + num_pred_srls:]
+                predicate_indices = preds[:, 16:16 + num_pred_srls]
                 srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
                 domain = '-'
                 for i, (word, p) in enumerate(zip(words, preds)):

@@ -35,9 +35,9 @@ class Parser(BaseParser):
     inputs = dataset.inputs
     targets = dataset.targets
     srl_targets = dataset.srl_targets_pb
-    srl_targets_vn = dataset.srl_targets_vn
-    nolabel_mask = tf.where(tf.equal(srl_targets_vn, 1))
-    #srl_targets_vn = tf.Print(srl_targets_vn, [tf.shape(srl_targets_vn), tf.shape(nolabel_mask), nolabel_mask[0]], "PB and VN")
+    vn_targets = dataset.srl_targets_vn
+    nolabel_mask = tf.where(tf.equal(vn_targets, 1))
+    #vn_targets = tf.Print(vn_targets, [tf.shape(vn_targets), vn_targets[0], vn_targets[0][1]], "VN", summarize=10)
 
     annotated = dataset.annotated
     #print(inputs.shape, targets.shape)
@@ -481,10 +481,11 @@ class Parser(BaseParser):
     #   aux_trigger_output = compute_predicates(aux_trigger_inputs, 'SRL-Triggers-Aux', False)
     #   aux_trigger_loss = self.aux_trigger_penalty * aux_trigger_output['loss']
 
+    #print('Start idx: ', vocabs[4].predicate_true_start_idx)
     predicate_targets_binary = tf.where(tf.greater(predicate_targets, vocabs[4].predicate_true_start_idx),
                                      tf.ones_like(predicate_targets), tf.zeros_like(predicate_targets))
 
-    # predicate_targets_binary = tf.Print(predicate_targets_binary, [predicate_targets], "predicate targets", summarize=200)
+    #predicate_targets_binary = tf.Print(predicate_targets_binary, [tf.shape(predicate_targets_binary), predicate_targets_binary, predicate_targets], "predicate targets", summarize=200)
 
     def dummy_predicate_output():
       return {
@@ -509,8 +510,8 @@ class Parser(BaseParser):
       # predicted
       predicate_predictions = predicate_output['predicate_predictions']
 
-    # predicate_predictions = tf.Print(predicate_predictions, [predicate_targets], "predicate_targets", summarize=50)
-    # predicate_predictions = tf.Print(predicate_predictions, [predicate_predictions], "predicate_predictions", summarize=50)
+    #predicate_predictions = tf.Print(predicate_predictions, [predicate_targets], "predicate_targets", summarize=50)
+    #predicate_predictions = tf.Print(predicate_predictions, [predicate_predictions], "predicate_predictions", summarize=50)
 
 
     ######## POS tags ########
@@ -583,36 +584,37 @@ class Parser(BaseParser):
         gathered_predicates = tf.expand_dims(tf.gather_nd(predicate_mlp, predicate_gather_indices), 1)
         tiled_roles = tf.reshape(tf.tile(role_mlp, [1, bucket_size, 1]), [batch_size, bucket_size, bucket_size, self.role_mlp_size])
         gathered_roles = tf.gather_nd(tiled_roles, predicate_gather_indices)
-        preds_in_batch = tf.shape(gathered_roles)[0]
 
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
-        srl_logits_vn = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
-        srl_logits_vn_transpose = tf.transpose(srl_logits_vn, [0, 2, 1])
-        srl_output_vn = self.output_srl_gather(srl_logits_vn_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
+        vn_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
+        logits_transpose = tf.transpose(vn_logits, [0, 2, 1])
+        vn_output = self.output_srl_gather(logits_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
 
-        if use_gold_vn_train:
-          trigger_counts = tf.reduce_sum(predicate_predictions, -1)
-          vn_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
-          vn_targets_gathered = tf.gather_nd(tf.transpose(vn_target, [0,2,1]), vn_targets_indices)
-          #vn_targets = tf.Print(vn_targets, [tf.shape(vn_targets), tf.shape(srl_logits_vn_transpose), vn_targets[0][0]])
+        return vn_output
 
-          vn_targets_one_hot = tf.one_hot(vn_targets_gathered, depth=num_classes, axis=-1)
-          #vn_targets_one_hot = tf.Print(vn_targets_one_hot, [tf.shape(vn_targets_one_hot), vn_targets_one_hot[0][0]], "one hot")
-          vn_logits = srl_output_vn['logits']
-          #vn_targets_one_hot = tf.Print(vn_targets_one_hot, [tf.shape(vn_targets_one_hot)], "vn logits")
+    def compute_vn_rep(vn_target, vn_logits):
+      preds_in_batch = tf.reduce_sum(predicate_targets_binary)
+      bucket_size = tf.shape(vn_target)[1]
+      #vn_logits = tf.Print(vn_logits, [tf.shape(vn_logits), tf.shape(vn_target), preds_in_batch], "logits and target ")
+      logits_shape = tf.shape(vn_logits)
+      num_classes = 50
+      if self.gold_train_vn:
+        trigger_counts = tf.reduce_sum(predicate_predictions, -1)
+        vn_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
+        vn_targets_gathered = tf.gather_nd(tf.transpose(vn_target, [0, 2, 1]), vn_targets_indices)
 
-          vn_scores = tf.reshape(vn_targets_one_hot, [preds_in_batch*bucket_size, num_classes])
-          #print('VN scores shape: ', vn_scores)
+        vn_targets_one_hot = tf.one_hot(vn_targets_gathered, depth=num_classes, axis=-1)
 
-        else:
-          vn_scores = tf.reshape(tf.nn.softmax(srl_output_vn['logits'], axis=2), [preds_in_batch*bucket_size, num_classes])
+        vn_scores = tf.reshape(vn_targets_one_hot, [preds_in_batch * bucket_size, num_classes])
+      else:
+        vn_scores = tf.reshape(tf.nn.softmax(vn_logits, axis=2),
+                               [preds_in_batch * bucket_size, num_classes])
 
-        vn_embeddings = vocabs[6].embedding_lookup(tf.range(num_classes), moving_params=self.moving_params)
+      vn_embeddings = vocabs[6].embedding_lookup(tf.range(num_classes), moving_params=self.moving_params)
 
-        weighted_vn_embeddings = tf.reshape(tf.matmul(vn_scores, vn_embeddings), [preds_in_batch, bucket_size, 200])
-        #print('weighted embeddings shape: ', weighted_vn_embeddings)
+      weighted_vn_embeddings = tf.reshape(tf.matmul(vn_scores, vn_embeddings), [preds_in_batch, bucket_size, 200])
 
-        return srl_output_vn, weighted_vn_embeddings
+      return weighted_vn_embeddings
 
     def compute_srl_simple(srl_target):
       with tf.variable_scope('SRL-MLP', reuse=reuse):
@@ -627,21 +629,36 @@ class Parser(BaseParser):
         return srl_output
 
     if self.role_loss_penalty == 0:
-      # num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))
+      num_triggers = tf.reduce_sum(tf.cast(tf.where(tf.equal(predicate_targets_binary, 1)), tf.int32))
       srl_output = {
         'loss': tf.constant(0.),
-        'probabilities':  tf.constant(0.), # tf.zeros([num_triggers, bucket_size, num_srl_classes]),
+        'probabilities':  tf.zeros([num_triggers, bucket_size, num_srl_classes]),
         'predictions': tf.reshape(tf.transpose(srl_targets, [0, 2, 1]), [-1, bucket_size]), # tf.zeros([num_triggers, bucket_size]),
-        'logits':  tf.constant(0.), # tf.zeros([num_triggers, bucket_size, num_srl_classes]),
+        'logits':  tf.zeros([num_triggers, bucket_size, num_srl_classes]),
         'correct':  tf.constant(0.),
-        'count':  tf.constant(0.)
+        'count':  tf.constant(1.)
       }
+      vn_output, vn_embeddings = compute_vn(vn_targets, num_vn_classes)
     elif self.srl_simple_tagging:
       srl_output = compute_srl_simple(srl_targets)
     else:
-      vn_output, vn_embeddings = compute_vn(srl_targets_vn, num_vn_classes)
+      if predict_vn:
+        vn_output = compute_vn(vn_targets, num_vn_classes)
+      else:
+        num_triggers = tf.reduce_sum(predicate_targets_binary)
+        bucket_size = tf.shape(vn_targets)[1]
+        vn_output = {
+          'loss': tf.constant(0.),
+          'probabilities': tf.zeros([num_triggers, bucket_size, num_vn_classes]),
+          'predictions': tf.reshape(tf.transpose(vn_targets, [0, 2, 1]), [-1, bucket_size]),
+        # tf.zeros([num_triggers, bucket_size]),
+          'logits': tf.zeros([num_triggers, bucket_size, 50]),
+          'correct': tf.constant(0.),
+          'count': tf.constant(1.)
+        }
+
+      vn_embeddings = compute_vn_rep(vn_targets, vn_output['logits'])
       srl_output, srl_pred_reps, srl_role_reps = compute_srl(srl_targets, vn_embeddings, num_srl_classes)
-      #srl_output = combine_pb_vn(vn_output, srl_pred_reps, srl_role_reps)
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

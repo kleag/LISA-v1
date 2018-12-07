@@ -1278,9 +1278,10 @@ class NN(Configurable):
 
     def compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, annotated3D):
       # batch*num_targets x seq_len -- num_triggers?
-      srl_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
+      seq_mask = tf.sequence_mask(tf.reshape(trigger_counts, [-1]))
+      srl_targets_indices = tf.where(seq_mask)
 
-      #srl_targets_indices = tf.Print(srl_targets_indices, [batch_size, bucket_size, tf.shape(logits_transposed), tf.shape(targets), tf.shape(srl_targets_transposed), tf.shape(srl_targets_indices)], summarize=10)
+      #srl_targets_indices = tf.Print(srl_targets_indices, [batch_size, bucket_size, tf.shape(logits_transposed), tf.shape(srl_targets_indices), seq_mask[0], srl_targets_indices[0]], summarize=200)
 
       # num_triggers_in_batch x seq_len
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
@@ -1310,6 +1311,7 @@ class NN(Configurable):
             class_weights_np = np.ones(50, dtype=np.float32)
             class_weights_np[2] = 0
             class_weights_np[0] = 0
+            #class_weights_np[7] = 0
             class_weights = tf.convert_to_tensor(class_weights_np)
             sample_weights = tf.reduce_sum(tf.multiply(srl_targets_onehot, class_weights), 2)
             #sample_weights = tf.Print(sample_weights, [tf.shape(sample_weights), sample_weights], "class weights", summarize=10)

@@ -1290,7 +1290,6 @@ class NN(Configurable):
         preds_to_ignore = tf.reduce_any(tf.equal(srl_targets, ignore_label_idx))
         mask = tf.multiply(mask, tf.cast(preds_to_ignore, tf.float32))
 
-
       if transition_params is not None:
         seq_lens = tf.reduce_sum(mask, 1)
         # flat_seq_lens = tf.reshape(tf.tile(seq_lens, [1, bucket_size]), tf.stack([batch_size * bucket_size]))
@@ -1359,7 +1358,7 @@ class NN(Configurable):
 
     compute_loss = tf.logical_and(tf.greater(tf.shape(targets)[2], 0), tf.greater(tf.reduce_sum(trigger_counts), 0))
     loss, correct = tf.cond(compute_loss,
-                   lambda: compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, annotated3D),
+                   lambda: compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, mask),
                    lambda: (tf.constant(0.), tf.constant(0.)))
 
     probabilities = tf.nn.softmax(logits_transposed)

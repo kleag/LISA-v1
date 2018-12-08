@@ -611,8 +611,7 @@ class Parser(BaseParser):
 
         vn_scores = tf.reshape(vn_targets_one_hot, [preds_in_batch * bucket_size, num_classes])
       else:
-        vn_scores = tf.reshape(tf.nn.softmax(vn_logits, axis=2),
-                               [preds_in_batch * bucket_size, num_classes])
+        vn_scores = tf.reshape(tf.nn.softmax(vn_logits, axis=-1), [preds_in_batch * bucket_size, num_classes])
 
       vn_embeddings = vocabs[6].embedding_lookup(tf.range(num_classes), moving_params=self.moving_params)
 

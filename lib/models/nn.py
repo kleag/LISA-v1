@@ -1287,7 +1287,7 @@ class NN(Configurable):
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
 
       if ignore_label_idx is not None:
-        preds_to_ignore = tf.cast(tf.reduce_any(tf.equal(srl_targets, ignore_label_idx), axis=-1), tf.float32)
+        preds_to_ignore = tf.cast(tf.reduce_any(tf.equal(srl_targets, ignore_label_idx), axis=-1, keepdims=True), tf.float32)
         mask = tf.multiply(mask, preds_to_ignore)
       else:
         preds_to_ignore = tf.zeros_like(tf.reduce_max(srl_targets, axis=-1))

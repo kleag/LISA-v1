@@ -587,6 +587,7 @@ class Parser(BaseParser):
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
         vn_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
         logits_transpose = tf.transpose(vn_logits, [0, 2, 1])
+        logits_transpose = tf.Print(logits_transpose, [tf.shape(logits_transpose)], "vn_logits_transpose")
         vn_output = self.output_srl_gather(logits_transpose, vn_target, predicate_predictions, None, annotated_3D)
 
         return vn_output

@@ -63,7 +63,7 @@ class BaseParser(NN):
     return
   
   #=============================================================
-  def validate(self, mb_inputs, mb_targets, annotated, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, vn_preds, vn_logits, transition_params=None):
+  def validate(self, mb_inputs, mb_targets, annotated, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, vn_preds, vn_logits, preds_to_ignore, transition_params=None):
     """"""
     
     sents = []
@@ -119,6 +119,17 @@ class BaseParser(NN):
       srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
       vn_pred = vn_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
 
+      vn_pred_ignore = preds_to_ignore[srl_pred_idx:srl_pred_idx+num_pred_srls]
+      num_vns = np.sum(vn_pred_ignore)
+
+      print("vn pred shape", vn_pred.shape)
+      print("vn pred ignore shape", vn_pred_ignore.shape)
+      print("num_vns", num_vns)
+
+      vn_pred = vn_pred[np.where(vn_pred_ignore != 0)]
+
+      print("vn pred shape after", vn_pred.shape)
+
       #print('Annotation: ', annot, 'Verbnet: ', vn_pred)
 
       #print("srl pred", len(vn_pred), vn_pred)
@@ -156,7 +167,7 @@ class BaseParser(NN):
 
       # num_srls = targets.shape[-1]-non_srl_targets_len
       # sent will contain 7 things non-srl, including one thing from targets
-      sent = -np.ones((length, 3*num_pred_srls+num_gold_srls+16), dtype=int)
+      sent = -np.ones((length, 2*num_pred_srls+num_gold_srls+16+num_vns), dtype=int)
 
       # print("srl targets", targets[tokens, 3:])
       # print("srl triggers", np.sum(np.where(targets[tokens, 3:] == trigger_idx)))
@@ -195,6 +206,7 @@ class BaseParser(NN):
       # print("pred_trigger_indices", pred_trigger_indices)
       #print("s_pred", s_pred.shape, s_pred)
       #print("v_pred", vn_pred_trans.shape, vn_pred_trans)
+
 
       if len(s_pred.shape) == 1:
         s_pred = np.expand_dims(s_pred, -1)

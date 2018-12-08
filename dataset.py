@@ -124,7 +124,7 @@ class Dataset(Configurable):
     examples = 0
     total_predicates = 0
     buff2 = []
-    annotation = {'True': 1, 'False':0}
+    annotation = {'True': 1, 'False': 0}
     # process tokens in each sent, store in buff[i][j]
     for i, sent in enumerate(buff):
       # if not self.conll2012 or (self.conll2012 and len(list(sent)) > 1):

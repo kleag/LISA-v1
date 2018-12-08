@@ -740,6 +740,7 @@ class Parser(BaseParser):
     output['predicate_count'] = predicate_output['count']
     output['predicate_correct'] = predicate_output['correct']
     output['predicate_preds'] = predicate_output['predictions']
+    output['preds_to_ignore'] = vn_output['preds_to_ignore']
 
     output['sample_prob'] = sample_prob
 

@@ -1285,9 +1285,9 @@ class NN(Configurable):
 
       # num_triggers_in_batch x seq_len
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
-      
+
       if ignore_label_idx is not None:
-        preds_to_ignore = tf.reduce_any(tf.where(tf.equal(srl_targets, ignore_label_idx)))
+        preds_to_ignore = tf.reduce_any(tf.equal(srl_targets, ignore_label_idx))
         mask = tf.multiply(mask, preds_to_ignore)
 
       if transition_params is not None:

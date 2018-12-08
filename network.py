@@ -1085,6 +1085,7 @@ class Network(Configurable):
                       valid_output['attn_correct'],
                       valid_output['pos_correct'],
                       valid_output['pos_preds'],
+                      valid_output['preds_to_ignore'],
                       test_output['probabilities'],
                       test_output['n_cycles'],
                       test_output['len_2_cycles'],

@@ -1290,6 +1290,7 @@ class NN(Configurable):
         preds_to_ignore = tf.reduce_any(tf.equal(srl_targets, ignore_label_idx))
         mask = tf.multiply(mask, tf.cast(preds_to_ignore, tf.float32))
 
+
       if transition_params is not None:
         seq_lens = tf.reduce_sum(mask, 1)
         # flat_seq_lens = tf.reshape(tf.tile(seq_lens, [1, bucket_size]), tf.stack([batch_size * bucket_size]))

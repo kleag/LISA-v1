@@ -63,6 +63,7 @@ class Parser(BaseParser):
     self.moving_params = moving_params
 
     vn_nolabel_idx = vocabs[6]['NoLabel']
+    print(ignore_label_idx)
 
     if self.add_to_pretrained:
       word_inputs, pret_inputs = vocabs[0].embedding_lookup(inputs[:, :, 0], inputs[:, :, 1],

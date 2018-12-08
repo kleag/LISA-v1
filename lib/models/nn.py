@@ -1290,7 +1290,7 @@ class NN(Configurable):
         preds_to_ignore = tf.cast(tf.reduce_any(tf.equal(srl_targets, ignore_label_idx), axis=-1), tf.float32)
         mask = tf.multiply(mask, preds_to_ignore)
       else:
-        preds_to_ignore = tf.zeros_like(tf.reduce_max(srl_targets), axis=-1)
+        preds_to_ignore = tf.zeros_like(tf.reduce_max(srl_targets, axis=-1))
 
       if transition_params is not None:
         seq_lens = tf.reduce_sum(mask, 1)

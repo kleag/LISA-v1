@@ -62,7 +62,7 @@ class Parser(BaseParser):
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params
 
-    vn_nolabel_idx = vocabs[6]['NoLabel']
+    vn_nolabel_idx = vocabs[6]['NoLabel'][0]
     print(vn_nolabel_idx)
 
     if self.add_to_pretrained:

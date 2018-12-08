@@ -57,7 +57,7 @@ class Parser(BaseParser):
     # Finds tokens which are not PAD or ROOT but includes UNK?
     self.tokens_to_keep3D = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,0], vocabs[0].ROOT)), 2)
     annotated_3D = tf.expand_dims(tf.to_float(annotated), 2)
-    annotated_3D = tf.Print(annotated_3D, [tf.shape(annotated_3D)], "annotated_3D")
+    # annotated_3D = tf.Print(annotated_3D, [tf.shape(annotated_3D)], "annotated_3D")
     self.sequence_lengths = tf.reshape(tf.reduce_sum(self.tokens_to_keep3D, [1, 2]), [-1,1])
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params
@@ -591,7 +591,7 @@ class Parser(BaseParser):
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
         vn_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
         logits_transpose = tf.transpose(vn_logits, [0, 2, 1])
-        logits_transpose = tf.Print(logits_transpose, [tf.shape(logits_transpose)], "vn_logits_transpose")
+        # logits_transpose = tf.Print(logits_transpose, [tf.shape(logits_transpose)], "vn_logits_transpose")
         vn_output = self.output_srl_gather(logits_transpose, vn_target, predicate_predictions, None, annotated_3D, vn_nolabel_idx)
 
         return vn_output

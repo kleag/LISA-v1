@@ -1223,7 +1223,7 @@ class NN(Configurable):
     return output
 
   # =============================================================
-  def output_srl_gather(self, logits_transposed, targets, trigger_predictions, transition_params, annotated3D=None):
+  def output_srl_gather(self, logits_transposed, targets, trigger_predictions, transition_params, annotated3D=None, ignore_label_idx=None):
     """"""
 
     # logits are triggers_in_batch x num_classes x seq_len
@@ -1270,13 +1270,13 @@ class NN(Configurable):
     predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)
 
     #mask = tf.Print(mask, [tf.shape(mask), tf.shape(predictions)], "mask and predictions")
-    if annotated3D is not None:
-      pass
-      #predictions = tf.Print(predictions, [tf.shape(predictions)], "VN Predictions shape")
+    # if annotated3D is not None:
+    #   pass
+    #   #predictions = tf.Print(predictions, [tf.shape(predictions)], "VN Predictions shape")
 
     trigger_counts = tf.reduce_sum(trigger_predictions, -1)
 
-    def compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, annotated3D):
+    def compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, mask):
       # batch*num_targets x seq_len -- num_triggers?
       seq_mask = tf.sequence_mask(tf.reshape(trigger_counts, [-1]))
       srl_targets_indices = tf.where(seq_mask)
@@ -1285,6 +1285,10 @@ class NN(Configurable):
 
       # num_triggers_in_batch x seq_len
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
+      
+      if ignore_label_idx is not None:
+        preds_to_ignore = tf.reduce_any(tf.where(tf.equal(srl_targets, ignore_label_idx)))
+        mask = tf.multiply(mask, preds_to_ignore)
 
       if transition_params is not None:
         seq_lens = tf.reduce_sum(mask, 1)
@@ -1304,33 +1308,33 @@ class NN(Configurable):
 
           orig_logits_shape = tf.shape(logits_transposed)
 
-          if annotated3D is not None:
-            new_mask = mask
-            #num_labels = tf.Print(num_labels, [num_labels, tf.shape(srl_targets_onehot)], "num labels")
-            # todo don't hardcode num_labels
-            class_weights_np = np.ones(50, dtype=np.float32)
-            class_weights_np[2] = 0
-            class_weights_np[0] = 0
-            #class_weights_np[7] = 0
-            class_weights = tf.convert_to_tensor(class_weights_np)
-
-            srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(srl_targets_onehot)], "srl_targets_onehot")
-
-            # preds_in_batch x bucket_size x num_labels
-            sample_weights = tf.reduce_sum(tf.multiply(srl_targets_onehot, class_weights), 2)
-
-            sample_weights = tf.Print(sample_weights, [tf.shape(sample_weights)], "srl_targets_onehot")
-
-
-            #sample_weights = tf.Print(sample_weights, [tf.shape(sample_weights), sample_weights], "class weights", summarize=10)
-            new_mask = tf.cast(tf.logical_and(tf.cast(sample_weights, tf.bool), tf.cast(mask, tf.bool)), tf.float32)
-          else:
-            new_mask = mask
+          # if annotated3D is not None:
+          #   new_mask = mask
+          #   #num_labels = tf.Print(num_labels, [num_labels, tf.shape(srl_targets_onehot)], "num labels")
+          #   # todo don't hardcode num_labels
+          #   class_weights_np = np.ones(50, dtype=np.float32)
+          #   class_weights_np[2] = 0
+          #   class_weights_np[0] = 0
+          #   #class_weights_np[7] = 0
+          #   class_weights = tf.convert_to_tensor(class_weights_np)
+          #
+          #   srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(srl_targets_onehot)], "srl_targets_onehot")
+          #
+          #   # preds_in_batch x bucket_size x num_labels
+          #   sample_weights = tf.reduce_sum(tf.multiply(srl_targets_onehot, class_weights), 2)
+          #
+          #   sample_weights = tf.Print(sample_weights, [tf.shape(sample_weights)], "sample_weights")
+          #
+          #
+          #   #sample_weights = tf.Print(sample_weights, [tf.shape(sample_weights), sample_weights], "class weights", summarize=10)
+          #   new_mask = tf.cast(tf.logical_and(tf.cast(sample_weights, tf.bool), tf.cast(mask, tf.bool)), tf.float32)
+          # else:
+          #   new_mask = mask
 
           # Backprop into logits?
           loss = tf.losses.softmax_cross_entropy(logits=tf.reshape(logits_transposed, [-1, num_labels]),
                                                  onehot_labels=tf.reshape(srl_targets_onehot, [-1, num_labels]),
-                                                 weights=tf.reshape(new_mask, [-1]),
+                                                 weights=tf.reshape(mask, [-1]),
                                                  label_smoothing=self.label_smoothing,
                                                  reduction=tf.losses.Reduction.SUM_BY_NONZERO_WEIGHTS)
           # cross_entropy = tf.Print(cross_entropy, [cross_entropy], "cross entropy", summarize=200)

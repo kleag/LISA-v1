@@ -61,7 +61,9 @@ class Parser(BaseParser):
     self.sequence_lengths = tf.reshape(tf.reduce_sum(self.tokens_to_keep3D, [1, 2]), [-1,1])
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params
-    
+
+    vn_nolabel_idx = vocabs[6]['NoLabel']
+
     if self.add_to_pretrained:
       word_inputs, pret_inputs = vocabs[0].embedding_lookup(inputs[:, :, 0], inputs[:, :, 1],
                                                             moving_params=self.moving_params)
@@ -589,7 +591,7 @@ class Parser(BaseParser):
         vn_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
         logits_transpose = tf.transpose(vn_logits, [0, 2, 1])
         logits_transpose = tf.Print(logits_transpose, [tf.shape(logits_transpose)], "vn_logits_transpose")
-        vn_output = self.output_srl_gather(logits_transpose, vn_target, predicate_predictions, None, annotated_3D)
+        vn_output = self.output_srl_gather(logits_transpose, vn_target, predicate_predictions, None, annotated_3D, vn_nolabel_idx)
 
         return vn_output
 

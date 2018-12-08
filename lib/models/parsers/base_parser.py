@@ -121,12 +121,14 @@ class BaseParser(NN):
 
       vn_pred_ignore = preds_to_ignore[srl_pred_idx:srl_pred_idx+num_pred_srls]
       num_vns = np.sum(vn_pred_ignore)
+      vn_pred_indices = np.where(vn_pred_ignore == 0)
 
       print("vn pred shape", vn_pred.shape)
       print("vn pred ignore shape", vn_pred_ignore.shape)
       print("num_vns", num_vns)
+      print("vn_pred_indices", vn_pred_indices)
 
-      vn_pred = vn_pred[np.where(vn_pred_ignore != 0)]
+      vn_pred = vn_pred[np.where(vn_pred_ignore == 0)]
 
       print("vn pred shape after", vn_pred.shape)
 

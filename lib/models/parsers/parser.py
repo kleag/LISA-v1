@@ -87,7 +87,6 @@ class Parser(BaseParser):
     attn_weights_by_layer = {}
     combine_with_vn = self.combine_with_vn
     predict_vn = self.predict_vn
-    use_gold_vn_train = self.gold_train_vn
 
     hidden_size = self.num_heads * self.head_size
     self.print_once("n_recur: ", self.n_recur)
@@ -588,7 +587,7 @@ class Parser(BaseParser):
         # now multiply them together to get (num_triggers_in_batch x bucket_size x num_srl_classes) tensor of scores
         vn_logits = self.bilinear_classifier_nary(gathered_predicates, gathered_roles, num_classes)
         logits_transpose = tf.transpose(vn_logits, [0, 2, 1])
-        vn_output = self.output_srl_gather(logits_transpose, vn_target, predicate_predictions, transition_params if self.viterbi_train else None, annotated_3D)
+        vn_output = self.output_srl_gather(logits_transpose, vn_target, predicate_predictions, None, annotated_3D)
 
         return vn_output
 

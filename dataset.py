@@ -167,7 +167,7 @@ class Dataset(Configurable):
 
           #print('SRL fields: ', srl_fields, len(srl_fields))
           vn_fields = []
-          for srl_str in srl_vn_labels:
+          for idx, srl_str in enumerate(srl_vn_labels):
             if len(srl_str) > 1:
               vn_fields.append(srl_str[0])
             elif srl_str[0] == 'O':
@@ -180,6 +180,7 @@ class Dataset(Configurable):
               vn_fields.append('-'.join(srl_str[0].split('-')[-2:]))
             else:
               vn_fields.append('NoLabel')
+
           #vn_fields = [srl_str[0] if len(srl_str) > 1 else 'NoLabel' if srl_str[0] is not 'O' else 'O' for srl_str in srl_vn_labels]
           #print('VN fields: ', vn_fields, len(vn_fields))
 

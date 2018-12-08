@@ -852,7 +852,7 @@ class Network(Configurable):
           # print("preds", preds)
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
-          annotation = preds[0,15]
+          annotation = preds[0, 15]
           if annotation == 0:
               continue
           #print('Annotation: ', annotation)
@@ -866,7 +866,7 @@ class Network(Configurable):
             predicate_indices = preds[0, 16:16+num_pred_srls]
           #print("predicate indices", predicate_indices)
           #predicate_indices = global_pred_indices
-          srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
+          # srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
           #print(srl_preds, srl_preds_str, vn_preds)
           vn_preds_str = map(list, zip(*[self.convert_bilou(j, 'verbnet') for j in np.transpose(vn_preds)]))
           # if len(predicate_indices) == 0:

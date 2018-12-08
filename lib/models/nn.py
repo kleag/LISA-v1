@@ -1313,7 +1313,14 @@ class NN(Configurable):
             class_weights_np[0] = 0
             #class_weights_np[7] = 0
             class_weights = tf.convert_to_tensor(class_weights_np)
+
+            srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(srl_targets_onehot)], "srl_targets_onehot")
+
             sample_weights = tf.reduce_sum(tf.multiply(srl_targets_onehot, class_weights), 2)
+
+            sample_weights = tf.Print(sample_weights, [tf.shape(sample_weights)], "srl_targets_onehot")
+
+            
             #sample_weights = tf.Print(sample_weights, [tf.shape(sample_weights), sample_weights], "class weights", summarize=10)
             new_mask = tf.cast(tf.logical_and(tf.cast(sample_weights, tf.bool), tf.cast(mask, tf.bool)), tf.float32)
           else:

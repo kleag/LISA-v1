@@ -57,6 +57,7 @@ class Parser(BaseParser):
     # Finds tokens which are not PAD or ROOT but includes UNK?
     self.tokens_to_keep3D = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,0], vocabs[0].ROOT)), 2)
     annotated_3D = tf.expand_dims(tf.to_float(annotated), 2)
+    annotated_3D = tf.Print(annotated_3D, [tf.shape(annotated_3D)], "annotated_3D")
     self.sequence_lengths = tf.reshape(tf.reduce_sum(self.tokens_to_keep3D, [1, 2]), [-1,1])
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params

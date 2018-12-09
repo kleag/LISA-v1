@@ -1288,10 +1288,10 @@ class NN(Configurable):
 
       if ignore_label_idx is not None:
         preds_to_keep = tf.cast(tf.reduce_all(tf.not_equal(srl_targets, ignore_label_idx), axis=-1, keepdims=True), tf.float32)
-        preds_to_keep = tf.Print(preds_to_keep, [tf.shape(preds_to_keep), tf.shape(annotated3D), tf.shape(mask)])
+        # preds_to_keep = tf.Print(preds_to_keep, [tf.shape(preds_to_keep), tf.shape(annotated3D), tf.shape(mask)])
         mask = tf.multiply(mask, preds_to_keep)
       else:
-        preds_to_keep = tf.zeros_like(tf.reduce_max(srl_targets, axis=-1))
+        preds_to_keep = tf.ones_like(tf.reduce_max(srl_targets, axis=-1))
 
       if transition_params is not None:
         seq_lens = tf.reduce_sum(mask, 1)
@@ -1350,6 +1350,7 @@ class NN(Configurable):
 
       if annotated3D is not None:
         preds_to_keep = tf.multiply(preds_to_keep, tf.cast(tf.reduce_any(tf.cast(mask, tf.bool), axis=-1), tf.float32))
+        preds_to_keep = tf.Print(preds_to_keep, [tf.shape(preds_to_keep), tf.shape(annotated3D), tf.shape(mask)])
         #srl_targets = tf.Print(srl_targets, [tf.shape(srl_targets)], "VN Targets shape ")
 
       #predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)

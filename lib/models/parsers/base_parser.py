@@ -121,7 +121,7 @@ class BaseParser(NN):
 
       vn_pred_ignore = np.squeeze(preds_to_ignore[srl_pred_idx:srl_pred_idx+num_pred_srls], -1)
       num_vns = int(np.sum(1 - vn_pred_ignore))
-      vn_pred_indices = np.where(vn_pred_ignore == 0)[1]
+      vn_pred_indices = np.where(vn_pred_ignore == 0)
 
       print("vn pred shape", vn_pred.shape)
       print("vn pred ignore", vn_pred_ignore)

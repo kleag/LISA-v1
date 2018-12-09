@@ -1287,10 +1287,10 @@ class NN(Configurable):
       srl_targets = tf.gather_nd(srl_targets_transposed, srl_targets_indices)
 
       if ignore_label_idx is not None:
-        preds_to_ignore = tf.cast(tf.reduce_any(tf.equal(srl_targets, ignore_label_idx), axis=-1, keepdims=True), tf.float32)
-        mask = tf.multiply(mask, preds_to_ignore)
+        preds_to_keep = tf.cast(tf.reduce_all(tf.not_equal(srl_targets, ignore_label_idx), axis=-1, keepdims=True), tf.float32)
+        mask = tf.multiply(mask, preds_to_keep)
       else:
-        preds_to_ignore = tf.zeros_like(tf.reduce_max(srl_targets, axis=-1))
+        preds_to_keep = tf.zeros_like(tf.reduce_max(srl_targets, axis=-1))
 
       if transition_params is not None:
         seq_lens = tf.reduce_sum(mask, 1)
@@ -1308,7 +1308,7 @@ class NN(Configurable):
           #srl_targets_onehot = tf.Print(srl_targets_onehot, [num_labels, tf.shape(srl_targets_onehot)], "srl targets", summarize=200)
           #srl_targets_onehot = tf.Print(srl_targets_onehot, [tf.shape(srl_targets_onehot)], "srl targets onehot", summarize=200)
 
-          orig_logits_shape = tf.shape(logits_transposed)
+          # orig_logits_shape = tf.shape(logits_transposed)
 
           # if annotated3D is not None:
           #   new_mask = mask
@@ -1356,14 +1356,14 @@ class NN(Configurable):
       correct_unmasked = tf.cast(tf.equal(predictions, srl_targets), tf.float32)
       correct_masked = correct_unmasked * mask
       correct = tf.reduce_sum(correct_masked)
-      return loss, correct, preds_to_ignore
+      return loss, correct, preds_to_keep
 
     # compute_loss = tf.logical_and(tf.greater(tf.shape(targets)[2], 0), tf.greater(tf.reduce_sum(trigger_counts), 0))
     # loss, correct, preds_to_ignore = tf.cond(compute_loss,
     #                lambda: compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, mask),
     #                lambda: (tf.constant(0.), tf.constant(0.), tf.constant(0.)))
 
-    loss, correct, preds_to_ignore = compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, mask)
+    loss, correct, preds_to_keep = compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, mask)
 
     probabilities = tf.nn.softmax(logits_transposed)
     if annotated3D is not None:
@@ -1379,7 +1379,7 @@ class NN(Configurable):
       'transition_params': tf.constant(0.),
       'count': count,
       'correct': correct,
-      'preds_to_ignore': preds_to_ignore
+      'preds_to_keep': preds_to_keep
     }
 
     return output

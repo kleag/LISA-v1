@@ -599,9 +599,9 @@ class Network(Configurable):
       #print('MB targets ', mb_targets[0])
       #print('MB targets shape: ', mb_targets.shape)
       forward_start = time.time()
-      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_predicates, srl_predicate_targets, vn_probs, vn_preds, vn_logits, vn_correct, vn_count, transition_params, attn_weights, attn_correct, pos_correct, pos_preds, preds_to_ignore = sess.run(op, feed_dict=feed_dict)
+      probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, srl_correct, srl_count, srl_predicates, srl_predicate_targets, vn_probs, vn_preds, vn_logits, vn_correct, vn_count, transition_params, attn_weights, attn_correct, pos_correct, pos_preds, preds_to_keep = sess.run(op, feed_dict=feed_dict)
       forward_total_time += time.time() - forward_start
-      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, annotated, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_predicates, srl_predicate_targets, pos_preds,  vn_preds, vn_logits, preds_to_ignore, transition_params if viterbi else None)
+      preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, annotated, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_predicates, srl_predicate_targets, pos_preds,  vn_preds, vn_logits, preds_to_keep, transition_params if viterbi else None)
       n_tokens += n_tokens_batch
       for k, v in attn_weights.iteritems():
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
@@ -1089,7 +1089,7 @@ class Network(Configurable):
                       valid_output['attn_correct'],
                       valid_output['pos_correct'],
                       valid_output['pos_preds'],
-                      valid_output['preds_to_ignore'],
+                      valid_output['preds_to_keep'],
                       test_output['probabilities'],
                       test_output['n_cycles'],
                       test_output['len_2_cycles'],
@@ -1110,7 +1110,7 @@ class Network(Configurable):
                       test_output['attn_correct'],
                       test_output['pos_correct'],
                       test_output['pos_preds'],
-                      test_output['preds_to_ignore']
+                      test_output['preds_to_keep']
                       ]
     # ops['optimizer'] = optimizer
     

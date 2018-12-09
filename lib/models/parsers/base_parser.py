@@ -172,6 +172,8 @@ class BaseParser(NN):
       # sent will contain 7 things non-srl, including one thing from targets
       sent = -np.ones((length, 2*num_pred_srls+num_gold_srls+16+num_vns), dtype=int)
 
+      print("sent shape", sent.shape)
+
       # print("srl targets", targets[tokens, 3:])
       # print("srl triggers", np.sum(np.where(targets[tokens, 3:] == trigger_idx)))
 
@@ -217,6 +219,7 @@ class BaseParser(NN):
         vn_pred_trans = np.expand_dims(vn_pred_trans, -1)
       sent[:,16+num_pred_srls+num_gold_srls:16+2*num_pred_srls+num_gold_srls] = s_pred
       if num_vns > 0:
+        print("vn pred trans shape", vn_pred_trans.shape)
         sent[:, 16+2*num_pred_srls+num_gold_srls:] = vn_pred_trans
       #print(num_pred_srls, num_gold_srls, s_pred.shape[1], sent.shape[1])
       sents.append(sent)

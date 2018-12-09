@@ -846,7 +846,7 @@ class Network(Configurable):
       # print("writing srl preds file: %s" % srl_preds_fname)
       with open(vn_preds_fname, 'w') as f:
         # for p_idx, (bkt_idx, idx) in enumerate(data_indices):
-        for p_idx, (bkt_idx, idx) in enumerate(data_indices[:10]):
+        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
           # for each word, if predicate print word, otherwise -
           # then all the SRL labels
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]

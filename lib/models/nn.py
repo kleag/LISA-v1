@@ -1379,7 +1379,7 @@ class NN(Configurable):
       'transition_params': tf.constant(0.),
       'count': count,
       'correct': correct,
-      'preds_to_keep': preds_to_keep,
+      'preds_to_keep': preds_to_keep*annotated3D,
       'targets': targets
     }
 

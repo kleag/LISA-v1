@@ -216,7 +216,8 @@ class BaseParser(NN):
       if len(vn_pred_trans.shape) == 1:
         vn_pred_trans = np.expand_dims(vn_pred_trans, -1)
       sent[:,16+num_pred_srls+num_gold_srls:16+2*num_pred_srls+num_gold_srls] = s_pred
-      sent[:, 16+2*num_pred_srls+num_gold_srls:] = vn_pred_trans
+      if num_vns > 0:
+        sent[:, 16+2*num_pred_srls+num_gold_srls:] = vn_pred_trans
       #print(num_pred_srls, num_gold_srls, s_pred.shape[1], sent.shape[1])
       sents.append(sent)
     return sents, total_time, roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total, non_trees_total, non_tree_preds, n_tokens

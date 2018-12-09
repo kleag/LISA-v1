@@ -129,7 +129,7 @@ class BaseParser(NN):
       print("num_vns", num_vns)
       print("vn_pred_indices", vn_pred_indices)
 
-      vn_pred = vn_pred[np.where(vn_pred_ignore == 0), :]
+      vn_pred = vn_pred[np.where(vn_pred_ignore == 0)]
 
       print("vn pred shape after", vn_pred.shape)
 

@@ -206,8 +206,8 @@ class Dataset(Configurable):
           buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + (annotation[annotated],) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags) + tuple(vn_tags)
           #print('SRL len: ', len(tuple(srl_tags)), 'VN len: ', len(tuple(vn_tags)))
           if self.name == "Validset":
-            print('Buff: ', buff[i][j])
-            print('Tags: ', buff[i][j][10:])
+            # print('Buff: ', buff[i][j])
+            print('VN Tags: ', vn_fields)
 
       # Expand sentences into one example per predicate
       if self.one_example_per_predicate:

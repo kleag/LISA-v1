@@ -1349,7 +1349,7 @@ class NN(Configurable):
           loss = tf.cond(tf.equal(count, 0.), lambda: tf.constant(0.), lambda: tf.reduce_sum(cross_entropy) / count)
 
       if annotated3D is not None:
-        preds_to_keep = tf.multiply(preds_to_keep, tf.cast(tf.reduce_any(tf.cast(mask, tf.bool), axis=-1), tf.float32))
+        preds_to_keep = tf.multiply(preds_to_keep, tf.cast(tf.reduce_any(tf.cast(mask, tf.bool), axis=-1, keepdims=True), tf.float32))
         preds_to_keep = tf.Print(preds_to_keep, [tf.shape(preds_to_keep), tf.shape(annotated3D), tf.shape(mask)])
         #srl_targets = tf.Print(srl_targets, [tf.shape(srl_targets)], "VN Targets shape ")
 

@@ -119,7 +119,7 @@ class BaseParser(NN):
       srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
       vn_pred = vn_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
 
-      vn_pred_ignore = preds_to_ignore[srl_pred_idx:srl_pred_idx+num_pred_srls]
+      vn_pred_ignore = np.squeeze(preds_to_ignore[srl_pred_idx:srl_pred_idx+num_pred_srls], -1)
       num_vns = int(np.sum(1 - vn_pred_ignore))
       vn_pred_indices = np.where(vn_pred_ignore == 0)[1]
 

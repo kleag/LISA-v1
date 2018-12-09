@@ -863,6 +863,8 @@ class Network(Configurable):
           #global_annot_count += annotation
           srl_preds = preds[:, 16 + num_gold_srls + num_pred_srls: 16 + num_gold_srls + 2*num_pred_srls]
           vn_preds = preds[:, 16 + num_gold_srls + 2*num_pred_srls:]
+          print("==srl preds", srl_preds)
+          print("==vn preds", vn_preds)
           if self.one_example_per_predicate:
             predicate_indices = np.where(preds[:, 4] == 1)[0]
             # print("predicate indices", predicate_indices)

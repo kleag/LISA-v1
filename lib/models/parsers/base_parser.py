@@ -124,7 +124,7 @@ class BaseParser(NN):
 
       print("vn pred keep", vn_pred_keep)
 
-      vn_pred_keep = np.squeeze(preds_to_keep[srl_pred_idx:srl_pred_idx+num_pred_srls], 0)
+      vn_pred_keep = np.squeeze(preds_to_keep[srl_pred_idx:srl_pred_idx+num_pred_srls], -1)
 
 
       # vn_pred_keep = preds_to_keep[srl_pred_idx:srl_pred_idx+num_pred_srls]

@@ -732,6 +732,7 @@ class Parser(BaseParser):
     output['vn_logits'] = vn_output['logits']
     output['vn_correct'] = vn_output['correct']
     output['vn_count'] = vn_output['count']
+    output['vn_targets'] = vn_output['targets']
     output['transition_params'] = transition_params if transition_params is not None else tf.constant(bilou_constraints)
     output['srl_predicates'] = predicate_predictions
     output['srl_predicate_targets'] = predicate_targets_binary

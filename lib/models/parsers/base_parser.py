@@ -127,6 +127,7 @@ class BaseParser(NN):
       print("vn pred ignore", vn_pred_ignore)
       print("vn pred ignore shape", vn_pred_ignore.shape)
       print("num_vns", num_vns)
+      print("num pb preds", num_gold_srls)
       print("vn_pred_indices", vn_pred_indices)
 
       vn_pred = vn_pred[np.where(vn_pred_ignore == 0)]

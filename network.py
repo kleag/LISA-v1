@@ -845,7 +845,8 @@ class Network(Configurable):
       #print(annotated.shape, len(data_indices))
       # print("writing srl preds file: %s" % srl_preds_fname)
       with open(vn_preds_fname, 'w') as f:
-        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
+        # for p_idx, (bkt_idx, idx) in enumerate(data_indices):
+        for p_idx, (bkt_idx, idx) in enumerate(data_indices[:10]):
           # for each word, if predicate print word, otherwise -
           # then all the SRL labels
           preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
@@ -875,6 +876,7 @@ class Network(Configurable):
           # srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
           #print(srl_preds, srl_preds_str, vn_preds)
           vn_preds_str = map(list, zip(*[self.convert_bilou(j, 'verbnet') for j in np.transpose(vn_preds)]))
+          print("vn preds str", vn_preds_str)
           # if len(predicate_indices) == 0:
           # if preds[0,6] < 4:
           #   print("preds", preds)

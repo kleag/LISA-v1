@@ -63,7 +63,7 @@ class BaseParser(NN):
     return
   
   #=============================================================
-  def validate(self, mb_inputs, mb_targets, annotated, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, vn_preds, vn_logits, preds_to_keep, transition_params=None):
+  def validate(self, mb_inputs, mb_targets, annotated, mb_probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_triggers, srl_trigger_targets, pos_preds, vn_preds, vn_logits, vn_targets, preds_to_keep, transition_params=None):
     """"""
     
     sents = []
@@ -118,6 +118,7 @@ class BaseParser(NN):
       # print(srl_preds)
       srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
       vn_pred = vn_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
+      vn_targ = vn_targets[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
 
       vn_pred_keep = np.squeeze(preds_to_keep[srl_pred_idx:srl_pred_idx+num_pred_srls], -1)
       num_vns = int(np.sum(vn_pred_keep))
@@ -129,6 +130,7 @@ class BaseParser(NN):
       print("num_vns", num_vns)
       print("num pb preds", num_gold_srls)
       print("vn_pred_indices", vn_pred_indices)
+      print("vn targ", vn_targ)
 
       vn_pred = vn_pred[np.where(vn_pred_keep == 1)]
 

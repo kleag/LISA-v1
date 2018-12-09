@@ -1356,14 +1356,14 @@ class NN(Configurable):
       correct_unmasked = tf.cast(tf.equal(predictions, srl_targets), tf.float32)
       correct_masked = correct_unmasked * mask
       correct = tf.reduce_sum(correct_masked)
-      return loss, correct, preds_to_keep
+      return loss, correct, preds_to_keep, srl_targets
 
     # compute_loss = tf.logical_and(tf.greater(tf.shape(targets)[2], 0), tf.greater(tf.reduce_sum(trigger_counts), 0))
     # loss, correct, preds_to_ignore = tf.cond(compute_loss,
     #                lambda: compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, mask),
     #                lambda: (tf.constant(0.), tf.constant(0.), tf.constant(0.)))
 
-    loss, correct, preds_to_keep = compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, mask)
+    loss, correct, preds_to_keep, targets = compute_srl_loss(logits_transposed, srl_targets_transposed, transition_params, mask)
 
     probabilities = tf.nn.softmax(logits_transposed)
     if annotated3D is not None:
@@ -1379,7 +1379,8 @@ class NN(Configurable):
       'transition_params': tf.constant(0.),
       'count': count,
       'correct': correct,
-      'preds_to_keep': preds_to_keep
+      'preds_to_keep': preds_to_keep,
+      'targets': targets
     }
 
     return output

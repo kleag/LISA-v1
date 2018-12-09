@@ -195,6 +195,10 @@ class Network(Configurable):
     validate_every = self.validate_every
     save_every = self.save_every
     current_best = 0.0
+
+    # for debugging
+    correct = self.test(sess, viterbi=True, validate=True)
+
     try:
       train_time = 0
       train_loss = 0

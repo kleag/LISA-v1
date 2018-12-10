@@ -184,10 +184,10 @@ class Dataset(Configurable):
           #vn_fields = [srl_str[0] if len(srl_str) > 1 else 'NoLabel' if srl_str[0] is not 'O' else 'O' for srl_str in srl_vn_labels]
           #print('VN fields: ', vn_fields, len(vn_fields))
 
-          srl_fields += ['O'] * (sent_len - len(srl_take_indices))
+          # srl_fields += ['O'] * (sent_len - len(srl_take_indices))
           srl_tags = [srls[s][0] for s in srl_fields]
 
-          vn_fields += ['O'] * (sent_len - len(srl_take_indices))
+          # vn_fields += ['O'] * (sent_len - len(srl_take_indices))
           vn_tags = [vnroles[s][0] for s in vn_fields]
 
           #print(word, vn_fields, srl_fields)

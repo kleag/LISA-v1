@@ -46,8 +46,8 @@ class Parser(BaseParser):
     max_preds_in_batch = tf.reduce_max(total_srl_counts) // 2
 
     pb_indices = tf.where(tf.sequence_mask(total_srl_counts/2))
-    vn_indices = pb_indices + total_srl_counts // 2 #tf.ones_like(pb_indices, dtype=tf.int64) * max_preds_in_batch
-
+    # vn_indices = pb_indices + tf.expand_dims(tf.expand_dims(total_srl_counts // 2, 0), 0) #tf.ones_like(pb_indices, dtype=tf.int64) * max_preds_in_batch
+    vn_indices = tf.where(1-tf.sequence_mask(total_srl_counts/2))
 
     if dataset.name == "Validset":
       srl_targets_combined = tf.Print(srl_targets_combined, [srl_targets_combined], "srl target combined", summarize=200)

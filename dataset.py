@@ -138,6 +138,7 @@ class Dataset(Configurable):
       ##
       srl_take_indices = [idx for idx in range(srl_start_field, srl_start_field + sent_len) if idx < num_fields - 1 and (self.train_on_nested or np.all(['/' not in sent[j][idx] for j in range(sent_len)]))]
       predicate_indices = []
+      has_vn_anno = [False for _ in range(len(srl_take_indices))]
       for j, token in enumerate(sent):
         toks += 1
         if self.conll:
@@ -175,6 +176,7 @@ class Dataset(Configurable):
           for idx, srl_str in enumerate(srl_vn_labels):
             if len(srl_str) > 1:
               vn_fields.append(srl_str[0])
+              has_vn_anno[idx] = True
             elif srl_str[0] == 'O':
               vn_fields.append('O')
             elif srl_str[0].split('-')[1] == 'V':
@@ -213,6 +215,13 @@ class Dataset(Configurable):
           if self.name == "Validset":
             # print('Buff: ', buff[i][j])
             print('VN Tags: ', vn_fields)
+
+      for srl_idx, has_vn in enumerate(has_vn_anno):
+        if has_vn:
+          buff[i][-1] = buff[i][j][10+len(has_vn_anno)+srl_idx-1] + ('NoLabel',) + buff[i][j][10+len(has_vn_anno)+srl_idx+1:]
+
+      if self.name == "Validset":
+        print('buff: ', buff[i][-1])
 
       # Expand sentences into one example per predicate
       if self.one_example_per_predicate:

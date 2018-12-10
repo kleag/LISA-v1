@@ -183,7 +183,7 @@ class Parser(BaseParser):
 
     # compute targets adj matrix
     i1, i2 = tf.meshgrid(tf.range(batch_size), tf.range(bucket_size), indexing="ij")
-    idx = tf.stack([i1, i2, targets[:, :, 1]], axis=-1)
+    idx = tf.stack([i1, i2, tf.cast(targets[:, :, 1], tf.int64)], axis=-1)
     adj = tf.scatter_nd(idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])
     adj = adj * mask2d
 

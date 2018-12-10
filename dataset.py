@@ -355,8 +355,16 @@ class Dataset(Configurable):
       #print(targets[:,:,3:])
       #print(min(target_idxs), maxlen+max(target_idxs)+1)
 
+      np.set_printoptions(threshold=np.nan)
+
       if self.name == "Validset":
+        print("srl_total", srl_total)
+        print("vns")
         print(data[:, :maxlen, srl_vn_start:])
+        print("all")
+        print(data[:, :maxlen, 10:])
+        print("targets")
+        print(data[:, :maxlen, min(target_idxs):maxlen + max(target_idxs) + 1])
 
       feed_dict.update({
         self.inputs: data[:,:maxlen,input_idxs],

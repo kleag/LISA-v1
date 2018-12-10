@@ -122,7 +122,7 @@ class BaseParser(NN):
 
       vn_pred_keep = preds_to_keep[srl_pred_idx:srl_pred_idx+num_pred_srls]
 
-      print("vn pred keep", vn_pred_keep)
+      # print("vn pred keep", vn_pred_keep)
 
       vn_pred_keep = np.squeeze(preds_to_keep[srl_pred_idx:srl_pred_idx+num_pred_srls], -1)
 
@@ -132,17 +132,17 @@ class BaseParser(NN):
       num_vns = int(np.sum(vn_pred_keep))
       vn_pred_indices = np.where(vn_pred_keep == 1)
 
-      print("vn pred shape", vn_pred.shape)
-      print("vn pred keep", vn_pred_keep)
-      print("vn pred keep shape", vn_pred_keep.shape)
-      print("num_vns", num_vns)
-      print("num pb preds", num_gold_srls)
-      print("vn_pred_indices", vn_pred_indices)
-      print("vn targ", vn_targ)
+      # print("vn pred shape", vn_pred.shape)
+      # print("vn pred keep", vn_pred_keep)
+      # print("vn pred keep shape", vn_pred_keep.shape)
+      # print("num_vns", num_vns)
+      # print("num pb preds", num_gold_srls)
+      # print("vn_pred_indices", vn_pred_indices)
+      # print("vn targ", vn_targ)
 
       vn_pred = vn_pred[np.where(vn_pred_keep == 1)]
 
-      print("vn pred shape after", vn_pred.shape)
+      # print("vn pred shape after", vn_pred.shape)
 
       #print('Annotation: ', annot, 'Verbnet: ', vn_pred)
 
@@ -183,7 +183,7 @@ class BaseParser(NN):
       # sent will contain 7 things non-srl, including one thing from targets
       sent = -np.ones((length, 2*num_pred_srls+3*num_gold_srls+16+num_vns), dtype=int)
 
-      print("sent shape", sent.shape)
+      # print("sent shape", sent.shape)
 
       # print("srl targets", targets[tokens, 3:])
       # print("srl triggers", np.sum(np.where(targets[tokens, 3:] == trigger_idx)))
@@ -236,7 +236,7 @@ class BaseParser(NN):
       sent[:, 16+2*num_gold_srls+2*num_pred_srls:16+3*num_gold_srls+2*num_pred_srls] = gold_trigger_indices # pb gold predicates
 
       if num_vns > 0:
-        print("vn pred trans shape", vn_pred_trans.shape)
+        # print("vn pred trans shape", vn_pred_trans.shape)
         sent[:, 16+2*num_pred_srls+3*num_gold_srls:] = vn_pred_trans
       #print(num_pred_srls, num_gold_srls, s_pred.shape[1], sent.shape[1])
       sents.append(sent)

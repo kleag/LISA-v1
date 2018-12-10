@@ -866,8 +866,8 @@ class Network(Configurable):
           vn_props = preds[0, 16 + num_gold_srls + 2*num_pred_srls:16 + 2*num_gold_srls + 2*num_pred_srls]
           pb_gold_props = preds[:, 16 + 2*num_gold_srls + 2*num_pred_srls:16 + 3*num_gold_srls + 2*num_pred_srls]
           vn_preds = preds[:, 16 + 3*num_gold_srls + 2*num_pred_srls:]
-          print("==srl preds", srl_preds)
-          print("==vn preds", vn_preds)
+          # print("==srl preds", srl_preds)
+          # print("==vn preds", vn_preds)
 
           # todo definitely broken for one_example_per_predicate
           if self.one_example_per_predicate:
@@ -880,7 +880,7 @@ class Network(Configurable):
           # srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))
           #print(srl_preds, srl_preds_str, vn_preds)
           vn_preds_str = map(list, zip(*[self.convert_bilou(j, 'verbnet') for j in np.transpose(vn_preds)]))
-          print("vn preds str", vn_preds_str)
+          # print("vn preds str", vn_preds_str)
           # if len(predicate_indices) == 0:
           # if preds[0,6] < 4:
           #   print("preds", preds)

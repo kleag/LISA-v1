@@ -181,7 +181,7 @@ class BaseParser(NN):
 
       # num_srls = targets.shape[-1]-non_srl_targets_len
       # sent will contain 7 things non-srl, including one thing from targets
-      sent = -np.ones((length, 2*num_pred_srls+num_gold_srls+16+num_vns), dtype=int)
+      sent = -np.ones((length, 2*num_pred_srls+3*num_gold_srls+16+num_vns), dtype=int)
 
       print("sent shape", sent.shape)
 

@@ -61,7 +61,7 @@ class Parser(BaseParser):
     vn_targets_nopad = tf.gather_nd(srl_targets_combined, vn_indices)
 
     srl_targets = tf.scatter_nd(pb_indices, srl_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
-    vn_targets = tf.scatter_nd(pb_indices, vn_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
+    vn_targets = tf.scatter_nd(vn_indices, vn_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
 
     print(srl_targets.get_shape(), vn_targets.get_shape())
 

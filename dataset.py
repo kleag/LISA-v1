@@ -166,10 +166,10 @@ class Dataset(Configurable):
           srl_vn_labels = [tuple(srl_str.split('=')) for srl_str in srl_fields_full]
           srl_fields = [srl_str[1] if len(srl_str) > 1 else srl_str[0] for srl_str in srl_vn_labels]
 
-          if self.name == "Validset":
-            # print('Buff: ', buff[i][j])
-            print('VN Tags before: ', srl_vn_labels)
-            print('lens', map(len, srl_vn_labels))
+          # if self.name == "Validset":
+          #   # print('Buff: ', buff[i][j])
+          #   print('VN Tags before: ', srl_vn_labels)
+          #   print('lens', map(len, srl_vn_labels))
 
           #print('SRL fields: ', srl_fields, len(srl_fields))
           vn_fields = []
@@ -214,27 +214,27 @@ class Dataset(Configurable):
 
           d = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + (annotation[annotated],) + tags[gold_tag] + (head,) + rels[rel]
           #print('SRL len: ', len(tuple(srl_tags)), 'VN len: ', len(tuple(vn_tags)))
-          if self.name == "Validset":
-            # print('Buff: ', buff[i][j])
-            print("d", d)
-            print('VN Tags: ', vn_fields)
-
-      if self.name == "Validset":
-        print("num srls", len(has_vn_anno))
-        print('buff before: ', buff[i][-1])
+      #     if self.name == "Validset":
+      #       # print('Buff: ', buff[i][j])
+      #       print("d", d)
+      #       print('VN Tags: ', vn_fields)
+      #
+      # if self.name == "Validset":
+      #   print("num srls", len(has_vn_anno))
+      #   print('buff before: ', buff[i][-1])
 
       for srl_idx, has_vn in enumerate(has_vn_anno):
         if not has_vn:
           # print(buff[i][j][:10+len(has_vn_anno)+srl_idx-1])
           # print(buff[i][j][10+len(has_vn_anno)+srl_idx+1:])
-          if self.name == "Validset":
-            print("start", buff[i][j][:11+len(has_vn_anno)+srl_idx])
-            print("end", buff[i][j][11+len(has_vn_anno)+srl_idx+1:])
+          # if self.name == "Validset":
+          #   print("start", buff[i][j][:11+len(has_vn_anno)+srl_idx])
+          #   print("end", buff[i][j][11+len(has_vn_anno)+srl_idx+1:])
           buff[i][-1] = buff[i][j][:11+len(has_vn_anno)+srl_idx] + (vnroles['NoLabel'][0],) + buff[i][j][11+len(has_vn_anno)+srl_idx+1:]
 
-      if self.name == "Validset":
-        print("has_vn:", has_vn_anno)
-        print('buff: ', buff[i][-1])
+      # if self.name == "Validset":
+      #   print("has_vn:", has_vn_anno)
+      #   print('buff: ', buff[i][-1])
 
       # Expand sentences into one example per predicate
       if self.one_example_per_predicate:

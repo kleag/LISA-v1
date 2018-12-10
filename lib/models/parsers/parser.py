@@ -50,7 +50,7 @@ class Parser(BaseParser):
     pb_indices = tf.where(pb_take_mask)
     # vn_indices = pb_indices + tf.expand_dims(tf.expand_dims(total_srl_counts // 2, 0), 0) #tf.ones_like(pb_indices, dtype=tf.int64) * max_preds_in_batch
     vn_indices = tf.where(tf.logical_not(pb_take_mask))
-    vn_scatter_indices = tf.where(tf.reverse(tf.logical_not(pb_take_mask), -1))
+    vn_scatter_indices = tf.where(tf.reverse(tf.logical_not(pb_take_mask), [-1]))
 
     if dataset.name == "Validset":
       srl_targets_combined = tf.Print(srl_targets_combined, [srl_targets_combined], "srl target combined", summarize=200)

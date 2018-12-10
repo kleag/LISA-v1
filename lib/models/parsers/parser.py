@@ -53,6 +53,8 @@ class Parser(BaseParser):
     srl_targets = tf.gather_nd(srl_targets_combined, pb_indices)
     vn_targets = tf.gather_nd(srl_targets_combined, vn_indices)
 
+    print(srl_targets.get_shape(), vn_targets.get_shape())
+
     # srl_targets = dataset.srl_targets_pb
     # vn_targets = dataset.srl_targets_vn
 

@@ -53,6 +53,8 @@ class Parser(BaseParser):
     vn_scatter_indices = tf.where(tf.reverse(tf.logical_not(pb_take_mask), [-1]))
 
     if dataset.name == "Validset":
+      srl_targets_combined = tf.Print(srl_targets_combined, [pb_take_mask], "pb_take_mask", summarize=200)
+      srl_targets_combined = tf.Print(srl_targets_combined, [tf.logical_not(pb_take_mask)], "pb_take_mask", summarize=200)
       srl_targets_combined = tf.Print(srl_targets_combined, [srl_targets_combined], "srl target combined", summarize=200)
       srl_targets_combined = tf.Print(srl_targets_combined, [total_srl_counts], "total_srl_counts", summarize=200)
       srl_targets_combined = tf.Print(srl_targets_combined, [pb_indices], "pb_indices", summarize=200)

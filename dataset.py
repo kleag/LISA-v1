@@ -168,6 +168,7 @@ class Dataset(Configurable):
           if self.name == "Validset":
             # print('Buff: ', buff[i][j])
             print('VN Tags before: ', srl_vn_labels)
+            print('lens', map(len, srl_vn_labels))
 
           #print('SRL fields: ', srl_fields, len(srl_fields))
           vn_fields = []

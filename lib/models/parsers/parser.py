@@ -46,7 +46,7 @@ class Parser(BaseParser):
     max_preds_in_batch = tf.reduce_max(total_srl_counts) // 2
 
     pb_indices = tf.where(tf.sequence_mask(total_srl_counts/2))
-    vn_indices = pb_indices + tf.ones_like(pb_indices, dtype=tf.int64) * max_preds_in_batch
+    vn_indices = pb_indices + total_srl_counts // 2 #tf.ones_like(pb_indices, dtype=tf.int64) * max_preds_in_batch
 
 
     if dataset.name == "Validset":

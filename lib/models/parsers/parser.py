@@ -35,13 +35,18 @@ class Parser(BaseParser):
     inputs = dataset.inputs
     targets = dataset.targets
 
+    shape = tf.shape(targets[:, :, 1])
+    batch_size = shape[0]
+    bucket_size = shape[1]
+
     # extract out pb and vn srl labels
     srl_targets_combined = targets[:, 3:]
 
     total_srl_counts = tf.count_nonzero(srl_targets_combined, axis=-1)
+    max_preds_in_batch = tf.reduce_max(total_srl_counts) // 2
 
     pb_indices = tf.where(tf.sequence_mask(total_srl_counts/2))
-    vn_indices = pb_indices + tf.ones_like(pb_indices, dtype=tf.int64) * tf.reduce_max(total_srl_counts) // 2
+    vn_indices = pb_indices + tf.ones_like(pb_indices, dtype=tf.int64) * max_preds_in_batch
 
 
     if dataset.name == "Validset":
@@ -50,8 +55,11 @@ class Parser(BaseParser):
       srl_targets_combined = tf.Print(srl_targets_combined, [pb_indices], "pb_indices", summarize=200)
       srl_targets_combined = tf.Print(srl_targets_combined, [vn_indices], "vn_indices", summarize=200)
 
-    srl_targets = tf.gather_nd(srl_targets_combined, pb_indices)
-    vn_targets = tf.gather_nd(srl_targets_combined, vn_indices)
+    srl_targets_nopad = tf.gather_nd(srl_targets_combined, pb_indices)
+    vn_targets_nopad = tf.gather_nd(srl_targets_combined, vn_indices)
+
+    srl_targets = tf.scatter_nd(pb_indices, srl_targets_nopad, [batch_size, bucket_size, max_preds_in_batch])
+    vn_targets = tf.scatter_nd(pb_indices, vn_targets_nopad, [batch_size, bucket_size, max_preds_in_batch])
 
     print(srl_targets.get_shape(), vn_targets.get_shape())
 
@@ -169,9 +177,6 @@ class Parser(BaseParser):
     mask2d = self.tokens_to_keep3D * tf.transpose(self.tokens_to_keep3D, [0, 2, 1])
 
     # compute targets adj matrix
-    shape = tf.shape(targets[:, :, 1])
-    batch_size = shape[0]
-    bucket_size = shape[1]
     i1, i2 = tf.meshgrid(tf.range(batch_size), tf.range(bucket_size), indexing="ij")
     idx = tf.stack([i1, i2, targets[:, :, 1]], axis=-1)
     adj = tf.scatter_nd(idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])

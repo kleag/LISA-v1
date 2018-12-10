@@ -43,7 +43,7 @@ class Parser(BaseParser):
     srl_targets_combined = targets[:, 3:]
 
     total_srl_counts = tf.count_nonzero(srl_targets_combined, axis=-1)
-    max_preds_in_batch = tf.reduce_max(total_srl_counts) // 2
+    max_preds_in_batch = tf.cast(tf.reduce_max(total_srl_counts) // 2, tf.int32)
 
     pb_indices = tf.where(tf.sequence_mask(total_srl_counts/2))
     vn_indices = pb_indices + tf.ones_like(pb_indices, dtype=tf.int64) * max_preds_in_batch

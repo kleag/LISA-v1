@@ -40,7 +40,7 @@ class Parser(BaseParser):
     bucket_size = shape[1]
 
     # extract out pb and vn srl labels
-    srl_targets_combined = targets[:, 3:]
+    srl_targets_combined = targets[:, :, 3:]
 
     total_srl_counts = tf.count_nonzero(srl_targets_combined, axis=-1)
     max_preds_in_batch = tf.reduce_max(total_srl_counts) // 2

@@ -1350,7 +1350,7 @@ class NN(Configurable):
 
       if annotated3D is not None:
         preds_to_keep = tf.multiply(preds_to_keep, tf.cast(tf.reduce_any(tf.cast(mask, tf.bool), axis=-1, keepdims=True), tf.float32))
-        preds_to_keep = tf.Print(preds_to_keep, [tf.shape(preds_to_keep), tf.shape(annotated3D), tf.shape(mask)])
+        # preds_to_keep = tf.Print(preds_to_keep, [tf.shape(preds_to_keep), tf.shape(annotated3D), tf.shape(mask)])
         #srl_targets = tf.Print(srl_targets, [tf.shape(srl_targets)], "VN Targets shape ")
 
       #predictions = tf.cast(tf.argmax(logits_transposed, axis=-1), tf.int32)

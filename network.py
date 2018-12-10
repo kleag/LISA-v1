@@ -753,7 +753,7 @@ class Network(Configurable):
           words = all_sents[bkt_idx][idx]
           num_gold_srls = preds[0, 13]
           num_pred_srls = preds[0, 14]
-          srl_preds = preds[:, 16+num_pred_srls+num_gold_srls:]
+          srl_preds = preds[:, 16+num_pred_srls+num_gold_srls:16+2*num_pred_srls+num_gold_srls]
           srl_golds = preds[:, 16+num_pred_srls:16+num_gold_srls+num_pred_srls]
           srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)
           srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))

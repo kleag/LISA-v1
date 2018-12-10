@@ -230,7 +230,7 @@ class BaseParser(NN):
       sent[:,16+num_pred_srls+num_gold_srls:16+2*num_pred_srls+num_gold_srls] = s_pred
 
       # keep track of vn predicates (binary for each gold pb predicate)
-      sent[:, 16+num_gold_srls+2*num_pred_srls:16+2*num_gold_srls+2*num_pred_srls] = vn_pred_keep # vn predicates
+      sent[0, 16+num_gold_srls+2*num_pred_srls:16+2*num_gold_srls+2*num_pred_srls] = vn_pred_keep # vn predicates
 
       # gold pb predicate indices
       sent[:, 16+2*num_gold_srls+2*num_pred_srls:16+3*num_gold_srls+2*num_pred_srls] = gold_trigger_indices # pb gold predicates

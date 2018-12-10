@@ -119,6 +119,18 @@ class Parser(BaseParser):
         pos_idx = vocabs[1][postag]
         preds_to_pos_map[pred_idx] = pos_idx
 
+    # todo finish: use these maps, also need to make sure they get created in dataset?
+    # srl_to_pb_map = np.zeros([num_srl_classes, 1], dtype=np.int32)
+    # srl_to_vn_map = np.zeros([num_srl_classes, 1], dtype=np.int32)
+    # for srl_label, srl_idx in vocabs[3].iteritems():
+    #   if srl_label in vocabs[3].SPECIAL_TOKENS:
+    #     pb_label = srl_label
+    #     vn_label = srl_label
+    #   else:
+    #     vn_label, pb_label = srl_label.split('=')
+    #   pos_idx = vocabs[1][postag]
+    #   preds_to_pos_map[pred_idx] = pos_idx
+
     # todo these are actually wrong because of nesting
     bilou_constraints = np.zeros((num_srl_classes, num_srl_classes))
     if self.transition_statistics:

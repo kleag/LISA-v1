@@ -357,6 +357,7 @@ class Dataset(Configurable):
 
       np.set_printoptions(threshold=np.nan)
 
+      # todo: how to fix?
       if self.name == "Validset":
         print("srl_total", srl_total)
         print("vns")

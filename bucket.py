@@ -105,9 +105,9 @@ class Bucket(Configurable):
 
       for i, datum in enumerate(self._data):
         # if len(self._data) == 416:
-        print("datum", datum)
+        # print("datum", datum)
         # print("datum shape", datum.shape)
-        print("datum len", len(datum))
+        # print("datum len", len(datum))
         datum = np.array(datum)
         data[i, :datum.shape[0], :datum.shape[1]] = datum
 

@@ -362,8 +362,10 @@ class Dataset(Configurable):
         print("srl_total", srl_total)
         print("vns")
         print(data[:, :maxlen, srl_vn_start:])
-        print("all")
+        print("srls")
         print(data[:, :maxlen, 10:])
+        print("all")
+        print(data[:, :maxlen, :])
         print("targets")
         print(data[:, :maxlen, min(target_idxs):maxlen + max(target_idxs) + 1])
 

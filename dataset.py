@@ -223,6 +223,7 @@ class Dataset(Configurable):
           buff[i][-1] = buff[i][j][:10+len(has_vn_anno)+srl_idx] + (vnroles['NoLabel'][0],) + buff[i][j][10+len(has_vn_anno)+srl_idx+1:]
 
       if self.name == "Validset":
+        print("has_vn:", has_vn_anno)
         print('buff: ', buff[i][-1])
 
       # Expand sentences into one example per predicate

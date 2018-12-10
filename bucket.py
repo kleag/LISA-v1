@@ -26,12 +26,11 @@ from configurable import Configurable
 from lib.linalg import linear
 from lib.models.nn import NN
 
-
-# ***************************************************************
+#***************************************************************
 class Bucket(Configurable):
   """"""
 
-  # =============================================================
+  #=============================================================
   def __init__(self, *args, **kwargs):
     """"""
 
@@ -41,7 +40,7 @@ class Bucket(Configurable):
     self._sents = None
     return
 
-  # =============================================================
+  #=============================================================
   def reset(self, size, pad=False):
     """"""
 
@@ -54,7 +53,7 @@ class Bucket(Configurable):
       self._sents = []
     return
 
-  # =============================================================
+  #=============================================================
   def add(self, sent):
     """"""
 
@@ -67,11 +66,23 @@ class Bucket(Configurable):
     # idxs = [word[1:] for word in sent]
     words = [word[0] for word in sent]
     idxs = [word[1:] for word in sent]
+    # for i,idx in enumerate(idxs):
+    #   print('Word: ', words[i])
+    #   print('Annotated: ', idx[6])
+    #   srl_tags_len = len(idx) - 10
+    #   print('Tags length: ', srl_tags_len)
+    #   print('SRLs: ', idx[10: 10 + srl_tags_len//2])
+    #   print('VNs: ', idx[10 + srl_tags_len//2: ])
+
+
     self._sents.append(words)
     self._data.append(idxs)
-    return len(self._data) - 1
 
-  # =============================================================
+    #print('Sent and data length: ', len(sent), len(self._data))
+    #print(len(idxs), idxs[0])
+    return len(self._data)-1
+
+  #=============================================================
   def _finalize(self):
     """"""
 
@@ -84,6 +95,8 @@ class Bucket(Configurable):
       shape = (len(self._data), self.size, max_len)
       data = np.zeros(shape, dtype=np.int32)
 
+      #print('Shape of data: ', shape)
+
       # if len(self._data) == 416:
       #   print("lens", lens)
       #   print("max_len", max_len)
@@ -92,9 +105,9 @@ class Bucket(Configurable):
 
       for i, datum in enumerate(self._data):
         # if len(self._data) == 416:
-        # print("datum", datum)
-        # print("datum shape", datum.shape)
-        # print("datum len", len(datum))
+          # print("datum", datum)
+          # print("datum shape", datum.shape)
+          # print("datum len", len(datum))
         datum = np.array(datum)
         data[i, :datum.shape[0], :datum.shape[1]] = datum
       self._data = data
@@ -105,19 +118,17 @@ class Bucket(Configurable):
     print('Bucket %s is %d x %d' % ((self._name,) + self._data.shape[0:2]))
     return
 
-  # =============================================================
+  #=============================================================
   def __len__(self):
     return len(self._data)
 
-  # =============================================================
+  #=============================================================
   @property
   def size(self):
     return self._size
-
   @property
   def data(self):
     return self._data
-
   @property
   def sents(self):
     return self._sents

@@ -372,10 +372,11 @@ class Dataset(Configurable):
         print(data[:, :maxlen, min(target_idxs):maxlen + max(target_idxs) + 1])
 
       feed_dict.update({
-        self.inputs: data[:,:maxlen,input_idxs],
-        self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1],
-        self.srl_targets_pb: targets[:,:,3:],
-        self.srl_targets_vn: data[:, :maxlen, srl_vn_start:],
+        self.inputs: data[:, :maxlen, input_idxs],
+        self.targets: data[:, :maxlen, min(target_idxs):],
+        # self.targets: data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1],
+        # self.srl_targets_pb: targets[:,:,3:],
+        # self.srl_targets_vn: data[:, :maxlen, srl_vn_start:],
         self.annotated: data[:,:maxlen, 6]
       })
 

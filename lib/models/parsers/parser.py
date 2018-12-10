@@ -34,8 +34,29 @@ class Parser(BaseParser):
     vocabs = dataset.vocabs
     inputs = dataset.inputs
     targets = dataset.targets
-    srl_targets = dataset.srl_targets_pb
-    vn_targets = dataset.srl_targets_vn
+
+    # extract out pb and vn srl labels
+    srl_targets_combined = targets[:, 3:]
+
+    total_srl_counts = tf.count_nonzero(srl_targets_combined, axis=-1)
+
+    pb_indices = tf.where(tf.sequence_mask(total_srl_counts/2))
+    vn_indices = pb_indices + tf.ones_like(pb_indices) * tf.reduce_max(total_srl_counts) / 2
+
+
+    if dataset.name == "Validset":
+      srl_targets_combined = tf.Print(srl_targets_combined, [srl_targets_combined], "srl target combined", summarize=200)
+      srl_targets_combined = tf.Print(srl_targets_combined, [total_srl_counts], "total_srl_counts", summarize=200)
+      srl_targets_combined = tf.Print(srl_targets_combined, [pb_indices], "pb_indices", summarize=200)
+      srl_targets_combined = tf.Print(srl_targets_combined, [vn_indices], "vn_indices", summarize=200)
+
+    srl_targets = tf.gather_nd(srl_targets_combined, pb_indices)
+    vn_targets = tf.gather_nd(srl_targets_combined, vn_indices)
+
+    # srl_targets = dataset.srl_targets_pb
+    # vn_targets = dataset.srl_targets_vn
+
+
     nolabel_mask = tf.where(tf.equal(vn_targets, 1))
     #vn_targets = tf.Print(vn_targets, [tf.shape(vn_targets), vn_targets[0], vn_targets[0][1]], "VN", summarize=10)
 

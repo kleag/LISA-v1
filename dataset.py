@@ -360,6 +360,8 @@ class Dataset(Configurable):
       # todo: how to fix?
       if self.name == "Validset":
         print("srl_total", srl_total)
+        print("maxlen", maxlen)
+        print("shape", data[:, :maxlen, :].shape)
         print("vns")
         print(data[:, :maxlen, srl_vn_start:])
         print("srls")

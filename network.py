@@ -590,7 +590,7 @@ class Network(Configurable):
     for batch_num, (feed_dict, sents) in enumerate(minibatches()):
       mb_inputs = feed_dict[dataset.inputs]
       mb_targets = feed_dict[dataset.targets]
-      vn_targets = feed_dict[dataset.srl_targets_vn]
+      # vn_targets = feed_dict[dataset.srl_targets_vn]
       annotated = feed_dict[dataset.annotated]
 
       # print('Inputs shape and annot', mb_inputs.shape, annotated.shape)

@@ -41,7 +41,7 @@ class Parser(BaseParser):
     total_srl_counts = tf.count_nonzero(srl_targets_combined, axis=-1)
 
     pb_indices = tf.where(tf.sequence_mask(total_srl_counts/2))
-    vn_indices = pb_indices + tf.ones_like(pb_indices) * tf.reduce_max(total_srl_counts) / 2
+    vn_indices = pb_indices + tf.ones_like(pb_indices, dtype=tf.int64) * tf.reduce_max(total_srl_counts) / 2
 
 
     if dataset.name == "Validset":

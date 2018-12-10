@@ -223,15 +223,21 @@ class BaseParser(NN):
       #print("s_pred", s_pred.shape, s_pred)
       #print("v_pred", vn_pred_trans.shape, vn_pred_trans)
 
-
       if len(s_pred.shape) == 1:
         s_pred = np.expand_dims(s_pred, -1)
       if len(vn_pred_trans.shape) == 1:
         vn_pred_trans = np.expand_dims(vn_pred_trans, -1)
       sent[:,16+num_pred_srls+num_gold_srls:16+2*num_pred_srls+num_gold_srls] = s_pred
+
+      # keep track of vn predicates (binary for each gold pb predicate)
+      sent[:, 16+num_gold_srls+2*num_pred_srls:16+2*num_gold_srls+2*num_pred_srls] = vn_pred_keep # vn predicates
+
+      # gold pb predicate indices
+      sent[:, 16+2*num_gold_srls+2*num_pred_srls:16+3*num_gold_srls+2*num_pred_srls] = gold_trigger_indices # pb gold predicates
+
       if num_vns > 0:
         print("vn pred trans shape", vn_pred_trans.shape)
-        sent[:, 16+2*num_pred_srls+num_gold_srls:] = vn_pred_trans
+        sent[:, 16+2*num_pred_srls+3*num_gold_srls:] = vn_pred_trans
       #print(num_pred_srls, num_gold_srls, s_pred.shape[1], sent.shape[1])
       sents.append(sent)
     return sents, total_time, roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total, non_trees_total, non_tree_preds, n_tokens

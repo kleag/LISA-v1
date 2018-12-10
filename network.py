@@ -863,14 +863,18 @@ class Network(Configurable):
           #print('Annotation: ', annotation)
           #global_annot_count += annotation
           srl_preds = preds[:, 16 + num_gold_srls + num_pred_srls: 16 + num_gold_srls + 2*num_pred_srls]
-          vn_preds = preds[:, 16 + num_gold_srls + 2*num_pred_srls:]
+          vn_props = preds[:, 16 + num_gold_srls + 2*num_pred_srls:16 + 2*num_gold_srls + 2*num_pred_srls]
+          pb_gold_props = preds[:, 16 + 2*num_gold_srls + 2*num_pred_srls:16 + 3*num_gold_srls + 2*num_pred_srls]
+          vn_preds = preds[:, 16 + 3*num_gold_srls + 2*num_pred_srls:]
           print("==srl preds", srl_preds)
           print("==vn preds", vn_preds)
+
+          # todo definitely broken for one_example_per_predicate
           if self.one_example_per_predicate:
             predicate_indices = np.where(preds[:, 4] == 1)[0]
             # print("predicate indices", predicate_indices)
           else:
-            predicate_indices = preds[0, 16:16+num_pred_srls]
+            predicate_indices = [p_j for vn_p, p_j in zip(vn_preds, preds[0, 16:16+num_gold_srls]) if vn_p]
           #print("predicate indices", predicate_indices)
           #predicate_indices = global_pred_indices
           # srl_preds_str = map(list, zip(*[self.convert_bilou(j, 'propbank') for j in np.transpose(srl_preds)]))

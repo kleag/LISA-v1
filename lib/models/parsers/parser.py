@@ -52,13 +52,13 @@ class Parser(BaseParser):
     vn_indices = tf.where(tf.logical_not(pb_take_mask))
     vn_scatter_indices = tf.where(tf.reverse(tf.logical_not(pb_take_mask), [-1]))
 
-    if dataset.name == "Validset":
-      srl_targets_combined = tf.Print(srl_targets_combined, [pb_take_mask], "pb_take_mask", summarize=200)
-      srl_targets_combined = tf.Print(srl_targets_combined, [tf.logical_not(pb_take_mask)], "pb_take_mask", summarize=200)
-      srl_targets_combined = tf.Print(srl_targets_combined, [srl_targets_combined], "srl target combined", summarize=200)
-      srl_targets_combined = tf.Print(srl_targets_combined, [total_srl_counts], "total_srl_counts", summarize=200)
-      srl_targets_combined = tf.Print(srl_targets_combined, [pb_indices], "pb_indices", summarize=200)
-      srl_targets_combined = tf.Print(srl_targets_combined, [vn_indices], "vn_indices", summarize=200)
+    # if dataset.name == "Validset":
+    #   srl_targets_combined = tf.Print(srl_targets_combined, [pb_take_mask], "pb_take_mask", summarize=200)
+    #   srl_targets_combined = tf.Print(srl_targets_combined, [tf.logical_not(pb_take_mask)], "pb_take_mask", summarize=200)
+    #   srl_targets_combined = tf.Print(srl_targets_combined, [srl_targets_combined], "srl target combined", summarize=200)
+    #   srl_targets_combined = tf.Print(srl_targets_combined, [total_srl_counts], "total_srl_counts", summarize=200)
+    #   srl_targets_combined = tf.Print(srl_targets_combined, [pb_indices], "pb_indices", summarize=200)
+    #   srl_targets_combined = tf.Print(srl_targets_combined, [vn_indices], "vn_indices", summarize=200)
 
     srl_targets_nopad = tf.gather_nd(srl_targets_combined, pb_indices)
     vn_targets_nopad = tf.gather_nd(srl_targets_combined, vn_indices)
@@ -68,9 +68,9 @@ class Parser(BaseParser):
 
     print(srl_targets.get_shape(), vn_targets.get_shape())
 
-    if dataset.name == "Validset":
-      srl_targets = tf.Print(srl_targets, [srl_targets], "srl_targets", summarize=200)
-      vn_targets = tf.Print(vn_targets, [vn_targets], "vn_targets", summarize=200)
+    # if dataset.name == "Validset":
+    #   srl_targets = tf.Print(srl_targets, [srl_targets], "srl_targets", summarize=200)
+    #   vn_targets = tf.Print(vn_targets, [vn_targets], "vn_targets", summarize=200)
 
 
     # srl_targets = dataset.srl_targets_pb

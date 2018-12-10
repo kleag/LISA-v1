@@ -357,19 +357,18 @@ class Dataset(Configurable):
 
       np.set_printoptions(threshold=np.nan)
 
-      # todo: how to fix?
-      if self.name == "Validset":
-        print("srl_total", srl_total)
-        print("maxlen", maxlen)
-        print("shape", data[:, :maxlen, :].shape)
-        print("vns")
-        print(data[:, :maxlen, srl_vn_start:])
-        print("srls")
-        print(data[:, :maxlen, 10:])
-        print("all")
-        print(data[:, :maxlen, :])
-        print("targets")
-        print(data[:, :maxlen, min(target_idxs):maxlen + max(target_idxs) + 1])
+      # if self.name == "Validset":
+      #   print("srl_total", srl_total)
+      #   print("maxlen", maxlen)
+      #   print("shape", data[:, :maxlen, :].shape)
+      #   print("vns")
+      #   print(data[:, :maxlen, srl_vn_start:])
+      #   print("srls")
+      #   print(data[:, :maxlen, 10:])
+      #   print("all")
+      #   print(data[:, :maxlen, :])
+      #   print("targets")
+      #   print(data[:, :maxlen, min(target_idxs):maxlen + max(target_idxs) + 1])
 
       feed_dict.update({
         self.inputs: data[:, :maxlen, input_idxs],

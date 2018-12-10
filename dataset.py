@@ -218,6 +218,8 @@ class Dataset(Configurable):
 
       for srl_idx, has_vn in enumerate(has_vn_anno):
         if has_vn:
+          print(buff[i][j][10+len(has_vn_anno)+srl_idx-1])
+          print(buff[i][j][10+len(has_vn_anno)+srl_idx+1:])
           buff[i][-1] = buff[i][j][10+len(has_vn_anno)+srl_idx-1] + ('NoLabel',) + buff[i][j][10+len(has_vn_anno)+srl_idx+1:]
 
       if self.name == "Validset":

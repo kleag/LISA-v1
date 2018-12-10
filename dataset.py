@@ -228,9 +228,9 @@ class Dataset(Configurable):
           # print(buff[i][j][:10+len(has_vn_anno)+srl_idx-1])
           # print(buff[i][j][10+len(has_vn_anno)+srl_idx+1:])
           if self.name == "Validset":
-            print("start", buff[i][j][:10+len(has_vn_anno)+srl_idx])
-            print("end", buff[i][j][10+len(has_vn_anno)+srl_idx+1:])
-          buff[i][-1] = buff[i][j][:10+len(has_vn_anno)+srl_idx] + (vnroles['NoLabel'][0],) + buff[i][j][10+len(has_vn_anno)+srl_idx+1:]
+            print("start", buff[i][j][:11+len(has_vn_anno)+srl_idx])
+            print("end", buff[i][j][11+len(has_vn_anno)+srl_idx+1:])
+          buff[i][-1] = buff[i][j][:11+len(has_vn_anno)+srl_idx] + (vnroles['NoLabel'][0],) + buff[i][j][11+len(has_vn_anno)+srl_idx+1:]
 
       if self.name == "Validset":
         print("has_vn:", has_vn_anno)
@@ -243,7 +243,7 @@ class Dataset(Configurable):
         sent = np.array(buff[i])
         # print(sent)
         is_predicate_idx = 4
-        srl_start_idx = 10
+        srl_start_idx = 11
         #print(len(sent), len(sent)-srl_start_idx)
         word_part = sent[:, 0].astype('O')
         srl_part = sent[:, srl_start_idx:].astype(np.int32)

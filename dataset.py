@@ -211,6 +211,9 @@ class Dataset(Configurable):
             predicate_indices.append(j)
 
           buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + (annotation[annotated],) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags) + tuple(vn_tags)
+
+          d = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + (annotation[annotated],) + tags[gold_tag] + (head,) + rels[rel]
+          print("d", d)
           #print('SRL len: ', len(tuple(srl_tags)), 'VN len: ', len(tuple(vn_tags)))
           if self.name == "Validset":
             # print('Buff: ', buff[i][j])

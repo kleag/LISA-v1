@@ -216,6 +216,9 @@ class Dataset(Configurable):
             # print('Buff: ', buff[i][j])
             print('VN Tags: ', vn_fields)
 
+      if self.name == "Validset":
+        print('buff before: ', buff[i][-1])
+
       for srl_idx, has_vn in enumerate(has_vn_anno):
         if not has_vn:
           # print(buff[i][j][:10+len(has_vn_anno)+srl_idx-1])

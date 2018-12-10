@@ -358,7 +358,6 @@ class Dataset(Configurable):
       np.set_printoptions(threshold=np.nan)
 
       if self.name == "Validset":
-        srl_total = np.count_nonzero()
         print("srl_total", srl_total)
         print("vns")
         print(data[:, :maxlen, srl_vn_start:])

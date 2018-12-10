@@ -63,6 +63,11 @@ class Parser(BaseParser):
 
     print(srl_targets.get_shape(), vn_targets.get_shape())
 
+    if dataset.name == "Validset":
+      srl_targets = tf.Print(srl_targets, [srl_targets], "srl_targets", summarize=200)
+      vn_targets = tf.Print(vn_targets, [vn_targets], "vn_targets", summarize=200)
+
+
     # srl_targets = dataset.srl_targets_pb
     # vn_targets = dataset.srl_targets_vn
 

@@ -355,7 +355,8 @@ class Dataset(Configurable):
       #print(targets[:,:,3:])
       #print(min(target_idxs), maxlen+max(target_idxs)+1)
 
-      print(data[:, :maxlen, srl_vn_start:])
+      if self.name == "Validset":
+        print(data[:, :maxlen, srl_vn_start:])
 
       feed_dict.update({
         self.inputs: data[:,:maxlen,input_idxs],

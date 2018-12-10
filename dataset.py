@@ -217,12 +217,16 @@ class Dataset(Configurable):
             print('VN Tags: ', vn_fields)
 
       if self.name == "Validset":
+        print("num srls", len(has_vn_anno))
         print('buff before: ', buff[i][-1])
 
       for srl_idx, has_vn in enumerate(has_vn_anno):
         if not has_vn:
           # print(buff[i][j][:10+len(has_vn_anno)+srl_idx-1])
           # print(buff[i][j][10+len(has_vn_anno)+srl_idx+1:])
+          if self.name == "Validset":
+            print("start", buff[i][j][:10+len(has_vn_anno)+srl_idx])
+            print("end", buff[i][j][10+len(has_vn_anno)+srl_idx+1:])
           buff[i][-1] = buff[i][j][:10+len(has_vn_anno)+srl_idx] + (vnroles['NoLabel'][0],) + buff[i][j][10+len(has_vn_anno)+srl_idx+1:]
 
       if self.name == "Validset":

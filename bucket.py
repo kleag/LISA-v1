@@ -110,6 +110,10 @@ class Bucket(Configurable):
           # print("datum len", len(datum))
         datum = np.array(datum)
         data[i, :datum.shape[0], :datum.shape[1]] = datum
+
+        if self.name == "Validset":
+          print("datum", datum)
+
       self._data = data
       self._sents = np.array(self._sents)
     else:

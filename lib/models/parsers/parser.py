@@ -35,7 +35,7 @@ class Parser(BaseParser):
     inputs = dataset.inputs
     targets = dataset.targets
 
-    shape = tf.cast(tf.shape(targets[:, :, 1]), tf.int64)
+    shape = tf.shape(targets[:, :, 1])
     batch_size = shape[0]
     bucket_size = shape[1]
 
@@ -58,8 +58,8 @@ class Parser(BaseParser):
     srl_targets_nopad = tf.gather_nd(srl_targets_combined, pb_indices)
     vn_targets_nopad = tf.gather_nd(srl_targets_combined, vn_indices)
 
-    srl_targets = tf.scatter_nd(pb_indices, srl_targets_nopad, [batch_size, bucket_size, max_preds_in_batch])
-    vn_targets = tf.scatter_nd(pb_indices, vn_targets_nopad, [batch_size, bucket_size, max_preds_in_batch])
+    srl_targets = tf.scatter_nd(pb_indices, srl_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
+    vn_targets = tf.scatter_nd(pb_indices, vn_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
 
     print(srl_targets.get_shape(), vn_targets.get_shape())
 
@@ -183,7 +183,7 @@ class Parser(BaseParser):
 
     # compute targets adj matrix
     i1, i2 = tf.meshgrid(tf.range(batch_size), tf.range(bucket_size), indexing="ij")
-    idx = tf.stack([i1, i2, tf.cast(targets[:, :, 1], tf.int64)], axis=-1)
+    idx = tf.stack([i1, i2, targets[:, :, 1]], axis=-1)
     adj = tf.scatter_nd(idx, tf.ones([batch_size, bucket_size]), [batch_size, bucket_size, bucket_size])
     adj = adj * mask2d
 

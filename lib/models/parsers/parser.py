@@ -50,6 +50,7 @@ class Parser(BaseParser):
     pb_indices = tf.where(pb_take_mask)
     # vn_indices = pb_indices + tf.expand_dims(tf.expand_dims(total_srl_counts // 2, 0), 0) #tf.ones_like(pb_indices, dtype=tf.int64) * max_preds_in_batch
     vn_indices = tf.where(tf.logical_not(pb_take_mask))
+    vn_scatter_indices = tf.where(tf.reverse(tf.logical_not(pb_take_mask), -1))
 
     if dataset.name == "Validset":
       srl_targets_combined = tf.Print(srl_targets_combined, [srl_targets_combined], "srl target combined", summarize=200)
@@ -61,7 +62,7 @@ class Parser(BaseParser):
     vn_targets_nopad = tf.gather_nd(srl_targets_combined, vn_indices)
 
     srl_targets = tf.scatter_nd(pb_indices, srl_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
-    vn_targets = tf.scatter_nd(vn_indices, vn_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
+    vn_targets = tf.scatter_nd(vn_scatter_indices, vn_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
 
     print(srl_targets.get_shape(), vn_targets.get_shape())
 

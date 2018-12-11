@@ -134,12 +134,12 @@ with open(conll_fname) as conll_file:
                                             pb_part = sem_arg
 
                                             # non-annotated core args become 'Other'
-                                            if pb_part in ['ARG0', 'ARG1', 'ARG2', 'ARG3', 'ARG4', 'ARG5', 'ARGA']:
-                                                vn_part = 'Other'
+                                            # if pb_part in ['ARG0', 'ARG1', 'ARG2', 'ARG3', 'ARG4', 'ARG5', 'ARGA']:
+                                            #     vn_part = 'Other'
 
                                             # non-annotated non-core args fall back on propbank
-                                            else:
-                                                vn_part = pb_part
+                                            # else:
+                                            vn_part = pb_part
 
                                         # update the matching argument
                                         if conll_arg == pb_part:

@@ -41,7 +41,7 @@ with open(conll_fname) as conll_file:
                     oldkey = split_conll_line[0]
 
             # if end of sentence, process it
-            else:
+            elif buff:
                 # identify sentence by doc id and sentence num
                 conll_key = (buff[0][0], buff[0][2])
 

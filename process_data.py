@@ -44,8 +44,6 @@ with open(conll_fname) as conll_file:
             elif buff:
                 # identify sentence by doc id and sentence num
                 conll_key = (buff[0][0], buff[0][1])
-                print("buff[0]", buff[0])
-                print("conll key", conll_key)
 
                 # convert to np friendly format for convenience
                 buff_array = np.array(buff, dtype=object)
@@ -159,6 +157,7 @@ with open(conll_fname) as conll_file:
                                             vn_part = pb_part
 
                                         # update the matching argument
+                                        print(conll_arg, pb_part)
                                         if conll_arg == pb_part:
                                             frames[k, i] = vn_part + '=' + frames[k, i]
                                             break

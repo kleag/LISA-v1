@@ -42,6 +42,7 @@ with open(conll_fname) as conll_file:
 
             # if end of sentence, process it
             elif buff:
+                print("processing ", buff)
                 # identify sentence by doc id and sentence num
                 conll_key = (buff[0][0], buff[0][2])
 

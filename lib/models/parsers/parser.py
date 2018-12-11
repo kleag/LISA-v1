@@ -615,7 +615,7 @@ class Parser(BaseParser):
       bucket_size = tf.shape(vn_target)[1]
       #vn_logits = tf.Print(vn_logits, [tf.shape(vn_logits), tf.shape(vn_target), preds_in_batch], "logits and target ")
       logits_shape = tf.shape(vn_logits)
-      num_classes = 50
+      num_classes = num_vn_classes
       if self.gold_train_vn:
         trigger_counts = tf.reduce_sum(predicate_predictions, -1)
         vn_targets_indices = tf.where(tf.sequence_mask(tf.reshape(trigger_counts, [-1])))
@@ -669,7 +669,7 @@ class Parser(BaseParser):
           'probabilities': tf.zeros([num_triggers, bucket_size, num_vn_classes]),
           'predictions': tf.reshape(tf.transpose(vn_targets, [0, 2, 1]), [-1, bucket_size]),
         # tf.zeros([num_triggers, bucket_size]),
-          'logits': tf.zeros([num_triggers, bucket_size, 50]),
+          'logits': tf.zeros([num_triggers, bucket_size, num_vn_classes]),
           'correct': tf.constant(0.),
           'count': tf.constant(1.)
         }

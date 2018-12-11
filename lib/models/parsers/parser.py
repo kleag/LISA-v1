@@ -48,17 +48,8 @@ class Parser(BaseParser):
     pb_take_mask = tf.sequence_mask(total_srl_counts / 2, maxlen=tf.reduce_max(total_srl_counts))
 
     pb_indices = tf.where(pb_take_mask)
-    # vn_indices = pb_indices + tf.expand_dims(tf.expand_dims(total_srl_counts // 2, 0), 0) #tf.ones_like(pb_indices, dtype=tf.int64) * max_preds_in_batch
     vn_indices = tf.where(tf.logical_not(pb_take_mask))
     vn_scatter_indices = tf.where(tf.reverse(tf.logical_not(pb_take_mask), [-1]))
-
-    # if dataset.name == "Validset":
-    #   srl_targets_combined = tf.Print(srl_targets_combined, [pb_take_mask], "pb_take_mask", summarize=200)
-    #   srl_targets_combined = tf.Print(srl_targets_combined, [tf.logical_not(pb_take_mask)], "pb_take_mask", summarize=200)
-    #   srl_targets_combined = tf.Print(srl_targets_combined, [srl_targets_combined], "srl target combined", summarize=200)
-    #   srl_targets_combined = tf.Print(srl_targets_combined, [total_srl_counts], "total_srl_counts", summarize=200)
-    #   srl_targets_combined = tf.Print(srl_targets_combined, [pb_indices], "pb_indices", summarize=200)
-    #   srl_targets_combined = tf.Print(srl_targets_combined, [vn_indices], "vn_indices", summarize=200)
 
     srl_targets_nopad = tf.gather_nd(srl_targets_combined, pb_indices)
     vn_targets_nopad = tf.gather_nd(srl_targets_combined, vn_indices)
@@ -66,22 +57,7 @@ class Parser(BaseParser):
     srl_targets = tf.scatter_nd(pb_indices, srl_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
     vn_targets = tf.scatter_nd(vn_scatter_indices, vn_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
 
-    print(srl_targets.get_shape(), vn_targets.get_shape())
-
-    # if dataset.name == "Validset":
-    #   srl_targets = tf.Print(srl_targets, [srl_targets], "srl_targets", summarize=200)
-    #   vn_targets = tf.Print(vn_targets, [vn_targets], "vn_targets", summarize=200)
-
-
-    # srl_targets = dataset.srl_targets_pb
-    # vn_targets = dataset.srl_targets_vn
-
-
-    nolabel_mask = tf.where(tf.equal(vn_targets, 1))
-    #vn_targets = tf.Print(vn_targets, [tf.shape(vn_targets), vn_targets[0], vn_targets[0][1]], "VN", summarize=10)
-
     annotated = dataset.annotated
-    #print(inputs.shape, targets.shape)
     step = dataset.step
     mappings = dataset.mappings
 
@@ -159,18 +135,6 @@ class Parser(BaseParser):
           _, postag = pred_label.split('/')
         pos_idx = vocabs[1][postag]
         preds_to_pos_map[pred_idx] = pos_idx
-
-    # todo finish: use these maps, also need to make sure they get created in dataset?
-    # srl_to_pb_map = np.zeros([num_srl_classes, 1], dtype=np.int32)
-    # srl_to_vn_map = np.zeros([num_srl_classes, 1], dtype=np.int32)
-    # for srl_label, srl_idx in vocabs[3].iteritems():
-    #   if srl_label in vocabs[3].SPECIAL_TOKENS:
-    #     pb_label = srl_label
-    #     vn_label = srl_label
-    #   else:
-    #     vn_label, pb_label = srl_label.split('=')
-    #   pos_idx = vocabs[1][postag]
-    #   preds_to_pos_map[pred_idx] = pos_idx
 
     # todo these are actually wrong because of nesting
     bilou_constraints = np.zeros((num_srl_classes, num_srl_classes))

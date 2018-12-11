@@ -130,16 +130,6 @@ class BaseParser(NN):
       # vn_pred_keep = preds_to_keep[srl_pred_idx:srl_pred_idx+num_pred_srls]
 
       num_vns = int(np.sum(vn_pred_keep))
-      vn_pred_indices = np.where(vn_pred_keep == 1)
-
-      # print("vn pred shape", vn_pred.shape)
-      # print("vn pred keep", vn_pred_keep)
-      # print("vn pred keep shape", vn_pred_keep.shape)
-      # print("num_vns", num_vns)
-      # print("num pb preds", num_gold_srls)
-      # print("vn_pred_indices", vn_pred_indices)
-      # print("vn targ", vn_targ)
-
       vn_pred = vn_pred[np.where(vn_pred_keep == 1)]
 
       # print("vn pred shape after", vn_pred.shape)

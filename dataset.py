@@ -212,29 +212,10 @@ class Dataset(Configurable):
 
           buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + (annotation[annotated],) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags) + tuple(vn_tags)
 
-          d = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + (annotation[annotated],) + tags[gold_tag] + (head,) + rels[rel]
-          #print('SRL len: ', len(tuple(srl_tags)), 'VN len: ', len(tuple(vn_tags)))
-      #     if self.name == "Validset":
-      #       # print('Buff: ', buff[i][j])
-      #       print("d", d)
-      #       print('VN Tags: ', vn_fields)
-      #
-      # if self.name == "Validset":
-      #   print("num srls", len(has_vn_anno))
-      #   print('buff before: ', buff[i][-1])
-
+      # go back and mark predicates that don't have a verbnet annotation with NoLabel
       for srl_idx, has_vn in enumerate(has_vn_anno):
         if not has_vn:
-          # print(buff[i][j][:10+len(has_vn_anno)+srl_idx-1])
-          # print(buff[i][j][10+len(has_vn_anno)+srl_idx+1:])
-          # if self.name == "Validset":
-          #   print("start", buff[i][j][:11+len(has_vn_anno)+srl_idx])
-          #   print("end", buff[i][j][11+len(has_vn_anno)+srl_idx+1:])
           buff[i][-1] = buff[i][j][:11+len(has_vn_anno)+srl_idx] + (vnroles['NoLabel'][0],) + buff[i][j][11+len(has_vn_anno)+srl_idx+1:]
-
-      # if self.name == "Validset":
-      #   print("has_vn:", has_vn_anno)
-      #   print('buff: ', buff[i][-1])
 
       # Expand sentences into one example per predicate
       if self.one_example_per_predicate:
@@ -381,21 +362,6 @@ class Dataset(Configurable):
       #print('SRL total: ', srl_total, 'SRL VN start: ', srl_vn_start)
       #print(targets[:,:,3:])
       #print(min(target_idxs), maxlen+max(target_idxs)+1)
-
-      np.set_printoptions(threshold=np.nan)
-
-      # if self.name == "Validset":
-      #   print("srl_total", srl_total)
-      #   print("maxlen", maxlen)
-      #   print("shape", data[:, :maxlen, :].shape)
-      #   print("vns")
-      #   print(data[:, :maxlen, srl_vn_start:])
-      #   print("srls")
-      #   print(data[:, :maxlen, 10:])
-      #   print("all")
-      #   print(data[:, :maxlen, :])
-      #   print("targets")
-      #   print(data[:, :maxlen, min(target_idxs):maxlen + max(target_idxs) + 1])
 
       feed_dict.update({
         self.inputs: data[:, :maxlen, input_idxs],

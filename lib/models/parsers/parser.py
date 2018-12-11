@@ -42,6 +42,9 @@ class Parser(BaseParser):
     # extract out pb and vn srl labels
     srl_targets_combined = targets[:, :, 3:]
 
+    if dataset.name == "Validset":
+      srl_targets_combined = tf.Print(srl_targets_combined, [srl_targets_combined], "targets combined", summarize=5000)
+
     total_srl_counts = tf.count_nonzero(srl_targets_combined, axis=-1)
     max_preds_in_batch = tf.reduce_max(total_srl_counts) // 2
 
@@ -56,10 +59,6 @@ class Parser(BaseParser):
 
     srl_targets = tf.scatter_nd(pb_indices, srl_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
     vn_targets = tf.scatter_nd(vn_scatter_indices, vn_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
-
-    if dataset.name == "Validset":
-      vn_targets = tf.Print(vn_targets, [vn_targets], "vn_targets", summarize=500)
-
 
     annotated = dataset.annotated
     step = dataset.step

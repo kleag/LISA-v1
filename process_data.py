@@ -119,6 +119,9 @@ with open(conll_fname) as conll_file:
                             counter = j + 1
 
                             # if predicates match, start aligning arguments
+                            print("aligning:")
+                            print(conll_args)
+                            print(sem_args)
                             for k, entry in enumerate(conll_args):
 
                                 # ignore verbs and outside tags

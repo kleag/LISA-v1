@@ -57,7 +57,7 @@ class Parser(BaseParser):
     srl_targets = tf.scatter_nd(pb_indices, srl_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
     vn_targets = tf.scatter_nd(vn_scatter_indices, vn_targets_nopad, [tf.cast(batch_size, tf.int64), tf.cast(bucket_size, tf.int64), max_preds_in_batch])
 
-    if vocabs.name == "Validset":
+    if dataset.name == "Validset":
       vn_targets = tf.Print(vn_targets, [vn_targets], "vn_targets", summarize=500)
 
 

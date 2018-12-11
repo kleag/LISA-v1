@@ -9,7 +9,7 @@ docid_filt = sys.argv[4]
 
 if docid_filt:
     with open(docid_filt, 'r') as f:
-        docid_set = {line for line in f}
+        docid_set = {line[:-1] for line in f}
 else:
     docid_set = {}
 

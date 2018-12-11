@@ -149,6 +149,8 @@ class Dataset(Configurable):
             head = int(head) - 1
           buff[i][j] = (word,) + words[word] + tags[tag1] + tags[tag2] + (head,) + rels[rel]
         elif self.conll2012:
+          if self.name == "Validset":
+            print(token)
           word, auto_tag, gold_tag, head, rel, annotated = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[8], token[rels.conll_idx], token[1]
           domain = token[0].split('/')[0]
           #print(word, auto_tag, gold_tag, head, rel, annotated)

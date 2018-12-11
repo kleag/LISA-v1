@@ -166,11 +166,6 @@ class Dataset(Configurable):
           srl_vn_labels = [tuple(srl_str.split('=')) for srl_str in srl_fields_full]
           srl_fields = [srl_str[1] if len(srl_str) > 1 else srl_str[0] for srl_str in srl_vn_labels]
 
-          # if self.name == "Validset":
-          #   # print('Buff: ', buff[i][j])
-          #   print('VN Tags before: ', srl_vn_labels)
-          #   print('lens', map(len, srl_vn_labels))
-
           #print('SRL fields: ', srl_fields, len(srl_fields))
           vn_fields = []
           for idx, srl_str in enumerate(srl_vn_labels):

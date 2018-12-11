@@ -679,7 +679,13 @@ class Parser(BaseParser):
         }
 
       vn_embeddings = compute_vn_rep(vn_targets, vn_output['logits'])
+
+      if dataset.name == "Validset":
+        vn_embeddings = tf.Print(vn_embeddings, [vn_output['targets']], "vn_targets", summarize=5000)
+
+
       srl_output, srl_pred_reps, srl_role_reps = compute_srl(srl_targets, vn_embeddings, num_srl_classes)
+
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

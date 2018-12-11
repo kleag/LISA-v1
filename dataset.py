@@ -193,7 +193,8 @@ class Dataset(Configurable):
           vn_tags = [vnroles[s][0] for s in vn_fields]
 
           #print(word, vn_fields, srl_fields)
-          #print(vn_tags)
+          if self.name == "Validset":
+            print(vn_fields)
 
           if self.joint_pos_predicates:
             is_predicate = token[predicates.conll_idx[0]] != '-' and (self.train_on_nested or self.predicate_str in srl_fields)
@@ -206,6 +207,9 @@ class Dataset(Configurable):
             predicate_indices.append(j)
 
           buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + (annotation[annotated],) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags) + tuple(vn_tags)
+
+      if self.name == "Validset":
+        print("has_vn_anno", has_vn_anno)
 
       # go back and mark predicates that don't have a verbnet annotation with NoLabel
       for srl_idx, has_vn in enumerate(has_vn_anno):

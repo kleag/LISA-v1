@@ -43,7 +43,7 @@ with open(conll_fname) as conll_file:
             # if end of sentence, process it
             elif buff:
                 # identify sentence by doc id and sentence num
-                conll_key = (buff[0][0], buff[0][1])
+                conll_key = (buff[0][0], buff[0][2])
 
                 # convert to np friendly format for convenience
                 buff_array = np.array(buff, dtype=object)
@@ -120,9 +120,6 @@ with open(conll_fname) as conll_file:
                             counter = j + 1
 
                             # if predicates match, start aligning arguments
-                            print("aligning:")
-                            print(conll_args)
-                            print(sem_args)
                             for k, entry in enumerate(conll_args):
 
                                 # ignore verbs and outside tags
@@ -157,7 +154,6 @@ with open(conll_fname) as conll_file:
                                             vn_part = pb_part
 
                                         # update the matching argument
-                                        print(conll_arg, pb_part)
                                         if conll_arg == pb_part:
                                             frames[k, i] = vn_part + '=' + frames[k, i]
                                             break

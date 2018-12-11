@@ -131,8 +131,8 @@ with open(conll_fname) as conll_file:
                                     # get ARG-x out of B-ARG-x, B-C-ARG-x, etc.
                                     if entry.startswith(('B-', 'I-')):
                                         if entry.startswith(('B-C-', 'I-C-', 'B-R-', 'I-R-')):
-                                            #conll_arg = entry[4:]
-                                            conll_arg = entry[:2] + entry[4:]
+                                            conll_arg = entry[4:]
+                                            # conll_arg = entry[:2] + entry[4:]
                                         else:
                                             conll_arg = entry[2:]
                                     else:

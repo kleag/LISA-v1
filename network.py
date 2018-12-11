@@ -197,7 +197,7 @@ class Network(Configurable):
     current_best = 0.0
 
     # for debugging
-    # correct = self.test(sess, viterbi=True, validate=True)
+    correct = self.test(sess, viterbi=True, validate=True)
 
     try:
       train_time = 0

@@ -765,7 +765,7 @@ class Network(Configurable):
             orig_line = orig_f.readline().strip()
             while not orig_line:
               orig_line = orig_f.readline().strip()
-            orig_split_line = orig_line.split('\t')
+            orig_split_line = orig_line.split()
             docid = orig_split_line[0]
             sentid = orig_split_line[1]
             domain = self._vocabs[5][pred[5]]

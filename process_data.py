@@ -5,6 +5,15 @@ import re
 conll_fname = sys.argv[1]
 semlink_fname = sys.argv[2]
 out_fname = sys.argv[3]
+docid_filt = sys.argv[4]
+
+if docid_filt:
+    with open(docid_filt, 'r') as f:
+        docid_set = {line for line in f}
+else:
+    docid_set = {}
+
+print("using docids: ", docid_set)
 
 arg_re = re.compile(r"(ARG[0-5A])-[A-Za-z]+")
 remove_list = ['rel', 'LINK-SLC', 'LINK-PSV', 'LINK-PRO']
@@ -20,14 +29,16 @@ with open(conll_fname) as conll_file:
             # if line not blank, read all tokens in sentence
             if len(split_conll_line) > 0:
 
-                # if new doc id, reset sentence num
-                if split_conll_line[0] != oldkey:
-                    sentid = 0
+                if docid_set and split_conll_line[0] in docid_set:
 
-                # write sentence num into buffer for iding sentence later
-                split_conll_line.insert(2, str(sentid))
-                buff.append(split_conll_line)
-                oldkey = split_conll_line[0]
+                    # if new doc id, reset sentence num
+                    if split_conll_line[0] != oldkey:
+                        sentid = 0
+
+                    # write sentence num into buffer for iding sentence later
+                    split_conll_line.insert(2, str(sentid))
+                    buff.append(split_conll_line)
+                    oldkey = split_conll_line[0]
 
             # if end of sentence, process it
             else:
@@ -150,7 +161,7 @@ with open(conll_fname) as conll_file:
 
                 # write the sentence back with annotation and updated frames
                 for i, token in enumerate(buff):
-                    print(token[0] + '\t' + str(annotated) + '\t' + '\t'.join(token[1:15]) + '\t' + '\t'.join(frames[i]) + '\n')
+                    # print(token[0] + '\t' + str(annotated) + '\t' + '\t'.join(token[1:15]) + '\t' + '\t'.join(frames[i]) + '\n')
                     out_file.write(token[0] + '\t' + str(annotated) + '\t' + '\t'.join(token[1:15]) + '\t' + '\t'.join(
                         frames[i]) + '\t' + last_col[i] + '\n')
 

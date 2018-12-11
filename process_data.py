@@ -81,7 +81,6 @@ with open(conll_fname) as conll_file:
                         semlink_key = (semlink_id[0], split_semlink_line[1])
 
                         # collect all matching entries for current sentence
-                        print(conll_key, semlink_key)
                         if conll_key == semlink_key:
                             annotated = True
                             semlink_buff.append(split_semlink_line)

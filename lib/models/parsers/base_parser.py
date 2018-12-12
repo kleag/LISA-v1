@@ -118,27 +118,16 @@ class BaseParser(NN):
       # print(srl_preds)
       srl_pred = srl_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
       vn_pred = vn_preds[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
-      vn_targ = vn_targets[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
-
-
+      # vn_targ = vn_targets[srl_pred_idx:srl_pred_idx+num_pred_srls, tokens]
 
       # print("vn pred keep", vn_pred_keep)
 
       vn_pred_keep = np.squeeze(preds_to_keep[srl_pred_idx:srl_pred_idx+num_pred_srls], -1)
 
-      print("vn_pred_keep", vn_pred_keep)
-      print("vn_pred", vn_pred)
-
       # vn_pred_keep = preds_to_keep[srl_pred_idx:srl_pred_idx+num_pred_srls]
 
       num_vns = int(np.sum(vn_pred_keep))
       vn_pred = vn_pred[np.where(vn_pred_keep == 1)]
-
-
-      print("num_vns",num_vns)
-
-      print("vn_pred after", vn_pred)
-
 
       # print("vn pred shape after", vn_pred.shape)
 

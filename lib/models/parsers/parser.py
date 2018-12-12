@@ -42,9 +42,6 @@ class Parser(BaseParser):
     # extract out pb and vn srl labels
     srl_targets_combined = targets[:, :, 3:]
 
-    if dataset.name == "Validset":
-      srl_targets_combined = tf.Print(srl_targets_combined, [srl_targets_combined], "targets combined", summarize=5000)
-
     total_srl_counts = tf.count_nonzero(srl_targets_combined, axis=-1)
     max_preds_in_batch = tf.reduce_max(total_srl_counts) // 2
 
@@ -679,12 +676,7 @@ class Parser(BaseParser):
 
       vn_embeddings = compute_vn_rep(vn_targets, vn_output['logits'])
 
-      if dataset.name == "Validset":
-        vn_embeddings = tf.Print(vn_embeddings, [vn_output['targets']], "vn_targets", summarize=5000)
-
-
       srl_output, srl_pred_reps, srl_role_reps = compute_srl(srl_targets, vn_embeddings, num_srl_classes)
-
 
     predicate_loss = self.predicate_loss_penalty * predicate_output['loss']
     srl_loss = self.role_loss_penalty * srl_output['loss']

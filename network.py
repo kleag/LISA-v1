@@ -641,6 +641,7 @@ class Network(Configurable):
     if self.eval_srl:
       # load the real gold preds file
       srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
+      print("gold_dev_props_file: %s" % self.gold_dev_props_file)
 
       # save SRL gold output for debugging purposes
       srl_sanity_fname = os.path.join(self.save_dir, 'srl_sanity.tsv')

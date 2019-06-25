@@ -37,15 +37,18 @@ else
 fi
 
 #    --test_eval \
-python $DOZAT_ROOT/network.py \
+echo "gold_dev_props_file: "
+python network.py \
     --load \
     --test \
+    --test_eval \
     --load_dir $model_dir \
     --config_file $model_dir/config.cfg \
     --gold_attn_at_train $gold_attn_at_train \
     --inject_manual_attn $inject_manual_attn \
     --valid_file $valid_file \
     --test_file $test_file \
+    --gold_dev_props_file $valid_props_file \
     --gold_test_props_file $test_props_file \
     --gold_dev_parse_file $valid_parse_file \
     --gold_test_parse_file $test_parse_file \

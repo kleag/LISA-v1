@@ -739,9 +739,10 @@ class Network(Configurable):
       if self.eval_by_domain:
         srl_gold_fname_path = '/'.join(srl_gold_fname.split('/')[:-1])
         srl_gold_fname_end = srl_gold_fname.split('/')[-1]
-        for d in self._vocabs[5].keys():
+        for d in ["bc", "bn", "mz", "nw", "pt", "tc", "wb"]:
           if d not in self._vocabs[5].SPECIAL_TOKENS:
             domain_gold_fname = os.path.join(srl_gold_fname_path, d + '_' + srl_gold_fname_end)
+            print("domain gold fname: %s" % domain_gold_fname)
             domain_fname = os.path.join(self.save_dir, '%s_srl_preds.tsv' % d)
             with open(domain_fname, 'w') as f:
               for p_idx, (bkt_idx, idx) in enumerate(data_indices):

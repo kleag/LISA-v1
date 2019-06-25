@@ -7,6 +7,8 @@ parse_config=$2
 
 data_dir=$DATA_DIR/conll-2012-sdeps-filt
 
+train_file=$data_dir/conll2012-train.txt.bio
+
 valid_file=$data_dir/conll2012-dev.txt.bio
 valid_props_file=$data_dir/conll2012-dev-gold-props.txt
 valid_parse_file=$data_dir/conll2012-dev-gold-parse.txt
@@ -37,7 +39,6 @@ else
 fi
 
 #    --test_eval \
-echo "gold_dev_props_file: "
 python network.py \
     --load \
     --test \
@@ -46,6 +47,7 @@ python network.py \
     --config_file $model_dir/config.cfg \
     --gold_attn_at_train $gold_attn_at_train \
     --inject_manual_attn $inject_manual_attn \
+    --train_file $train_file \
     --valid_file $valid_file \
     --test_file $test_file \
     --gold_dev_props_file $valid_props_file \

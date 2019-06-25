@@ -97,6 +97,7 @@ class Network(Configurable):
     print("predicate_true_start_idx", self._vocabs[4].predicate_true_start_idx)
 
     print("Loading data")
+    print("valid_file: %s" % self.valid_file)
     sys.stdout.flush()
     self._trainset = Dataset(self.train_file, self._vocabs, model, self._config, name='Trainset')
     self._validset = Dataset(self.valid_file, self._vocabs, model, self._config, name='Validset')

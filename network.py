@@ -96,6 +96,10 @@ class Network(Configurable):
       print("%s: %d" % (l, i))
     print("predicate_true_start_idx", self._vocabs[4].predicate_true_start_idx)
 
+    print("Domains vocab: ")
+    for l, i in sorted(self._vocabs[5].iteritems(), key=operator.itemgetter(1)):
+      print("%s: %d" % (l, i))
+
     print("Loading data")
     print("valid_file: %s" % self.valid_file)
     sys.stdout.flush()

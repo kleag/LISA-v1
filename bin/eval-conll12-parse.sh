@@ -19,6 +19,7 @@ test_parse_file=$data_dir/conll2012-test-gold-parse.txt
 python $DOZAT_ROOT/network.py \
     --load \
     --test \
+    --eval_by_domain True \
     --eval_srl False \
     --load_dir $model_dir \
     --config_file $model_dir/config.cfg \
@@ -35,6 +36,7 @@ python $DOZAT_ROOT/network.py \
     --test \
     --test_eval \
     --eval_srl False \
+    --eval_by_domain True \
     --load_dir $model_dir \
     --config_file $model_dir/config.cfg \
     --valid_file $valid_file \

@@ -19,10 +19,10 @@ test_props_file=$data_dir/conll2012-test-gold-props.txt
 test_parse_file=$data_dir/conll2012-test-gold-parse.txt
 
 # D&M injected
-#dm_valid_file=lstm_predicted_parses_elmo_new/parse_preds-conll2012-lstm-dev.tsv.replaced
-#dm_test_file=lstm_predicted_parses_elmo_new/parse_preds-conll2012-lstm-test.tsv.replaced
-dm_valid_file=lstm_predicted_parses_elmo/parse_preds-conll2012-lstm-dev.tsv.replaced
-dm_test_file=lstm_predicted_parses_elmo/parse_preds-conll2012-lstm-test.tsv.replaced
+dm_valid_file=lstm_predicted_parses_elmo_new/parse_preds-conll2012-lstm-dev.tsv.replaced
+dm_test_file=lstm_predicted_parses_elmo_new/parse_preds-conll2012-lstm-test.tsv.replaced
+#dm_valid_file=lstm_predicted_parses_elmo/parse_preds-conll2012-lstm-dev.tsv.replaced
+#dm_test_file=lstm_predicted_parses_elmo/parse_preds-conll2012-lstm-test.tsv.replaced
 
 if [[ "$parse_config" == "dm" || "$parse_config" == "gold" ]]; then
     gold_attn_at_train="False"
@@ -40,7 +40,6 @@ else
     inject_manual_attn="True"
 fi
 
-#    --test_eval \
 python network.py \
     --load \
     --test \

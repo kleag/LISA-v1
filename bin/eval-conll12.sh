@@ -5,7 +5,7 @@
 model_dir=$1
 parse_config=$2
 
-data_dir=$DATA_DIR/conll-2012-sdeps-filt
+data_dir=$DATA_DIR/conll-2012-sdeps-filt-new
 
 train_file=$data_dir/conll2012-train.txt.bio
 

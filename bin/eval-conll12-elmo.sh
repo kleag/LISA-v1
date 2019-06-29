@@ -46,7 +46,6 @@ python network.py \
     --config_file $model_dir/config.cfg \
     --gold_attn_at_train $gold_attn_at_train \
     --inject_manual_attn $inject_manual_attn \
-    --train_file $train_file \
     --valid_file $valid_file \
     --test_file $test_file \
     --gold_dev_props_file $valid_props_file \

@@ -3,3 +3,6 @@ saves
 data
 lib-old
 .idea
+*.kdev4
+model/
+*.swp

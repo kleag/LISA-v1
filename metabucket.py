@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import numpy as np
 import tensorflow as tf
@@ -38,7 +38,7 @@ class Metabucket(Configurable):
     super(Metabucket, self).__init__(*args, **kwargs)
     if self._n_bkts is None:
       self._n_bkts = super(Metabucket, self).n_bkts
-    self._buckets = [Bucket(self._config, name='%s-%d' % (name, i)) for i in xrange(self.n_bkts)]
+    self._buckets = [Bucket(self._config, name='%s-%d' % (name, i)) for i in range(self.n_bkts)]
     self._sizes = None
     self._data = None
     self._len2bkt = None
@@ -57,7 +57,7 @@ class Metabucket(Configurable):
     prev_size = -1
     for bkt_idx, size in enumerate(sizes):
       self._buckets[bkt_idx].reset(size, pad=pad)
-      self._len2bkt.update(zip(range(prev_size+1, size+1), [bkt_idx]*(size-prev_size)))
+      self._len2bkt.update(list(zip(list(range(prev_size+1, size+1)), [bkt_idx]*(size-prev_size))))
       prev_size=size
     return
   

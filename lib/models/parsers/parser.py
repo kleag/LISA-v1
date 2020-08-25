@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
  
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import numpy as np
 import time
@@ -27,8 +27,8 @@ class Parser(BaseParser):
     """"""
 
     self.print_stuff = dataset.name == "Trainset"
-    self.multi_penalties = {k: float(v) for k, v in map(lambda s: s.split(':'), self.multitask_penalties.split(';'))} if self.multitask_penalties else {}
-    self.multi_layers = {k: set(map(int, v.split(','))) for k, v in map(lambda s: s.split(':'), self.multitask_layers.split(';'))} if self.multitask_layers else {}
+    self.multi_penalties = {k: float(v) for k, v in [s.split(':') for s in self.multitask_penalties.split(';')]} if self.multitask_penalties else {}
+    self.multi_layers = {k: set(map(int, v.split(','))) for k, v in [s.split(':') for s in self.multitask_layers.split(';')]} if self.multitask_layers else {}
 
     # todo use variables for vocabs this indexing is stupid
     vocabs = dataset.vocabs
@@ -101,7 +101,7 @@ class Parser(BaseParser):
     # maps joint predicate/pos indices to pos indices
     preds_to_pos_map = np.zeros([num_pred_classes, 1], dtype=np.int32)
     if self.joint_pos_predicates:
-      for pred_label, pred_idx in vocabs[4].iteritems():
+      for pred_label, pred_idx in list(vocabs[4].items()):
         if pred_label in vocabs[4].SPECIAL_TOKENS:
           postag = pred_label
         else:
@@ -198,7 +198,7 @@ class Parser(BaseParser):
     assert (self.cnn_layers != 0 and self.n_recur != 0) or self.num_blocks == 1, "num_blocks should be 1 if cnn_layers or n_recur is 0"
     assert self.dist_model == 'bilstm' or self.dist_model == 'transformer', 'Model must be either "transformer" or "bilstm"'
 
-    for b in range(self.num_blocks):
+    for b in list(range(self.num_blocks)):
       with tf.variable_scope("block%d" % b, reuse=reuse):  # to share parameters, change scope here
         # Project for CNN input
         if self.cnn_layers > 0:
@@ -208,7 +208,7 @@ class Parser(BaseParser):
         ####### 1D CNN ########
         with tf.variable_scope('CNN', reuse=reuse):
           kernel = 3
-          for i in xrange(self.cnn_layers):
+          for i in range(self.cnn_layers):
             with tf.variable_scope('layer%d' % i, reuse=reuse):
               if self.cnn_residual:
                 top_recur += self.CNN(top_recur, 1, kernel, self.cnn_dim, self.recur_keep_prob, self.info_func)
@@ -245,12 +245,12 @@ class Parser(BaseParser):
         if self.dist_model == 'transformer':
           with tf.variable_scope('Transformer', reuse=reuse):
             top_recur = nn.add_timing_signal_1d(top_recur)
-            for i in range(self.n_recur):
+            for i in list(range(self.n_recur)):
               with tf.variable_scope('layer%d' % i, reuse=reuse):
                 manual_attn = None
                 hard_attn = False
                 # todo make this into gold_at_train and gold_at_test flags... + scheduled sampling
-                if 'parents' in self.multi_layers.keys() and i in self.multi_layers['parents'] and (use_gold_parse or self.full_parse):
+                if 'parents' in list(self.multi_layers.keys()) and i in self.multi_layers['parents'] and (use_gold_parse or self.full_parse):
                   # if use_gold_parse:
                   #   manual_attn = adj
                   #   # manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)
@@ -261,7 +261,7 @@ class Parser(BaseParser):
                   #   #   # compute full parse and set it here
                     manual_attn = tf.cond(use_gold_parse_tensor, lambda: adj, lambda: tf.nn.softmax(arc_logits))
                 this_layer_capsule_heads = self.num_capsule_heads if i > 0 else 0
-                if 'children' in self.multi_layers.keys() and i in self.multi_layers['children']:
+                if 'children' in list(self.multi_layers.keys()) and i in self.multi_layers['children']:
                   this_layer_capsule_heads = 1
                   if use_gold_parse:
                     manual_attn = tf.transpose(adj, [0, 2, 1])
@@ -309,7 +309,7 @@ class Parser(BaseParser):
         ##### BiLSTM #######
         if self.dist_model == 'bilstm':
           with tf.variable_scope("BiLSTM", reuse=reuse):
-            for i in range(self.n_recur):
+            for i in list(range(self.n_recur)):
               with tf.variable_scope('layer%d' % i, reuse=reuse):
                 if self.lstm_residual:
                   top_recur_curr, _ = self.RNN(top_recur)
@@ -351,7 +351,7 @@ class Parser(BaseParser):
     #     top_recur_2d = tf.concat([top_recur_cols, top_recur_rows], axis=-1)
     #
     #     # apply num_convs 2d conv layers (residual)
-    #     for i in xrange(self.cnn2d_layers):  # todo pass this in
+    #     for i in range(self.cnn2d_layers):  # todo pass this in
     #       with tf.variable_scope('CNN%d' % i, reuse=reuse):
     #         top_recur_2d += self.CNN(top_recur_2d, kernel, kernel, self.cnn_dim_2d,  # todo pass this in
     #                                 self.recur_keep_prob if i < self.cnn2d_layers - 1 else 1.0,
@@ -428,12 +428,12 @@ class Parser(BaseParser):
     # multitask_parents_preds = arc_logits
     ##### MULTITASK ATTN LOSS ######
     if not self.full_parse:
-      for l, attn_weights in attn_weights_by_layer.iteritems():
+      for l, attn_weights in list(attn_weights_by_layer.items()):
         # attn_weights is: head x batch x seq_len x seq_len
         # idx into attention heads
         attn_idx = self.num_capsule_heads
         cap_attn_idx = 0
-        if 'parents' in self.multi_layers.keys() and l in self.multi_layers['parents']:
+        if 'parents' in list(self.multi_layers.keys()) and l in self.multi_layers['parents']:
           outputs = self.output(attn_weights[attn_idx], multitask_targets['parents'])
           parse_probs = tf.nn.softmax(attn_weights[attn_idx])
           # todo this is a bit of a hack
@@ -442,13 +442,13 @@ class Parser(BaseParser):
           multitask_losses['parents%s' % l] = loss
           multitask_correct['parents%s' % l] = outputs['n_correct']
           multitask_loss_sum += loss
-        if 'grandparents' in self.multi_layers.keys() and l in self.multi_layers['grandparents']:
+        if 'grandparents' in list(self.multi_layers.keys()) and l in self.multi_layers['grandparents']:
           outputs = self.output(attn_weights[attn_idx], multitask_targets['grandparents'])
           attn_idx += 1
           loss = self.multi_penalties['grandparents'] * outputs['loss']
           multitask_losses['grandparents%s' % l] = loss
           multitask_loss_sum += loss
-        if 'children' in self.multi_layers.keys() and l in self.multi_layers['children']:
+        if 'children' in list(self.multi_layers.keys()) and l in self.multi_layers['children']:
           outputs = self.output_transpose(attn_weights[cap_attn_idx], multitask_targets['children'])
           cap_attn_idx += 1
           loss = self.multi_penalties['children'] * outputs['loss']
@@ -656,7 +656,7 @@ class Parser(BaseParser):
 
     # transpose and softmax attn weights
     attn_weights_by_layer_softmaxed = {k: tf.transpose(tf.nn.softmax(v), [1, 0, 2, 3]) for k, v in
-                                       attn_weights_by_layer.iteritems()}
+                                       list(attn_weights_by_layer.items())}
 
     output['attn_weights'] = attn_weights_by_layer_softmaxed
     output['attn_correct'] = multitask_correct

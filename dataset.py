@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import numpy as np
 import tensorflow as tf
@@ -126,7 +126,7 @@ class Dataset(Configurable):
       sents += 1
       sent_len = len(sent)
       num_fields = len(sent[0])
-      srl_take_indices = [idx for idx in range(srl_start_field, srl_start_field + sent_len) if idx < num_fields - 1 and (self.train_on_nested or np.all(['/' not in sent[j][idx] for j in range(sent_len)]))]
+      srl_take_indices = [idx for idx in list(range(srl_start_field, srl_start_field + sent_len)) if idx < num_fields - 1 and (self.train_on_nested or np.all(['/' not in sent[j][idx] for j in list(range(sent_len))]))]
       predicate_indices = []
       for j, token in enumerate(sent):
         toks += 1
@@ -146,7 +146,7 @@ class Dataset(Configurable):
           else:
             head = int(head) - 1
 
-          # srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in range(srl_start_field, srl_start_field + sent_len)]
+          # srl_fields = [token[idx] if idx < len(token)-1 else 'O' for idx in list(range(srl_start_field, srl_start_field + sent_len))
           srl_fields = [token[idx] for idx in srl_take_indices] # todo can we use fancy indexing here?
           srl_fields += ['O'] * (sent_len - len(srl_take_indices))
           srl_tags = [srls[s][0] for s in srl_fields]
@@ -220,7 +220,7 @@ class Dataset(Configurable):
   def rebucket(self):
     """"""
 
-    buff = self._file_iterator.next()
+    buff = next(self._file_iterator)
     len_cntr = Counter()
     
     for sent in buff:

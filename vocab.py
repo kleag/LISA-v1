@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import os
 import sys
@@ -34,7 +34,7 @@ class Vocab(Configurable):
   
   # SPECIAL_TOKENS = ('<PAD>', '<ROOT>', '<UNK>')
   # START_IDX = len(SPECIAL_TOKENS)
-  # PAD, ROOT, UNK = range(START_IDX)
+  # PAD, ROOT, UNK = list(range(START_IDX))
   PAD = 0
   ROOT = 1
   UNK = 2
@@ -111,9 +111,9 @@ class Vocab(Configurable):
   
   #=============================================================
   def init_str2idx(self):
-    return dict(zip(self.SPECIAL_TOKENS, range(self.START_IDX)))
+    return dict(list(zip(self.SPECIAL_TOKENS, list(range(self.START_IDX)))))
   def init_idx2str(self):
-    return dict(zip(range(self.START_IDX), self.SPECIAL_TOKENS))
+    return dict(list(zip(list(range(self.START_IDX)), self.SPECIAL_TOKENS)))
   
   #=============================================================
   def index_vocab(self, counts):
@@ -388,22 +388,22 @@ class Vocab(Configurable):
   
   #=============================================================
   def keys(self):
-    return self._str2idx.keys()
+    return list(self._str2idx.keys())
   def values(self):
-    return self._str2idx.values()
-  def iteritems(self):
-    return self._str2idx.iteritems()
+    return list(self._str2idx.values())
+  def items(self):
+    return list(self._str2idx.items())
   
   #=============================================================
   def __getitem__(self, key):
-    if isinstance(key, basestring):
+    if isinstance(key, str):
       if not self.cased:
         key = key.lower()
       if self.use_pretrained:
         return (self._str2idx.get(key, self.UNK), self._str2embed.get(key, self.UNK))
       else:
         return (self._str2idx.get(key, self.UNK),)
-    elif isinstance(key, (int, long, np.int32, np.int64)):
+    elif isinstance(key, (int, np.int32, np.int64)):
       if key not in self._idx2str:
         if self.name != "Words":
           raise ValueError("idx %d not in vocab %s" % (key, self.name))
@@ -417,11 +417,11 @@ class Vocab(Configurable):
     return
   
   def __contains__(self, key):
-    if isinstance(key, basestring):
+    if isinstance(key, str):
       if not self.cased:
         key = key.lower()
       return key in self._str2idx
-    elif isinstance(key, (int, long)):
+    elif isinstance(key, int):
       return key in self._idx2str
     else:
       raise ValueError('key to Vocab.__contains__ must be string or integer')

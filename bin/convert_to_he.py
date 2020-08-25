@@ -18,11 +18,11 @@ with open(fname, 'r') as f:
     else:
       buff = np.transpose(np.array(buff))
       for pred in buff[:num_predicates]:
-        print(' '.join(pred))
+        print((' '.join(pred)))
       buff = []
       num_predicates = 0
 
   # last one
   buff = np.transpose(np.array(buff))
   for pred in buff[:num_predicates]:
-    print(' '.join(pred))
+    print((' '.join(pred)))

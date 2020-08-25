@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
  
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import numpy as np
 import tensorflow as tf
@@ -60,7 +60,7 @@ class ParserBilinear(BaseParser):
     #   relu_dropout = 1.0
     #   self.recur_keep_prob = 1.0
 
-    for i in xrange(self.cnn_layers):
+    for i in range(self.cnn_layers):
       with tf.variable_scope('CNN%d' % i, reuse=reuse):
         top_recur = self.CNN(top_recur, kernel, self.cnn_dim,
                              self.recur_keep_prob if i < self.n_recur - 1 else 1.0,
@@ -74,7 +74,7 @@ class ParserBilinear(BaseParser):
 
     top_recur = nn.add_timing_signal_1d(top_recur)
 
-    for i in xrange(self.n_recur):
+    for i in range(self.n_recur):
       # RNN:
       # with tf.variable_scope('RNN%d' % i, reuse=reuse):
       #   top_recur, _ = self.RNN(top_recur)

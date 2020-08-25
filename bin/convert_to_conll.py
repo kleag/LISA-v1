@@ -47,7 +47,7 @@ def convert_bio(labels):
         label = tag[0]
         n = len(tag)
 
-        for i in range(n):
+        for i in list(range(n)):
             if i == 0:
                 new_tag.append("(" + label + "*")
             elif i == n - 1:
@@ -55,14 +55,14 @@ def convert_bio(labels):
             else:
                 new_tag.append("*")
 
-    print new_tag
+    print(new_tag)
     return new_tag
 
 
 def print_sentence_to_conll(fout, tokens, labels):
     for label_column in labels:
         assert len(label_column) == len(tokens)
-    for i in range(len(tokens)):
+    for i in list(range(len(tokens))):
         fout.write(tokens[i].ljust(15))
         for label_column in labels:
             fout.write(label_column[i].rjust(15))

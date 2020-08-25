@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 import re
 
 conll12_fname = "/home/strubell/research/data/conll-2012-new/conll2012-train.txt"
@@ -26,13 +26,13 @@ with open(semlink_fname, 'r') as semlink_file:
       # value is predicate + args
       args = split_line[10:]
       # take just the verbnet senses
-      stripped_args_vn = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]).split(';')[0].replace('-DSP', ''), args)
+      stripped_args_vn = ['-'.join(a.split('*')[-1].split('-')[1:]).split(';')[0].replace('-DSP', '') for a in args]
 
       # verbnet and framenet senses
-      stripped_args_fn = map(lambda a: '-'.join(a.split('*')[-1].split('-')[1:]).replace('-DSP', ''), args)
+      stripped_args_fn = ['-'.join(a.split('*')[-1].split('-')[1:]).replace('-DSP', '') for a in args]
 
       # want to replace all ARG[0-9A]-[az]+ with ARG[0-9A]
-      stripped_args = map(lambda a: arg_re.sub(r'\1', a), stripped_args_vn)
+      stripped_args = [arg_re.sub(r'\1', a) for a in stripped_args_vn]
 
       stripped_removed_args = [a for a in stripped_args if a not in remove_list]
 

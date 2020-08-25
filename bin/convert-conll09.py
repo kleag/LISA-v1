@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 import argparse
 
 arg_parser = argparse.ArgumentParser(description='Convert a CoNLL-2009 file to the format expected by this project')

@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 
 # Copyright 2016 Timothy Dozat
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import os
 import sys
@@ -28,7 +28,9 @@ import numpy as np
 import tensorflow as tf
 
 from lib import models
+from lib.models.parsers.parser import Parser
 from lib import optimizers
+from lib.optimizers.radam_optimizer import RadamOptimizer
 from lib import rnn_cells
 
 from configurable import Configurable
@@ -38,6 +40,8 @@ import contextlib
 from subprocess import check_output, CalledProcessError
 import operator
 
+xrange = range
+
 @contextlib.contextmanager
 def dummy_context_mgr():
     yield None
@@ -45,14 +49,14 @@ def dummy_context_mgr():
 #***************************************************************
 class Network(Configurable):
   """"""
-  
+
   #=============================================================
   def __init__(self, model, *args, **kwargs):
     """"""
     if args:
       if len(args) > 1:
         raise TypeError('Parser takes at most one argument')
-    
+
     kwargs['name'] = kwargs.pop('name', model.__name__)
     super(Network, self).__init__(*args, **kwargs)
     if not os.path.isdir(self.save_dir):
@@ -77,7 +81,7 @@ class Network(Configurable):
       vocab_files = [(self.word_file, 3, 'Words', self.embed_size),
                      (self.tag_file, [5, 4], 'Tags', self.embed_size if self.add_pos_to_input else 0), # auto, gold
                      (self.rel_file, 7, 'Rels', 0),
-                     (self.srl_file, range(14, 50), 'SRLs', 0),
+                     (self.srl_file, list(range(14, 50)), 'SRLs', 0),
                      (self.predicates_file, [10, 4] if self.joint_pos_predicates else 10,
                         'Predicates', self.predicate_embed_size if self.add_predicates_to_input else 0),
                      (self.domain_file, 0, 'Domains', 0)]
@@ -92,7 +96,7 @@ class Network(Configurable):
       self._vocabs.append(vocab)
 
     print("Predicates vocab: ")
-    for l, i in sorted(self._vocabs[4].iteritems(), key=operator.itemgetter(1)):
+    for l, i in sorted(list(self._vocabs[4].items()), key=operator.itemgetter(1)):
       print("%s: %d" % (l, i))
     print("predicate_true_start_idx", self._vocabs[4].predicate_true_start_idx)
 
@@ -103,7 +107,7 @@ class Network(Configurable):
     self._testset = Dataset(self.test_file, self._vocabs, model, self._config, name='Testset')
 
     self._ops = self._gen_ops()
-    self._save_vars = filter(lambda x: u'Pretrained' not in x.name, tf.global_variables())
+    self._save_vars = [x for x in tf.global_variables() if 'Pretrained' not in x.name]
     self.history = {
       'train_loss': [],
       'train_accuracy': [],
@@ -112,33 +116,33 @@ class Network(Configurable):
       'test_acuracy': 0
     }
     return
-  
+
   #=============================================================
   def train_minibatches(self):
     """"""
-    
+
     return self._trainset.get_minibatches(self.train_batch_size,
                                           self.model.input_idxs,
                                           self.model.target_idxs)
-  
+
   #=============================================================
   def valid_minibatches(self):
     """"""
-    
+
     return self._validset.get_minibatches(self.test_batch_size,
                                           self.model.input_idxs,
                                           self.model.target_idxs,
                                           shuffle=False)
-  
+
   #=============================================================
   def test_minibatches(self):
     """"""
-    
+
     return self._testset.get_minibatches(self.test_batch_size,
                                           self.model.input_idxs,
                                           self.model.target_idxs,
                                           shuffle=False)
-  
+
   #=============================================================
   # assumes the sess has already been initialized
   def train(self, sess, profile):
@@ -148,7 +152,7 @@ class Network(Configurable):
     sys.stdout.flush()
     save_path = os.path.join(self.save_dir, self.name.lower() + '-pretrained')
     saver = tf.train.Saver(self.save_vars, max_to_keep=1, save_relative_paths=True)
-    
+
     n_bkts = self.n_bkts
     train_iters = self.train_iters
     print_every = self.print_every
@@ -208,8 +212,8 @@ class Network(Configurable):
           n_train_predicate_count += predicate_count
           n_train_predicate_correct += predicate_correct
 
-          for n, l in multitask_losses.iteritems():
-            if n not in train_mul_loss.keys():
+          for n, l in list(multitask_losses.items()):
+            if n not in list(train_mul_loss.keys()):
               train_mul_loss[n] = 0.
             train_mul_loss[n] += l
 
@@ -261,7 +265,7 @@ class Network(Configurable):
                   (total_train_iters, train_loss, train_accuracy, train_time, lr, sample_prob, valid_loss, valid_accuracy, valid_time))
             print('\tlog loss: %f\trel loss: %f\tsrl loss: %f\ttrig loss: %f\tpos loss: %f' % (train_log_loss, train_rel_loss, train_srl_loss, train_predicate_loss, train_pos_loss))
             multitask_losses_str = ''
-            for n, l in train_mul_loss.iteritems():
+            for n, l in list(train_mul_loss.items()):
               train_mul_loss[n] = l/n_train_iters
               multitask_losses_str += '\t%s loss: %f' % (n, train_mul_loss[n])
             print(multitask_losses_str)
@@ -316,7 +320,7 @@ class Network(Configurable):
         sess.run(self._global_epoch.assign_add(1.))
     except KeyboardInterrupt:
       try:
-        raw_input('\nPress <Enter> to save or <Ctrl-C> to exit.')
+        input('\nPress <Enter> to save or <Ctrl-C> to exit.')
       except:
         print('\r', end='')
         sys.exit(0)
@@ -333,7 +337,7 @@ class Network(Configurable):
 
 
   def convert_bilou(self, indices):
-    strings = map(lambda i: self._vocabs[3][i], indices)
+    strings = [self._vocabs[3][i] for i in indices]
     converted = []
     started_types = []
     # print(strings)
@@ -461,12 +465,12 @@ class Network(Configurable):
     print("Merged %d examples into %d/%d sentences" % (examples, len(preds_merged), sentences))
     return preds_merged, merged_indices
 
-    
+
   #=============================================================
   # TODO make this work if lines_per_buff isn't set to 0
   def test(self, sess, viterbi=False, validate=False):
     """"""
-    
+
     if validate:
       filename = self.valid_file
       minibatches = self.valid_minibatches
@@ -477,7 +481,7 @@ class Network(Configurable):
       minibatches = self.test_minibatches
       dataset = self._testset
       op = self.ops['test_op'][15:]
-    
+
     all_predictions = [[]]
     all_sents = [[]]
     bkt_idx = 0
@@ -503,9 +507,9 @@ class Network(Configurable):
       forward_total_time += time.time() - forward_start
       preds, parse_time, roots_lt, roots_gt, cycles_2, cycles_n, non_trees, non_tree_preds, n_tokens_batch = self.model.validate(mb_inputs, mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, srl_predicates, srl_predicate_targets, pos_preds, transition_params if viterbi else None)
       n_tokens += n_tokens_batch
-      for k, v in attn_weights.iteritems():
+      for k, v in list(attn_weights.items()):
         attention_weights["b%d:layer%d" % (batch_num, k)] = v
-      for k, v in attn_correct.iteritems():
+      for k, v in list(attn_correct.items()):
         if k not in attn_correct_counts:
           attn_correct_counts[k] = 0.
         attn_correct_counts[k] += v
@@ -596,7 +600,7 @@ class Network(Configurable):
       if self.eval_by_domain:
         parse_gold_fname_path = '/'.join(parse_gold_fname.split('/')[:-1])
         parse_gold_fname_end = parse_gold_fname.split('/')[-1]
-        for d in self._vocabs[5].keys():
+        for d in list(self._vocabs[5].keys()):
           if d not in self._vocabs[5].SPECIAL_TOKENS:
             domain_gold_fname = os.path.join(parse_gold_fname_path, d + '_' + parse_gold_fname_end)
             domain_fname = os.path.join(self.save_dir, '%s_parse_preds.tsv' % d)
@@ -627,7 +631,7 @@ class Network(Configurable):
               try:
                 parse_eval_d = check_output(["perl", "bin/eval.pl", "-g", domain_gold_fname, "-s", domain_fname],
                                           stderr=devnull)
-                short_str_d = map(lambda s: "%s %s" % (d, s), parse_eval_d.split('\n')[:3])
+                short_str_d = ["%s %s" % (d, s) for s in parse_eval_d.split('\n')[:3]]
                 print('\n'.join(short_str_d))
                 print('\n')
                 # correct['parse_eval'] = parse_eval
@@ -655,8 +659,8 @@ class Network(Configurable):
           num_pred_srls = preds[0, 14]
           srl_preds = preds[:, 15+num_pred_srls+num_gold_srls:]
           srl_golds = preds[:, 15+num_pred_srls:15+num_gold_srls+num_pred_srls]
-          srl_preds_bio = map(lambda p: self._vocabs[3][p], srl_preds)
-          srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+          srl_preds_bio = [self._vocabs[3][p] for p in srl_preds]
+          srl_preds_str = list(map(list, list(zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))))
           # todo if you want golds in here get it from the props file
           # srl_golds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_golds)]))
           # print(srl_golds_str)
@@ -706,7 +710,7 @@ class Network(Configurable):
           else:
             predicate_indices = preds[0, 15:15+num_pred_srls]
           # print("predicate indices", predicate_indices)
-          srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+          srl_preds_str = list(map(list, list(zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))))
           # if len(predicate_indices) == 0:
           # if preds[0,6] < 4:
           #   print("preds", preds)
@@ -722,7 +726,7 @@ class Network(Configurable):
             f.write(owpl_str + "\n")
           if not self.parens_check(np.transpose(srl_preds_str)):
             print(np.transpose(srl_preds_str))
-            print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
+            print([self._vocabs[3][i] for i in np.transpose(srl_preds)])
           f.write('\n')
 
       srl_acc = (srl_correct_total / srl_count_total)*100.0
@@ -739,7 +743,7 @@ class Network(Configurable):
       if self.eval_by_domain:
         srl_gold_fname_path = '/'.join(srl_gold_fname.split('/')[:-1])
         srl_gold_fname_end = srl_gold_fname.split('/')[-1]
-        for d in self._vocabs[5].keys():
+        for d in list(self._vocabs[5].keys()):
           if d not in self._vocabs[5].SPECIAL_TOKENS:
             domain_gold_fname = os.path.join(srl_gold_fname_path, d + '_' + srl_gold_fname_end)
             domain_fname = os.path.join(self.save_dir, '%s_srl_preds.tsv' % d)
@@ -754,7 +758,7 @@ class Network(Configurable):
                 num_pred_srls = preds[0, 14]
                 srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
                 predicate_indices = preds[:, 15:15 + num_pred_srls]
-                srl_preds_str = map(list, zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))
+                srl_preds_str = list(map(list, list(zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))))
                 domain = '-'
                 for i, (word, p) in enumerate(zip(words, preds)):
                   domain = self._vocabs[5][p[5]]
@@ -766,7 +770,7 @@ class Network(Configurable):
                     f.write(owpl_str + "\n")
                 if not self.parens_check(np.transpose(srl_preds_str)):
                   print(np.transpose(srl_preds_str))
-                  print(map(lambda i: self._vocabs[3][i], np.transpose(srl_preds)))
+                  print([self._vocabs[3][i] for i in np.transpose(srl_preds)])
                 if domain == d:
                   f.write('\n')
             with open(os.devnull, 'w') as devnull:
@@ -794,7 +798,7 @@ class Network(Configurable):
       print(multitask_uas_str)
 
     if self.save_attn_weights:
-      attention_weights = {str(k): v for k, v in attention_weights.iteritems()}
+      attention_weights = {str(k): v for k, v in list(attention_weights.items())}
       np.savez(os.path.join(self.save_dir, 'attention_weights'), **attention_weights)
 
     pos_accuracy = (pos_correct_total/n_tokens)*100.0
@@ -810,11 +814,11 @@ class Network(Configurable):
     print('SRL acc: %.2f' % (srl_acc))
     print('%sSRL F1: %s' % ("viterbi " if viterbi else "", correct["F1"]))
     return correct
-  
+
   #=============================================================
   def savefigs(self, sess, optimizer=False):
     """"""
-    
+
     import gc
     import matplotlib as mpl
     mpl.use('Agg')
@@ -841,12 +845,12 @@ class Network(Configurable):
         plt.close()
         del mat
         gc.collect()
-    
+
   #=============================================================
   def _gen_ops(self):
     """"""
-    
-    optimizer = optimizers.RadamOptimizer(self._config, global_step=self._global_step)
+
+    optimizer = RadamOptimizer(self._config, global_step=self._global_step)
     train_output = self._model(self._trainset)
 
     lr = optimizer.learning_rate
@@ -858,7 +862,7 @@ class Network(Configurable):
     test_output = self._model(self._testset, moving_params=optimizer)
 
 
-    
+
     ops = {}
     ops['train_op'] = [train_op] + [train_output['loss'],
                        train_output['n_correct'],
@@ -926,9 +930,9 @@ class Network(Configurable):
                       test_output['pos_preds'],
                       ]
     # ops['optimizer'] = optimizer
-    
+
     return ops
-    
+
   #=============================================================
   # @property
   # def global_step(self):
@@ -954,13 +958,13 @@ class Network(Configurable):
   @property
   def save_vars(self):
     return self._save_vars
-  
+
 #***************************************************************
 if __name__ == '__main__':
   """"""
-  
+
   import argparse
-  
+
   argparser = argparse.ArgumentParser()
   argparser.add_argument('--test', action='store_true')
   argparser.add_argument('--load', action='store_true')
@@ -968,15 +972,16 @@ if __name__ == '__main__':
   argparser.add_argument('--matrix', action='store_true')
   argparser.add_argument('--profile', action='store_true')
   argparser.add_argument('--test_eval', action='store_true')
-  
+
   args, extra_args = argparser.parse_known_args()
-  cargs = {k: v for (k, v) in vars(Configurable.argparser.parse_args(extra_args)).iteritems() if v is not None}
-  
+  cargs = {k: v for (k, v) in list(vars(Configurable.argparser.parse_args(extra_args)).items()) if v is not None}
+
   print('*** '+args.model+' ***')
-  model = getattr(models, args.model)
+  #model = getattr(models, args.model)
+  model = Parser
 
   profile = args.profile
-  
+
   # if 'save_dir' in cargs and os.path.isdir(cargs['save_dir']) and not (args.test or args.matrix or args.load):
   #   raw_input('Save directory already exists. Press <Enter> to overwrite or <Ctrl-C> to exit.')
   # if (args.test or args.load or args.matrix) and 'save_dir' in cargs:

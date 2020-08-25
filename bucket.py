@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import numpy as np
 import tensorflow as tf
@@ -78,7 +78,7 @@ class Bucket(Configurable):
       raise ValueError('You need to reset the Buckets before finalizing them')
     
     if len(self._data) > 0:
-      lens = map(len, [item for sublist in self._data for item in sublist])
+      lens = list(map(len, [item for sublist in self._data for item in sublist]))
       max_len = max(lens)
       shape = (len(self._data), self.size, max_len)
       data = np.zeros(shape, dtype=np.int32)

@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import tensorflow as tf
 
@@ -65,7 +65,7 @@ class BaseOptimizer(Configurable):
     with tf.control_dependencies(None):
       self._init_acc(var_list, grads)
     with tf.name_scope(values=[], name=name, default_name=self._name) as name:
-      caches = filter(lambda cache: cache['g_t'] is not None, self._prepare(var_list, grads))
+      caches = [cache for cache in self._prepare(var_list, grads) if cache['g_t'] is not None]
       for cache in caches:
         x_tm1, g_t = cache['x_tm1'], cache['g_t']
         with tf.name_scope("update_" + x_tm1.op.name), tf.device(x_tm1.device):

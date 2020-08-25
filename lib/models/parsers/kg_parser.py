@@ -15,9 +15,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
  
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import numpy as np
 import tensorflow as tf
@@ -47,7 +47,7 @@ class KGParser(BaseParser):
     tag_inputs  = vocabs[1].embedding_lookup(inputs[:,:,2], moving_params=self.moving_params)
     
     top_recur = self.embed_concat(word_inputs+pret_inputs, tag_inputs)
-    for i in xrange(self.n_recur):
+    for i in range(self.n_recur):
       with tf.variable_scope('RNN%d' % i, reuse=reuse):
         top_recur, _ = self.RNN(top_recur)
     

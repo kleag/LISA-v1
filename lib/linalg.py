@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import numpy as np
 import tensorflow as tf
@@ -43,7 +43,7 @@ def orthonormal_initializer(input_size, output_size):
     success = False
     while not success:
       Q = np.random.randn(input_size, output_size) / np.sqrt(output_size)
-      for i in xrange(100):
+      for i in range(100):
         QTQmI = Q.T.dot(Q) - I
         loss = np.sum(QTQmI ** 2 / 2)
         Q2 = Q ** 2
@@ -76,7 +76,7 @@ def linear(inputs, output_size, add_bias=True, n_splits=1, initializer=None, sco
       total_input_size += shape[-1]
     input_shape = tf.shape(inputs[0])
     output_shape = []
-    for i in xrange(len(shapes[0])):
+    for i in range(len(shapes[0])):
       output_shape.append(input_shape[i])
     output_shape[-1] = output_size
     output_shape = tf.stack(output_shape)
@@ -106,7 +106,7 @@ def linear(inputs, output_size, add_bias=True, n_splits=1, initializer=None, sco
     # Do the multiplication
     new = tf.matmul(concatenation, matrix) + bias
     new = tf.reshape(new, output_shape)
-    new.set_shape([tf.Dimension(None) for _ in xrange(len(shapes[0])-1)] + [tf.Dimension(output_size)])
+    new.set_shape([tf.Dimension(None) for _ in range(len(shapes[0])-1)] + [tf.Dimension(output_size)])
     if n_splits > 1:
       return tf.split(axis=len(new.get_shape().as_list())-1, num_or_size_splits=n_splits, value=new)
     else:
@@ -128,7 +128,7 @@ def bilinear(inputs1, inputs2, output_size, add_bias2=True, add_bias1=True, add_
     inputs2_size = inputs2.get_shape().as_list()[-1]
     output_shape = []
     batch_size = 1
-    for i in xrange(ndims-2):
+    for i in range(ndims-2):
       batch_size *= inputs1_shape[i]
       output_shape.append(inputs1_shape[i])
     output_shape.append(inputs1_bucket_size)
@@ -193,7 +193,7 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
     # output_shape = []
     batch_size1 = 1
     batch_size2 = 1
-    for i in xrange(ndims - 2):
+    for i in range(ndims - 2):
       batch_size1 *= inputs1_shape[i]
       batch_size2 *= inputs2_shape[i]
       # output_shape.append(inputs1_shape[i])
@@ -262,7 +262,7 @@ def diagonal_bilinear(inputs1, inputs2, output_size, add_bias2=True, add_bias1=T
     
     output_shape = []
     batch_size = 1
-    for i in xrange(ndims-2):
+    for i in range(ndims-2):
       batch_size *= inputs1_shape[i]
       output_shape.append(inputs1_shape[i])
     output_shape.append(inputs1_bucket_size)

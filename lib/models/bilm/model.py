@@ -1,11 +1,11 @@
-from __future__ import print_function
-from __future__ import division
+
+
 import numpy as np
 import tensorflow as tf
 import h5py
 import json
 
-from data import UnicodeCharsVocabulary, ElmoBatcher
+from .data import UnicodeCharsVocabulary, ElmoBatcher
 
 DTYPE = 'float32'
 DTYPE_INT = 'int64'
@@ -121,7 +121,7 @@ class BidirectionalLanguageModel(object):
       ]
 
       n_lm_layers = len(lm_graph.lstm_outputs['forward'])
-      for i in range(n_lm_layers):
+      for i in list(range(n_lm_layers)):
         layers.append(
           tf.concat(
             [lm_graph.lstm_outputs['forward'][i],
@@ -190,8 +190,8 @@ def _pretrained_initializer(varname, weight_file, embedding_weight_file=None):
   a function that loads the weights from the file
   '''
   weight_name_map = {}
-  for i in range(2):
-    for j in range(8):  # if we decide to add more layers
+  for i in list(range(2)):
+    for j in list(range(8)):  # if we decide to add more layers
       root = 'RNN_{}/RNN/MultiRNNCell/Cell{}'.format(i, j)
       weight_name_map[root + '/rnn/lstm_cell/kernel'] = \
         root + '/LSTMCell/W_0'
@@ -421,7 +421,7 @@ class BidirectionalLanguageModelGraph(object):
     if use_highway:
       highway_dim = n_filters
 
-      for i in range(n_highway):
+      for i in list(range(n_highway)):
         with tf.variable_scope('CNN_high_%s' % i) as scope:
           W_carry = tf.get_variable(
             'W_carry', [highway_dim, highway_dim],
@@ -513,7 +513,7 @@ class BidirectionalLanguageModelGraph(object):
           batch_axis=0
         )
 
-      for i in range(n_lstm_layers):
+      for i in list(range(n_lstm_layers)):
         if projection_dim < lstm_dim:
           # are projecting down output
           lstm_cell = tf.nn.rnn_cell.LSTMCell(
@@ -583,7 +583,7 @@ class BidirectionalLanguageModelGraph(object):
 
         with tf.control_dependencies([layer_output]):
           # update the initial states
-          for i in range(2):
+          for i in list(range(2)):
             new_state = tf.concat(
               [final_state[i][:batch_size, :],
                init_states[i][batch_size:, :]], axis=0)
@@ -624,7 +624,7 @@ def dump_token_embeddings(vocab_file, options_file, weight_file, outfile):
   config = tf.ConfigProto(allow_soft_placement=True)
   with tf.Session(config=config) as sess:
     sess.run(tf.global_variables_initializer())
-    for k in range(n_tokens):
+    for k in list(range(n_tokens)):
       token = vocab.id_to_word(k)
       char_ids = batcher.batch_sentences([[token]])[0, 1, :].reshape(
         1, 1, -1)

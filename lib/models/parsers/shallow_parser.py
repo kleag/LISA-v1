@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
  
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import numpy as np
 import tensorflow as tf
@@ -41,7 +41,7 @@ class ShallowParser(BaseParser):
     
     top_recur = embed_inputs
     recur_diag_bilin = False#self.recur_diag_bilin and tag_inputs.get_shape().as_list()[-1] == word_inputs.get_shape().as_list()[-1]
-    for i in xrange(self.n_recur):
+    for i in range(self.n_recur):
       with tf.variable_scope('RNN%d' % i, reuse=reuse):
         top_recur, _ = self.RNN(top_recur, recur_diag_bilin=recur_diag_bilin)
         recur_diag_bilin = self.recur_diag_bilin

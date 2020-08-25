@@ -289,7 +289,7 @@ class Network(Configurable):
           if save_every and (total_train_iters % save_every == 0):
             elapsed_time_str = time.strftime("%d:%H:%M:%S", time.gmtime(time.time()-training_start_time))
             print("Elapsed time: %s" % elapsed_time_str)
-            with open(os.path.join(self.save_dir, 'history.pkl'), 'w') as f:
+            with open(os.path.join(self.save_dir, 'history.pkl'), 'wb') as f:
               pkl.dump(self.history, f)
             # only look at non-viterbi decoding if we didn't train w/ crf
             current_score = 0.
@@ -585,9 +585,14 @@ class Network(Configurable):
               f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
             f.write('\n')
 
-      with open(os.devnull, 'w') as devnull:
+      with open(os.devnull, 'wb') as devnull:
         try:
-          parse_eval = check_output(["perl", "bin/eval.pl", "-g", parse_gold_fname, "-s", parse_pred_fname], stderr=devnull)
+          print(f"Evaluating perl bin/eval.pl -g {parse_gold_fname} -s {parse_pred_fname}")
+          parse_eval = check_output(["perl", "bin/eval.pl", 
+                                     "-g", parse_gold_fname, 
+                                     "-s", parse_pred_fname], 
+                                    stderr=devnull,
+                                    universal_newlines=True)
           short_str = parse_eval.split('\n')[:3]
           print('\n'.join(short_str))
           print('\n')
@@ -629,8 +634,11 @@ class Network(Configurable):
                     f.write('\n')
             with open(os.devnull, 'w') as devnull:
               try:
-                parse_eval_d = check_output(["perl", "bin/eval.pl", "-g", domain_gold_fname, "-s", domain_fname],
-                                          stderr=devnull)
+                parse_eval_d = check_output(["perl", "bin/eval.pl", 
+                                             "-g", domain_gold_fname, 
+                                             "-s", domain_fname],
+                                            stderr=devnull,
+                                            universal_newlines=True)
                 short_str_d = ["%s %s" % (d, s) for s in parse_eval_d.split('\n')[:3]]
                 print('\n'.join(short_str_d))
                 print('\n')
@@ -733,7 +741,12 @@ class Network(Configurable):
 
       with open(os.devnull, 'w') as devnull:
         try:
-          srl_eval = check_output(["perl", "bin/srl-eval.pl", srl_gold_fname, srl_preds_fname], stderr=devnull)
+          print(f"Evaluating perl bin/srl-eval.pl -g {srl_gold_fname} -s {srl_preds_fname}")
+
+          srl_eval = check_output(["perl", "bin/srl-eval.pl", srl_gold_fname, 
+                                   srl_preds_fname], 
+                                  stderr=devnull,
+                                  universal_newlines=True)
           print(srl_eval)
           overall_f1 = float(srl_eval.split('\n')[6].split()[-1])
           correct['F1'] = overall_f1
@@ -775,7 +788,10 @@ class Network(Configurable):
                   f.write('\n')
             with open(os.devnull, 'w') as devnull:
               try:
-                srl_eval_d = check_output(["perl", "bin/srl-eval.pl", domain_gold_fname, domain_fname], stderr=devnull)
+                srl_eval_d = check_output(["perl", "bin/srl-eval.pl", 
+                                           domain_gold_fname, domain_fname], 
+                                          stderr=devnull,
+                                          universal_newlines=True)
                 # print(srl_eval)
                 str_d = srl_eval_d.split('\n')[6]
               except CalledProcessError as e:

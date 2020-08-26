@@ -84,8 +84,9 @@ class BaseParser(NN):
     # for each batch element (sequence)
     # need to index into srl_preds, srl_logits
 
-    # print("mb probs", mb_probs)
-    # print("mb_parse_probs", mb_parse_probs)
+    print("BaseParser.validate mb_probs", mb_probs)
+    # print("BaseParser.validate mb_parse_probs", mb_parse_probs)
+    print("BaseParser.validate mb_rel_probs", mb_rel_probs)
 
     # print("srl_preds", srl_preds.shape, srl_preds)
     # print("srl_trigger", srl_triggers.shape, srl_triggers)
@@ -189,6 +190,7 @@ class BaseParser(NN):
       if len(s_pred.shape) == 1:
         s_pred = np.expand_dims(s_pred, -1)
       sent[:,15+num_pred_srls+num_gold_srls:] = s_pred
+      print(f"BaseParser.validate sent: {sent}")
       sents.append(sent)
     return sents, total_time, roots_lt_total, roots_gt_total, cycles_2_total, cycles_n_total, non_trees_total, non_tree_preds, n_tokens
   

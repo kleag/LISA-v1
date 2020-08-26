@@ -95,9 +95,12 @@ class Network(Configurable):
                     use_pretrained=(not i))
       self._vocabs.append(vocab)
 
+    print("Relations vocab: ")
+    for l, i in sorted(list(self._vocabs[2].items()), key=operator.itemgetter(1)):
+      print(f"{l}: {i}")
     print("Predicates vocab: ")
     for l, i in sorted(list(self._vocabs[4].items()), key=operator.itemgetter(1)):
-      print("%s: %d" % (l, i))
+      print(f"{l}: {i}")
     print("predicate_true_start_idx", self._vocabs[4].predicate_true_start_idx)
 
     print("Loading data")
@@ -571,6 +574,7 @@ class Network(Configurable):
           sent_len = len(words)
           if self.eval_single_token_sents or sent_len > 1:
             for i, (word, pred) in enumerate(zip(words, preds)):
+              print(f"pred n°{i}: {word}, {pred}")
               head = pred[8] + 1
               tok_id = i + 1
               # assert self.tags[datum[6]] == self.tags[pred[7]]
@@ -1024,16 +1028,16 @@ if __name__ == '__main__':
       sess.run(tf.global_variables_initializer())
       if not (args.test or args.matrix):
         if args.load:
-          os.system('echo Training: > %s/HEAD' % network.save_dir)
-          os.system('git rev-parse HEAD >> %s/HEAD' % network.save_dir)
+          #os.system('echo Training: > %s/HEAD' % network.save_dir)
+          #os.system('git rev-parse HEAD >> %s/HEAD' % network.save_dir)
           saver = tf.train.Saver(var_list=network.save_vars, save_relative_paths=True)
           saver.restore(sess, tf.train.latest_checkpoint(network.load_dir, latest_filename=network.name.lower()))
           if os.path.isfile(os.path.join(network.save_dir, 'history.pkl')):
             with open(os.path.join(network.save_dir, 'history.pkl')) as f:
               network.history = pkl.load(f)
-        else:
-          os.system('echo Loading: >> %s/HEAD' % network.load_dir)
-          os.system('git rev-parse HEAD >> %s/HEAD' % network.save_dir)
+        #else:
+          #os.system('echo Loading: >> %s/HEAD' % network.load_dir)
+          #os.system('git rev-parse HEAD >> %s/HEAD' % network.save_dir)
         network.train(sess, profile)
       elif args.matrix:
         saver = tf.train.Saver(var_list=network.save_vars, save_relative_paths=True)
@@ -1049,8 +1053,8 @@ if __name__ == '__main__':
         #  pkl.dump(sess.run(tf.get_variable('Weights')), open('mat3.pkl', 'w'))
         network.savefigs(sess)
       else:
-        os.system('echo Testing: >> %s/HEAD' % network.save_dir)
-        os.system('git rev-parse HEAD >> %s/HEAD' % network.save_dir)
+        #os.system('echo Testing: >> %s/HEAD' % network.save_dir)
+        #os.system('git rev-parse HEAD >> %s/HEAD' % network.save_dir)
         saver = tf.train.Saver(var_list=network.save_vars, save_relative_paths=True)
         print("Loading model: ", network.load_dir)
         print(network.name.lower())

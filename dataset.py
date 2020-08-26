@@ -139,6 +139,7 @@ class Dataset(Configurable):
           buff[i][j] = (word,) + words[word] + tags[tag1] + tags[tag2] + (head,) + rels[rel]
         elif self.conll2012:
           word, auto_tag, gold_tag, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
+          #print(f"Dataset token read {word}, {auto_tag}, {gold_tag}, {head}, {rel}")
           domain = token[0].split('/')[0]
           # print(word, tag1, tag2, head, rel)
           if rel == 'root':
@@ -162,6 +163,7 @@ class Dataset(Configurable):
             predicate_indices.append(j)
 
           buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
+          #print(f"Dataset buff[{i}][{j}] = {buff[i][j]}")
 
       # Expand sentences into one example per predicate
       if self.one_example_per_predicate:

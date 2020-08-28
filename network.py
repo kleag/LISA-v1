@@ -574,7 +574,7 @@ class Network(Configurable):
           sent_len = len(words)
           if self.eval_single_token_sents or sent_len > 1:
             for i, (word, pred) in enumerate(zip(words, preds)):
-              print(f"pred n°{i}: {word}, {pred}")
+              #print(f"pred n°{i}: {word}, {pred}")
               head = pred[8] + 1
               tok_id = i + 1
               # assert self.tags[datum[6]] == self.tags[pred[7]]

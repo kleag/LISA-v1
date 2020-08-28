@@ -164,6 +164,7 @@ class Dataset(Configurable):
 
           buff[i][j] = (word,) + words[word] + tags[auto_tag] + predicates[tok_predicate_str] + domains[domain] + (sents,) + tags[gold_tag] + (head,) + rels[rel] + tuple(srl_tags)
           #print(f"Dataset buff[{i}][{j}] = {buff[i][j]}")
+          #print(f"Dataset buff {word}, {word}, {auto_tag}, {tok_predicate_str}, {domain}, {sents}, {gold_tag}, {head}, {rel}, {srl_tags}")
 
       # Expand sentences into one example per predicate
       if self.one_example_per_predicate:
@@ -206,7 +207,7 @@ class Dataset(Configurable):
       print("Loaded %d sentences with %d tokens, %d examples (%d predicates) (%s)" % (sents, toks, examples, total_predicates, self.name))
       return buff2
     else:
-      print("Loaded %d sentences with %d tokens (%s)" % (sents, toks, self.name))
+      print(f"Loaded {sents} sentences with {toks} tokens {self.name}")
       return buff
   
   #=============================================================
@@ -281,6 +282,7 @@ class Dataset(Configurable):
       })
       if self.use_elmo:
         feed_dict = self.elmo_encoder.get_feed_dict(feed_dict, sents)
+      #print(f"Dataset.get_minibatches yields {feed_dict}")
       yield feed_dict, sents
   
   #=============================================================

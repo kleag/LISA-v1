@@ -6,3 +6,4 @@ lib-old
 *.kdev4
 model/
 *.swp
+*.kate-swp

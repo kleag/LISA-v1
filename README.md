@@ -11,13 +11,13 @@ This code is based on a fork of Timothy Dozat's
 [open source graph-based dependency parser](https://github.com/tdozat/Parser-v1), and the code to run ELMo is copied from
  [AI2's TensorFlow implementation](https://github.com/allenai/bilm-tf). Thanks Tim and AI2!
 
-This code is released for exact replication of the paper. 
+This code, ported to python 3, is released for exact replication of the paper. 
 **You can find a work-in-progress but vastly improved re-implementation of LISA [here](https://github.com/strubell/LISA).**
 
 Requirements:
 ----
-- Python 2.7
-- \>= TensorFlow 1.1
+- Python 3.6
+- \>= TensorFlow 1.12
 - h5py (for ELMo models)
 
 Quick start:

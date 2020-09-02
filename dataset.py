@@ -62,12 +62,14 @@ class Dataset(Configurable):
   def file_iterator(self, filename):
     """"""
     
+    #print(f"Dataset.file_iterator {filename}")
     with open(filename) as f:
       if self.lines_per_buffer > 0:
         buff = [[]]
         while True:
           line = f.readline()
           while line:
+            #print(f"Dataset.file_iterator line: {line}")
             line = line.strip().split()
             if line and (not self.train_domains_set or line[0].split('/')[0] in self.train_domains):
               buff[-1].append(line)
@@ -94,6 +96,7 @@ class Dataset(Configurable):
         buff = [[]]
         for line in f:
           line = line.strip().split()
+          #print(f"Dataset.file_iterator line: {line}")
           if line and (not self.train_domains_set or line[0].split('/')[0] in self.train_domains):
             buff[-1].append(line)
           else:
@@ -122,7 +125,7 @@ class Dataset(Configurable):
     buff2 = []
     for i, sent in enumerate(buff):
       # if not self.conll2012 or (self.conll2012 and len(list(sent)) > 1):
-      # print(sent, len(sent))
+      #print(f"Dataset._process_buff sent {i} of length {len(sent)}: {sent}")
       sents += 1
       sent_len = len(sent)
       num_fields = len(sent[0])
@@ -138,6 +141,7 @@ class Dataset(Configurable):
             head = int(head) - 1
           buff[i][j] = (word,) + words[word] + tags[tag1] + tags[tag2] + (head,) + rels[rel]
         elif self.conll2012:
+          #print(f"Dataset._process_buff token {j}:{token}")
           word, auto_tag, gold_tag, head, rel = token[words.conll_idx], token[tags.conll_idx[0]], token[tags.conll_idx[1]], token[6], token[rels.conll_idx]
           #print(f"Dataset token read {word}, {auto_tag}, {gold_tag}, {head}, {rel}")
           domain = token[0].split('/')[0]
@@ -228,7 +232,8 @@ class Dataset(Configurable):
     
     for sent in buff:
       len_cntr[len(sent)] += 1
-    self.reset(KMeans(self.n_bkts, len_cntr).splits)
+    n_bkts = self.n_bkts if len(len_cntr) >= self.n_bkts else len(len_cntr)
+    self.reset(KMeans(n_bkts, len_cntr).splits)
     
     for sent in buff:
       self._metabucket.add(sent)

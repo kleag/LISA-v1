@@ -122,7 +122,7 @@ class Network(Configurable):
 
   #=============================================================
   def train_minibatches(self):
-    """"""
+    """Return a set of minibatches from the train set (shuffled) """
 
     return self._trainset.get_minibatches(self.train_batch_size,
                                           self.model.input_idxs,
@@ -130,7 +130,7 @@ class Network(Configurable):
 
   #=============================================================
   def valid_minibatches(self):
-    """"""
+    """Return a set of minibatches from the validation set (no shuffling)"""
 
     return self._validset.get_minibatches(self.test_batch_size,
                                           self.model.input_idxs,
@@ -139,7 +139,7 @@ class Network(Configurable):
 
   #=============================================================
   def test_minibatches(self):
-    """"""
+    """Return a set of minibatches from the test set (no shuffling)"""
 
     return self._testset.get_minibatches(self.test_batch_size,
                                           self.model.input_idxs,
@@ -149,7 +149,8 @@ class Network(Configurable):
   #=============================================================
   # assumes the sess has already been initialized
   def train(self, sess, profile):
-    """"""
+    """Train the model"""
+
     print("Training")
     training_start_time = time.time()
     sys.stdout.flush()
@@ -340,6 +341,8 @@ class Network(Configurable):
 
 
   def convert_bilou(self, indices):
+    """Convert BIO-type tags to CONLL-05 type tags like '(A1*'"""
+
     strings = [self._vocabs[3][i] for i in indices]
     converted = []
     started_types = []
@@ -393,6 +396,10 @@ class Network(Configurable):
     return converted
 
   def parens_check(self, srl_preds_str):
+    """Check if each of the elements of the srl_preds_str collection contains 
+    a properly closed set of parentheses
+    """
+
     for srl_preds in srl_preds_str:
       parens_count = 0
       for pred in srl_preds:
@@ -408,6 +415,8 @@ class Network(Configurable):
     return True
 
   def merge_preds(self, all_preds, dataset):
+    """Merge predicates belonging to the same sentence?"""
+
     # want a sentences x tokens x fields array
     preds_merged = []
     current_sentid = -1
@@ -472,18 +481,18 @@ class Network(Configurable):
   #=============================================================
   # TODO make this work if lines_per_buff isn't set to 0
   def test(self, sess, viterbi=False, validate=False):
-    """"""
+    """Apply trained model to the test set and computes scores related to the gold values"""
 
     if validate:
       filename = self.valid_file
       minibatches = self.valid_minibatches
       dataset = self._validset
-      op = self.ops['test_op'][:15]
+      op = self.ops['valid_test_op']
     else:
       filename = self.test_file
       minibatches = self.test_minibatches
       dataset = self._testset
-      op = self.ops['test_op'][15:]
+      op = self.ops['test_op']
 
     all_predictions = [[]]
     all_sents = [[]]
@@ -837,7 +846,7 @@ class Network(Configurable):
 
   #=============================================================
   def savefigs(self, sess, optimizer=False):
-    """"""
+    """Write graphics to the save directories"""
 
     import gc
     import matplotlib as mpl
@@ -868,7 +877,9 @@ class Network(Configurable):
 
   #=============================================================
   def _gen_ops(self):
-    """"""
+    """Generate a graph for each set (train, valid and test) and retrurn a dict 
+    with all tensors and the output values necessary to compute the result
+    """
 
     optimizer = RadamOptimizer(self._config, global_step=self._global_step)
     train_output = self._model(self._trainset)
@@ -918,7 +929,7 @@ class Network(Configurable):
                        valid_output['n_correct'],
                        valid_output['n_tokens'],
                        valid_output['predictions']]
-    ops['test_op'] = [valid_output['probabilities'],
+    ops['valid_test_op'] = [valid_output['probabilities'],
                       valid_output['n_cycles'],
                       valid_output['len_2_cycles'],
                       valid_output['srl_probs'],
@@ -932,7 +943,8 @@ class Network(Configurable):
                       valid_output['attn_weights'],
                       valid_output['attn_correct'],
                       valid_output['pos_correct'],
-                      valid_output['pos_preds'],
+                      valid_output['pos_preds']]
+    ops['test_op'] = [
                       test_output['probabilities'],
                       test_output['n_cycles'],
                       test_output['len_2_cycles'],
@@ -1070,3 +1082,4 @@ if __name__ == '__main__':
           start_time = time.time()
           network.test(sess, network.viterbi_decode or network.viterbi_train, validate=False)
           print('Parsing took %f seconds' % (time.time() - start_time))
+

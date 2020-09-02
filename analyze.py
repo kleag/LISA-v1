@@ -121,8 +121,6 @@ class Network(Configurable):
     print("Loading data")
     sys.stdout.flush()
     self._trainset = Dataset(self.train_file, self._vocabs, model, self._config, name='Trainset')
-    self._validset = Dataset(self.valid_file, self._vocabs, model, self._config, name='Validset')
-    self._testset = Dataset(self.test_file, self._vocabs, model, self._config, name='Testset')
 
     self._ops = self._gen_ops()
     self._save_vars = [x for x in tf.global_variables() if 'Pretrained' not in x.name]
@@ -143,23 +141,6 @@ class Network(Configurable):
                                           self.model.input_idxs,
                                           self.model.target_idxs)
 
-  #=============================================================
-  def valid_minibatches(self):
-    """"""
-
-    return self._validset.get_minibatches(self.test_batch_size,
-                                          self.model.input_idxs,
-                                          self.model.target_idxs,
-                                          shuffle=False)
-
-  #=============================================================
-  def test_minibatches(self):
-    """"""
-
-    return self._testset.get_minibatches(self.test_batch_size,
-                                          self.model.input_idxs,
-                                          self.model.target_idxs,
-                                          shuffle=False)
 
   def convert_bilou(self, indices):
     strings = [self._vocabs[3][i] for i in indices]
@@ -437,8 +418,8 @@ class Network(Configurable):
 
   #=============================================================
   def _gen_ops(self):
-    """Generate a graph for each set (train, valid and test) and retrurn a dict 
-    with all tensors and the output values necessary to compute the result
+    """Generate a graph for train set and return a dict with all tensors and 
+    the output values necessary to compute the result
     """
 
     self._optimizer = RadamOptimizer(self._config, global_step=self._global_step)
@@ -447,12 +428,6 @@ class Network(Configurable):
     lr = self._optimizer.learning_rate
 
     train_op = self._optimizer.minimize(train_output['loss'])
-
-    # These have to happen after optimizer.minimize is called
-    valid_output = self._model(self._validset, moving_params=self._optimizer)
-    test_output = self._model(self._testset, moving_params=self._optimizer)
-
-
 
     ops = {}
     ops['train_op'] = [train_op] + [train_output['loss'],
@@ -485,43 +460,6 @@ class Network(Configurable):
                            train_output['multitask_losses'],
                            lr,
                            train_output['sample_prob']]
-    ops['valid_op'] = [valid_output['loss'],
-                       valid_output['n_correct'],
-                       valid_output['n_tokens'],
-                       valid_output['predictions']]
-    ops['valid_test_op'] = [valid_output['probabilities'],
-                      valid_output['n_cycles'],
-                      valid_output['len_2_cycles'],
-                      valid_output['srl_probs'],
-                      valid_output['srl_preds'],
-                      valid_output['srl_logits'],
-                      valid_output['srl_correct'],
-                      valid_output['srl_count'],
-                      valid_output['srl_predicates'],
-                      valid_output['srl_predicate_targets'],
-                      valid_output['transition_params'],
-                      valid_output['attn_weights'],
-                      valid_output['attn_correct'],
-                      valid_output['pos_correct'],
-                      valid_output['pos_preds']]
-    ops['test_op'] = [
-                      test_output['probabilities'],
-                      test_output['n_cycles'],
-                      test_output['len_2_cycles'],
-                      test_output['srl_probs'],
-                      test_output['srl_preds'],
-                      test_output['srl_logits'],
-                      test_output['srl_correct'],
-                      test_output['srl_count'],
-                      test_output['srl_predicates'],
-                      test_output['srl_predicate_targets'],
-                      test_output['transition_params'],
-                      test_output['attn_weights'],
-                      test_output['attn_correct'],
-                      test_output['pos_correct'],
-                      test_output['pos_preds'],
-                      ]
-    # ops['optimizer'] = optimizer
 
     return ops
 

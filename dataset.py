@@ -46,7 +46,8 @@ class Dataset(Configurable):
     self._train = (filename == self.train_file)
     self._metabucket = Metabucket(self._config, n_bkts=self.n_bkts)
     self._data = None
-    self.rebucket()
+    if filename:
+      self.rebucket()
 
     if self.use_elmo:
       from lib.models import ElmoLSTMEncoder
@@ -61,7 +62,8 @@ class Dataset(Configurable):
   #=============================================================
   def file_iterator(self, filename):
     """"""
-    
+    if not filename:
+        yield [[]]
     #print(f"Dataset.file_iterator {filename}")
     with open(filename) as f:
       if self.lines_per_buffer > 0:

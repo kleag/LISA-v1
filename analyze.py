@@ -120,7 +120,7 @@ class Network(Configurable):
 
     print("Loading data")
     sys.stdout.flush()
-    self._trainset = Dataset(self.train_file, self._vocabs, model, self._config, name='Trainset')
+    self._trainset = Dataset(None, self._vocabs, model, self._config, name='Trainset')
 
     self._ops = self._gen_ops()
     self._save_vars = [x for x in tf.global_variables() if 'Pretrained' not in x.name]
@@ -332,88 +332,72 @@ class Network(Configurable):
     data_indices = analyze_set._metabucket.data
     # all_predictions = [p for s in all_predictions for p in s]
 
-    correct = {'UAS': 0., 'LAS': 0., 'parse_eval': '', 'F1': 0.}
-    srl_acc = 0.0
-    if self.eval_parse:
-      # ID: Word index, integer starting at 1 for each new sentence; may be a range for multiword tokens; may be a decimal number for empty nodes.
-      # FORM: Word form or punctuation symbol.
-      # LEMMA: Lemma or stem of word form.
-      # UPOSTAG: Universal part-of-speech tag.
-      # XPOSTAG: Language-specific part-of-speech tag; underscore if not available.
-      # FEATS: List of morphological features from the universal feature inventory or from a defined language-specific extension; underscore if not available.
-      # HEAD: Head of the current word, which is either a value of ID or zero (0).
-      # DEPREL: Universal dependency relation to the HEAD (root iff HEAD = 0) or a defined language-specific subtype of one.
-      # DEPS: Enhanced dependency graph in the form of a list of head-deprel pairs.
-      # MISC: Any other annotation.
+    # ID: Word index, integer starting at 1 for each new sentence; may be a range for multiword tokens; may be a decimal number for empty nodes.
+    # FORM: Word form or punctuation symbol.
+    # LEMMA: Lemma or stem of word form.
+    # UPOSTAG: Universal part-of-speech tag.
+    # XPOSTAG: Language-specific part-of-speech tag; underscore if not available.
+    # FEATS: List of morphological features from the universal feature inventory or from a defined language-specific extension; underscore if not available.
+    # HEAD: Head of the current word, which is either a value of ID or zero (0).
+    # DEPREL: Universal dependency relation to the HEAD (root iff HEAD = 0) or a defined language-specific subtype of one.
+    # DEPS: Enhanced dependency graph in the form of a list of head-deprel pairs.
+    # MISC: Any other annotation.
 
-      # write predicted parse
-      parse_pred_fname = os.path.join(self.save_dir, "parse_preds.tsv")
-      with open(parse_pred_fname, 'w') as f:
-        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
-          preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
-          words = all_sents[bkt_idx][idx]
-          # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
-          # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
-          # sent[:, 8] = rel_preds[tokens]  # 7 = pred parse label
-          # sent[:, 9] = targets[tokens, 1]  # 8 = gold parse head
-          # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
-          sent_len = len(words)
-          if self.eval_single_token_sents or sent_len > 1:
-            for i, (word, pred) in enumerate(zip(words, preds)):
-              #print(f"pred n°{i}: {word}, {pred}")
-              head = pred[8] + 1
-              tok_id = i + 1
-              # assert self.tags[datum[6]] == self.tags[pred[7]]
-              tup = (
-                tok_id,  # id
-                word,  # form
-                self.tags[pred[7]],  # gold tag
-                # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
-                str(head if head != tok_id else 0),  # pred head
-                self.rels[pred[9]] # pred label
-              )
-              f.write('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
-            f.write('\n')
+    # write predicted parse
+    for p_idx, (bkt_idx, idx) in enumerate(data_indices):
+      preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
+      words = all_sents[bkt_idx][idx]
+      # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
+      # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
+      # sent[:, 8] = rel_preds[tokens]  # 7 = pred parse label
+      # sent[:, 9] = targets[tokens, 1]  # 8 = gold parse head
+      # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
+      sent_len = len(words)
+      if self.eval_single_token_sents or sent_len > 1:
+        for i, (word, pred) in enumerate(zip(words, preds)):
+          #print(f"pred n°{i}: {word}, {pred}")
+          head = pred[8] + 1
+          tok_id = i + 1
+          # assert self.tags[datum[6]] == self.tags[pred[7]]
+          tup = (
+              tok_id,  # id
+              word,  # form
+              self.tags[pred[7]],  # gold tag
+              # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+              str(head if head != tok_id else 0),  # pred head
+              self.rels[pred[9]] # pred label
+          )
+          print('%s\t%s\t_\t%s\t_\t_\t%s\t%s\n' % tup)
 
-    if self.eval_srl:
-      # load the real gold preds file
-      srl_gold_fname = self.gold_dev_props_file if validate else self.gold_test_props_file
-
-      # save SRL output
-      srl_preds_fname = os.path.join(self.save_dir, 'srl_preds.tsv')
-      # print("writing srl preds file: %s" % srl_preds_fname)
-      with open(srl_preds_fname, 'w') as f:
-        for p_idx, (bkt_idx, idx) in enumerate(data_indices):
-          # for each word, if predicate print word, otherwise -
-          # then all the SRL labels
-          preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
-          words = all_sents[bkt_idx][idx]
-          # if len(preds.shape) < 2:
-          #   preds = np.reshape(preds, [1, preds.shape[0]])
-          # print("preds", preds)
-          num_gold_srls = preds[0, 13]
-          num_pred_srls = preds[0, 14]
-          srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
-          if self.one_example_per_predicate:
-            # srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
-            predicate_indices = np.where(preds[:, 4] == 1)[0]
-            # print("predicate indices", predicate_indices)
-          else:
-            predicate_indices = preds[0, 15:15+num_pred_srls]
-          # print("predicate indices", predicate_indices)
-          srl_preds_str = list(map(list, list(zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))))
-          for i, word in enumerate(words):
-            pred = srl_preds_str[i] if srl_preds_str else []
-            word_str = word if i in predicate_indices else '-'
-            fields = (word_str,) + tuple(pred)
-            owpl_str = '\t'.join(fields)
-            f.write(owpl_str + "\n")
-          if not self.parens_check(np.transpose(srl_preds_str)):
-            print(np.transpose(srl_preds_str))
-            print([self._vocabs[3][i] for i in np.transpose(srl_preds)])
-          f.write('\n')
-
-    return correct
+    for p_idx, (bkt_idx, idx) in enumerate(data_indices):
+      # for each word, if predicate print word, otherwise -
+      # then all the SRL labels
+      preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
+      words = all_sents[bkt_idx][idx]
+      # if len(preds.shape) < 2:
+      #   preds = np.reshape(preds, [1, preds.shape[0]])
+      # print("preds", preds)
+      num_gold_srls = preds[0, 13]
+      num_pred_srls = preds[0, 14]
+      srl_preds = preds[:, 15 + num_gold_srls + num_pred_srls:]
+      if self.one_example_per_predicate:
+        # srl_preds = preds[:, 14 + num_gold_srls + num_pred_srls:]
+        predicate_indices = np.where(preds[:, 4] == 1)[0]
+        # print("predicate indices", predicate_indices)
+      else:
+        predicate_indices = preds[0, 15:15+num_pred_srls]
+        # print("predicate indices", predicate_indices)
+        srl_preds_str = list(map(list, list(zip(*[self.convert_bilou(j) for j in np.transpose(srl_preds)]))))
+        for i, word in enumerate(words):
+          pred = srl_preds_str[i] if srl_preds_str else []
+          word_str = word if i in predicate_indices else '-'
+          fields = (word_str,) + tuple(pred)
+          owpl_str = '\t'.join(fields)
+          print(owpl_str + "\n")
+          #if not self.parens_check(np.transpose(srl_preds_str)):
+            #print(np.transpose(srl_preds_str))
+            #print([self._vocabs[3][i] for i in np.transpose(srl_preds)])
+          #f.write('\n')
 
 
   #=============================================================
@@ -425,42 +409,12 @@ class Network(Configurable):
     self._optimizer = RadamOptimizer(self._config, global_step=self._global_step)
     train_output = self._model(self._trainset)
 
-    lr = self._optimizer.learning_rate
-
     train_op = self._optimizer.minimize(train_output['loss'])
 
     ops = {}
     ops['train_op'] = [train_op] + [train_output['loss'],
                        train_output['n_correct'],
                        train_output['n_tokens']]
-    ops['train_op_svd'] = [train_op] + [train_output['loss'],
-                           train_output['n_correct'],
-                           train_output['n_tokens'],
-                           train_output['roots_loss'],
-                           train_output['2cycle_loss'],
-                           train_output['svd_loss'],
-                           train_output['log_loss'],
-                           train_output['rel_loss']]
-    ops['train_op_srl'] = [train_op] + [train_output['loss'],
-                           train_output['n_correct'],
-                           train_output['n_tokens'],
-                           train_output['roots_loss'],
-                           train_output['2cycle_loss'],
-                           train_output['svd_loss'],
-                           train_output['log_loss'],
-                           train_output['rel_loss'],
-                           train_output['srl_loss'],
-                           train_output['srl_correct'],
-                           train_output['srl_count'],
-                           train_output['predicate_loss'],
-                           train_output['predicate_count'],
-                           train_output['predicate_correct'],
-                           train_output['pos_loss'],
-                           train_output['pos_correct'],
-                           train_output['multitask_losses'],
-                           lr,
-                           train_output['sample_prob']]
-
     return ops
 
   #=============================================================

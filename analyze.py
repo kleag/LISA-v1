@@ -126,7 +126,7 @@ class Network(Configurable):
     tokenized_filename = temp.name
 
     # TODO Convert text_file to conll_file
-    analyze_set = Dataset(tokenized_filename, self._vocabs, model, 
+    analyze_set = Dataset(tokenized_filename, self._vocabs, Parser, 
                         self._config, name='Analyzeset')
     def analyze_minibatches():
       """"""
@@ -270,6 +270,33 @@ class Network(Configurable):
   def save_vars(self):
     return self._save_vars
 
+class Analyzer(Configurable):
+  """"""
+
+  #=============================================================
+  def __init__(self, cargs):
+    """"""
+
+    self._network = Network(Parser, **cargs)
+      
+    config_proto = tf.ConfigProto()
+    config_proto.gpu_options.per_process_gpu_memory_fraction = self._network.per_process_gpu_memory_fraction
+
+    self._sess = tf.Session(config=config_proto)
+    self._sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver(var_list=self._network.save_vars, 
+                           save_relative_paths=True)
+    print("Loading model: ", self._network.load_dir)
+    saver.restore(self._sess, 
+                  tf.train.latest_checkpoint(
+                      self._network.load_dir,
+                      latest_filename=self._network.name.lower()))
+
+
+  def analyze(self, text):
+      return self._network.analyze(self._sess, text)
+
+
 #***************************************************************
 if __name__ == '__main__':
   """"""
@@ -279,26 +306,15 @@ if __name__ == '__main__':
   argparser = argparse.ArgumentParser()
 
   _, extra_args = argparser.parse_known_args()
-  cargs = {k: v for (k, v) in list(vars(Configurable.argparser.parse_args(extra_args)).items()) if v is not None}
-  model = Parser
-
-  network = Network(model, **cargs)
-      
-  config_proto = tf.ConfigProto()
-  config_proto.gpu_options.per_process_gpu_memory_fraction = network.per_process_gpu_memory_fraction
-
-  with tf.Session(config=config_proto) as sess:
-    sess.run(tf.global_variables_initializer())
-    saver = tf.train.Saver(var_list=network.save_vars, save_relative_paths=True)
-    print("Loading model: ", network.load_dir)
-    saver.restore(sess, tf.train.latest_checkpoint(network.load_dir, 
-                  latest_filename=network.name.lower()))
-
-    for text_file in cargs['files']:
-      print(f"Analyzing text file: {text_file}")
-      with open(text_file, 'r') as f:
-        text = f.read()
-        result = network.analyze(sess, text)
-        with open(text_file+'.srl.conll', 'w') as output_file:
-          print(result, file=output_file)
-
+  cargs = {k: v for (k, v) in 
+           list(vars(Configurable.argparser.parse_args(extra_args)).items()) 
+           if v is not None}
+  print(f"cargs is: {cargs}")
+  analyzer = Analyzer(cargs)
+  for text_file in cargs['files']:
+    print(f"Analyzing text file: {text_file}")
+    with open(text_file, 'r') as f:
+      text = f.read()
+      result = analyzer.analyze(text)
+      with open(text_file+'.srl.conll', 'w') as output_file:
+        print(result, file=output_file)

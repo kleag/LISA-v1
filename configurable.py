@@ -53,8 +53,11 @@ class Configurable(object):
 
     config = ConfigParser()
     config_files = [os.path.join('config', 'defaults.cfg'),
-                    os.path.join('config', self.name.lower() + '.cfg'),
-                    kwargs.pop('config_file', '')]
+                    os.path.join('config', self.name.lower() + '.cfg')]
+    if 'config_file' in kwargs:
+      config_files.append(kwargs.pop('config_file'))
+    elif 'save_dir' in kwargs:
+      config_files.append(f"{kwargs['save_dir']}/config.cfg")
     print(f"Configurable.configure {config_files}")
     files_read = config.read(config_files)
     print(f"Configurable.configure loaded: {files_read}")

@@ -59,6 +59,8 @@ class Configurable(object):
     files_read = config.read(config_files)
     print(f"Configurable.configure loaded: {files_read}")
     for option, value in list(kwargs.items()):
+      if option == "files":
+        continue
       assigned = False
       for section in config.sections():
         if option in config.options(section):
@@ -72,6 +74,7 @@ class Configurable(object):
 
   #=============================================================
   argparser = argparse.ArgumentParser()
+  argparser.add_argument('files', nargs='*')
   argparser.add_argument('--config_file')
   argparser.add_argument('--data_dir')
   argparser.add_argument('--embed_dir')

@@ -124,6 +124,8 @@ class Parser(BaseParser):
 
     # compute targets adj matrix
     shape = tf.shape(targets[:, :, 1])
+    shape = tf.Print(shape, [shape], "Shape is: ")
+
     batch_size = shape[0]
     bucket_size = shape[1]
     i1, i2 = tf.meshgrid(tf.range(batch_size), tf.range(bucket_size), indexing="ij")
@@ -157,7 +159,7 @@ class Parser(BaseParser):
     else:
       use_gold_parse_tensor = tf.equal(int(use_gold_parse), 1)
 
-    print("use gold parse (%s): " % dataset.name, use_gold_parse)
+    print(f"use gold parse ({dataset.name}): {use_gold_parse}")
 
     ##### Functions for predicting parse, Dozat-style #####
     def get_parse_logits(parse_inputs):
@@ -170,10 +172,17 @@ class Parser(BaseParser):
 
         with tf.variable_scope('Arcs', reuse=reuse):
           arc_logits = self.bilinear_classifier(dep_arc_mlp, head_arc_mlp)
-
+          arc_logits = tf.Print(arc_logits, 
+                                [arc_logits, tf.shape(arc_logits), 
+                                 tf.shape(tf.shape(arc_logits)), batch_size, bucket_size],
+                                "Check if we must reshape arc_logits: ")
           arc_logits = tf.cond(tf.less_equal(tf.shape(tf.shape(arc_logits))[0], 2),
-                               lambda: tf.reshape(arc_logits, [batch_size, 1, 1]), lambda: arc_logits)
-          # arc_logits = tf.Print(arc_logits, [tf.shape(arc_logits), tf.shape(tf.shape(arc_logits))])
+                               lambda: tf.reshape(arc_logits, [batch_size, bucket_size, bucket_size]), 
+                               lambda: arc_logits)
+          arc_logits = tf.Print(arc_logits, 
+                                [arc_logits, tf.shape(arc_logits), 
+                                 tf.shape(tf.shape(arc_logits)), batch_size, bucket_size],
+                                "After possible reshaping: ")
         return arc_logits, dep_rel_mlp, head_rel_mlp
       else:
         return dummy_parse_logits()
@@ -250,7 +259,9 @@ class Parser(BaseParser):
                 manual_attn = None
                 hard_attn = False
                 # todo make this into gold_at_train and gold_at_test flags... + scheduled sampling
-                if 'parents' in list(self.multi_layers.keys()) and i in self.multi_layers['parents'] and (use_gold_parse or self.full_parse):
+                if ('parents' in list(self.multi_layers.keys()) 
+                    and i in self.multi_layers['parents'] 
+                    and (use_gold_parse or self.full_parse)):
                   # if use_gold_parse:
                   #   manual_attn = adj
                   #   # manual_attn = tf.Print(manual_attn, [tf.shape(manual_attn), manual_attn], "gold attn", summarize=100)
@@ -389,7 +400,9 @@ class Parser(BaseParser):
     #                                                                 lambda: get_parse_logits(parse_pred_inputs)),
     #                                                 lambda: dummy_parse_logits())
 
-    if not self.full_parse and self.role_loss_penalty == 0. and self.predicate_loss_penalty == 0.0:
+    if (not self.full_parse 
+        and self.role_loss_penalty == 0. 
+        and self.predicate_loss_penalty == 0.0):
       arc_logits, dep_rel_mlp, head_rel_mlp = get_parse_logits(parse_pred_inputs)
 
     arc_output = self.output_svd(arc_logits, targets[:, :, 1])
@@ -403,7 +416,8 @@ class Parser(BaseParser):
 
     def get_parse_rel_logits():
       with tf.variable_scope('Rels', reuse=reuse):
-        rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, num_rel_classes, predictions)
+        rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(
+            dep_rel_mlp, head_rel_mlp, num_rel_classes, predictions)
       return rel_logits, rel_logits_cond
 
     rel_logits, rel_logits_cond = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
@@ -411,7 +425,8 @@ class Parser(BaseParser):
                                           lambda: (tf.constant(0.), tf.constant(0.)))
     rel_output = self.output(rel_logits, targets[:, :, 2], num_rel_classes)
     rel_output['probabilities'] = tf.cond(tf.not_equal(self.rel_loss_penalty, 0.0),
-                                          lambda: self.conditional_probabilities(rel_logits_cond),
+                                          lambda: self.conditional_probabilities(
+                                              rel_logits_cond),
                                           lambda: rel_output['probabilities'])
 
     # def compute_rels_output():

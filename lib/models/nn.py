@@ -1716,6 +1716,7 @@ class NN(Configurable):
 
   # ensure at least one root
   def ensure_gt_one_root(self, parse_preds, parse_probs, tokens):
+    #print(f"NN.ensure_gt_one_root {parse_preds}, {parse_probs}, {tokens}")
     # The current root probabilities
     root_probs = np.diagonal(parse_probs[tokens])
     # The current head probabilities

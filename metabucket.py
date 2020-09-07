@@ -68,6 +68,8 @@ class Metabucket(Configurable):
     if isinstance(self._data, np.ndarray):
       raise TypeError("The buckets have already been finalized, you can't add more to them")
     
+    #print(f"Metabucket.add {sent}")
+    #print(f"Metabucket.add {self._len2bkt}, {len(sent)}")
     bkt_idx = self._len2bkt[len(sent)]
     idx = self._buckets[bkt_idx].add(sent)
     self._data.append( (bkt_idx, idx) )

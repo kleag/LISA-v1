@@ -46,6 +46,7 @@ class Dataset(Configurable):
     self._train = (filename == self.train_file)
     self._metabucket = Metabucket(self._config, n_bkts=self.n_bkts)
     self._data = None
+    self.reset([])
     if filename:
       self.rebucket()
 
@@ -230,12 +231,17 @@ class Dataset(Configurable):
     """"""
 
     buff = next(self._file_iterator)
+    #print(f"Dataset.rebucket {buff}")
     len_cntr = Counter()
     
     for sent in buff:
       len_cntr[len(sent)] += 1
     n_bkts = self.n_bkts if len(len_cntr) >= self.n_bkts else len(len_cntr)
-    self.reset(KMeans(n_bkts, len_cntr).splits)
+    #print(f"Dataset.rebucket n_bkts: {n_bkts}, {self.n_bkts}")
+    self._metabucket = Metabucket(self._config, n_bkts=n_bkts)
+    splits = KMeans(n_bkts, len_cntr).splits
+    #print(f"Dataset.rebucket splits: {splits}")
+    self.reset(splits)
     
     for sent in buff:
       self._metabucket.add(sent)
@@ -253,6 +259,7 @@ class Dataset(Configurable):
   def get_minibatches(self, batch_size, input_idxs, target_idxs, shuffle=True):
     """"""
     
+    #print(f"Dataset.get_minibatches {batch_size}, {input_idxs}, {target_idxs}, {shuffle}")
     minibatches = []
     for bkt_idx, bucket in enumerate(self._metabucket):
       if batch_size == 0:
@@ -280,7 +287,7 @@ class Dataset(Configurable):
       # print("maxlen+max(target_idxs)", maxlen+max(target_idxs))
       # print("data.shape[2]", data.shape[2])
       # targets = data[:,:maxlen,min(target_idxs):maxlen+max(target_idxs)+1]
-      # print("data shape", targets.shape)
+      # print("targets shape", targets.shape)
       # print("data[:,:,3:] shape", targets[:,:,3:].shape)
 
       feed_dict.update({
@@ -302,10 +309,11 @@ class Dataset(Configurable):
 
   # =============================================================
   def max_batch_size(self):
-    print([b._data.shape[0] for b in self._metabucket._buckets])
+    #print([b._data.shape[0] for b in self._metabucket._buckets])
     max_batch_size = np.max([b._data.shape[0] for b in self._metabucket._buckets])
-    print("max batch size: ", max_batch_size)
-    if self.name == "Testset":
+    #print("max batch size: ", max_batch_size)
+    
+    if self.name in ["Testset", "Analyzeset"]:
       return self.max_test_batch_size
     elif self.name == "Validset":
       return self.max_dev_batch_size

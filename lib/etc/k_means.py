@@ -46,7 +46,7 @@ class KMeans(object):
     self._counts = []
     self._lidxs = []
 
-    print("running k means")
+    #print(f"KMeans running k means {k}, {len_cntr}")
     
     # Initialize the splits evenly
     # lengths = []

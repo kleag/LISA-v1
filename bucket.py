@@ -101,7 +101,7 @@ class Bucket(Configurable):
     else:
       self._data = np.zeros((0, 1), dtype=np.float32)
       self._sents = np.zeros((0, 1), dtype=str)
-    print('Bucket %s is %d x %d' % ((self._name,) + self._data.shape[0:2]))
+    #print('Bucket._finalize  %s is %d x %d' % ((self._name,) + self._data.shape[0:2]))
     return
   
   #=============================================================

@@ -124,7 +124,7 @@ class Parser(BaseParser):
 
     # compute targets adj matrix
     shape = tf.shape(targets[:, :, 1])
-    shape = tf.Print(shape, [shape], "Shape is: ")
+    #shape = tf.Print(shape, [shape], "Shape is: ")
 
     batch_size = shape[0]
     bucket_size = shape[1]
@@ -172,17 +172,17 @@ class Parser(BaseParser):
 
         with tf.variable_scope('Arcs', reuse=reuse):
           arc_logits = self.bilinear_classifier(dep_arc_mlp, head_arc_mlp)
-          arc_logits = tf.Print(arc_logits, 
-                                [arc_logits, tf.shape(arc_logits), 
-                                 tf.shape(tf.shape(arc_logits)), batch_size, bucket_size],
-                                "Check if we must reshape arc_logits: ")
+          #arc_logits = tf.Print(arc_logits, 
+                                #[arc_logits, tf.shape(arc_logits), 
+                                 #tf.shape(tf.shape(arc_logits)), batch_size, bucket_size],
+                                #"Check if we must reshape arc_logits: ")
           arc_logits = tf.cond(tf.less_equal(tf.shape(tf.shape(arc_logits))[0], 2),
                                lambda: tf.reshape(arc_logits, [batch_size, bucket_size, bucket_size]), 
                                lambda: arc_logits)
-          arc_logits = tf.Print(arc_logits, 
-                                [arc_logits, tf.shape(arc_logits), 
-                                 tf.shape(tf.shape(arc_logits)), batch_size, bucket_size],
-                                "After possible reshaping: ")
+          #arc_logits = tf.Print(arc_logits, 
+                                #[arc_logits, tf.shape(arc_logits), 
+                                 #tf.shape(tf.shape(arc_logits)), batch_size, bucket_size],
+                                #"After possible reshaping: ")
         return arc_logits, dep_rel_mlp, head_rel_mlp
       else:
         return dummy_parse_logits()

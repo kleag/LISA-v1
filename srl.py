@@ -93,11 +93,10 @@ class Network(Configurable):
 
     tf.logging.log(tf.logging.INFO, 
                              f"analyze analyzing: {text}")
-    #text += " ".join(["PAD PAD PAD PAD."]*60)
     result = ""
     temp = tempfile.NamedTemporaryFile(mode='w+t')
-    print(f"analyze writing to temp file {temp.name}:")
-    print(text)
+    #print(f"analyze writing to temp file {temp.name}:")
+    #print(text)
     doc = nlp(text)
     #sentence_id = 0
     for sentence_id, sentence in enumerate(doc.sents):
@@ -122,11 +121,6 @@ class Network(Configurable):
           temp.write(f"{line}\n")
       #print(f">>>")
       temp.write(f"\n")
-    # Try to pad data in case we don't have enough sentences
-    #for sentence_id in range(sentence_id+1,25):
-      #temp.write(f'conll05\t{sentence_id}\t1\tPAD\t.\t.\t0\troot\t_\t-\t-\t-\t-\tO\n')
-      ##print(f">>>PAD")
-      #temp.write(f"\n")
     temp.flush()
              
     tokenized_file = temp
@@ -222,8 +216,6 @@ class Network(Configurable):
       # sent[:, 10] = targets[tokens, 2]  # 9 = gold parse label
       sent_len = len(words)
       for i, (word, pred) in enumerate(zip(words, preds)):
-        if word == 'PAD':
-          return result
         #print(f"pred n°{i}: {word}, {pred}")
         head = pred[8] + 1
         tok_id = i + 1

@@ -25,7 +25,7 @@ class ShallowParser(BaseParser):
     targets = dataset.targets
     
     reuse = (moving_params is not None)
-    self.tokens_to_keep3D = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,0], vocabs[0].ROOT)), 2)
+    self.tokens_to_keep3D = tf.expand_dims(tf.cast(tf.greater(inputs[:,:,0], vocabs[0].ROOT), tf.float32), 2)
     self.sequence_lengths = tf.reshape(tf.reduce_sum(self.tokens_to_keep3D, [1, 2]), [-1,1])
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params
@@ -35,28 +35,28 @@ class ShallowParser(BaseParser):
     if self.add_to_pretrained and not self.char_based:
       word_inputs += pret_inputs
     if self.word_l2_reg > 0:
-      unk_mask = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,1], vocabs[0].UNK)),2)
+      unk_mask = tf.expand_dims(tf.cast(tf.greater(inputs[:,:,1], vocabs[0].UNK), tf.float32),2)
       word_loss = self.word_l2_reg*tf.nn.l2_loss((word_inputs - pret_inputs) * unk_mask)
     embed_inputs = self.embed_concat(word_inputs, tag_inputs)
     
     top_recur = embed_inputs
     recur_diag_bilin = False#self.recur_diag_bilin and tag_inputs.get_shape().as_list()[-1] == word_inputs.get_shape().as_list()[-1]
     for i in range(self.n_recur):
-      with tf.variable_scope('RNN%d' % i, reuse=reuse):
+      with tf.compat.v1.variable_scope('RNN%d' % i, reuse=reuse):
         top_recur, _ = self.RNN(top_recur, recur_diag_bilin=recur_diag_bilin)
         recur_diag_bilin = self.recur_diag_bilin
     if self.attn_based:
       top_recur = self.soft_attn(top_recur, recur_diag_bilin=recur_diag_bilin)
       recur_diag_bilin = False
     
-    with tf.variable_scope('Arcs', reuse=reuse):
+    with tf.compat.v1.variable_scope('Arcs', reuse=reuse):
       arc_logits = self.bilinear_classifier(top_recur,top_recur)
       arc_output = self.output(arc_logits, targets[:,:,1])
       if moving_params is None:
         predictions = targets[:,:,1]
       else:
         predictions = arc_output['predictions']
-    with tf.variable_scope('Rels', reuse=reuse):
+    with tf.compat.v1.variable_scope('Rels', reuse=reuse):
       rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(top_recur, top_recur, len(vocabs[2]), predictions)
       rel_output = self.output(rel_logits, targets[:,:,2])
       rel_output['probabilities'] = self.conditional_probabilities(rel_logits_cond)

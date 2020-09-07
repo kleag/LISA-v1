@@ -72,7 +72,7 @@ class Network(Configurable):
                         'Predicates', self.predicate_embed_size if self.add_predicates_to_input else 0),
                      (self.domain_file, 0, 'Domains', 0)]
 
-    print("Loading vocabs")
+    #print("Loading vocabs")
     for i, (vocab_file, index, name, embed_size) in enumerate(vocab_files):
       vocab = Vocab(vocab_file, index, embed_size, self._config,
                     name=name,
@@ -80,18 +80,18 @@ class Network(Configurable):
                     use_pretrained=(not i))
       self._vocabs.append(vocab)
 
-    print("Loading data")
+    #print("Loading data")
     self._trainset = Dataset(None, self._vocabs, model, self._config, name='Trainset')
 
     self._ops = self._gen_ops()
-    self._save_vars = [x for x in tf.global_variables() if 'Pretrained' not in x.name]
+    self._save_vars = [x for x in tf.compat.v1.global_variables() if 'Pretrained' not in x.name]
     return
 
   def analyze(self, sess, text):
     """
     """
 
-    tf.logging.log(tf.logging.INFO, 
+    tf.compat.v1.logging.log(tf.compat.v1.logging.INFO, 
                              f"analyze analyzing: {text}")
     result = ""
     temp = tempfile.NamedTemporaryFile(mode='w+t')
@@ -280,12 +280,12 @@ class Analyzer(Configurable):
 
     self._network = Network(Parser, **cargs)
       
-    config_proto = tf.ConfigProto()
+    config_proto = tf.compat.v1.ConfigProto()
     config_proto.gpu_options.per_process_gpu_memory_fraction = self._network.per_process_gpu_memory_fraction
 
-    self._sess = tf.Session(config=config_proto)
-    self._sess.run(tf.global_variables_initializer())
-    saver = tf.train.Saver(var_list=self._network.save_vars, 
+    self._sess = tf.compat.v1.Session(config=config_proto)
+    self._sess.run(tf.compat.v1.global_variables_initializer())
+    saver = tf.compat.v1.train.Saver(var_list=self._network.save_vars, 
                            save_relative_paths=True)
     print("Loading model: ", self._network.load_dir)
     saver.restore(self._sess, 
@@ -312,7 +312,7 @@ if __name__ == '__main__':
            if v is not None}
   analyzer = Analyzer(cargs)
   for text_file in cargs['files']:
-    print(f"Analyzing text file: {text_file}")
+    #print(f"Analyzing text file: {text_file}")
     with open(text_file, 'r') as f:
       text = f.read()
       result = analyzer.analyze(text)

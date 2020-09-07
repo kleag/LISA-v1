@@ -35,8 +35,8 @@ def sigmoid(x):
 def orthonormal_initializer(input_size, output_size):
   """"""
 
-  if not tf.get_variable_scope().reuse:
-    print(tf.get_variable_scope().name)
+  if not tf.compat.v1.get_variable_scope().reuse:
+    #print(tf.get_variable_scope().name)
     I = np.eye(output_size)
     lr = .1
     eps = .05 / (output_size + input_size)
@@ -54,9 +54,9 @@ def orthonormal_initializer(input_size, output_size):
       if np.isfinite(loss) and np.max(Q) < 1e6:
         success = True
       eps *= 2
-    print('Orthogonal pretrainer loss: %.2e' % loss)
+    #print('Orthogonal pretrainer loss: %.2e' % loss)
   else:
-    print('Orthogonal pretrainer failed, using non-orthogonal random matrix')
+    #print('Orthogonal pretrainer failed, using non-orthogonal random matrix')
     Q = np.random.randn(input_size, output_size) / np.sqrt(output_size)
   return Q.astype(np.float32)
 
@@ -68,7 +68,7 @@ def linear(inputs, output_size, add_bias=True, n_splits=1, initializer=None, sco
     inputs = [inputs]
   output_size *= n_splits
   
-  with tf.variable_scope(scope or 'Linear'):
+  with tf.compat.v1.variable_scope(scope or 'Linear'):
     # Reformat the input
     total_input_size = 0
     shapes = [a.get_shape().as_list() for a in inputs]
@@ -89,15 +89,15 @@ def linear(inputs, output_size, add_bias=True, n_splits=1, initializer=None, sco
       mat = orthonormal_initializer(total_input_size, output_size//n_splits)
       mat = np.concatenate([mat]*n_splits, axis=1)
       initializer = tf.constant_initializer(mat)
-    matrix = tf.get_variable('Weights', [total_input_size, output_size], initializer=initializer)
+    matrix = tf.compat.v1.get_variable('Weights', [total_input_size, output_size], initializer=initializer)
     if moving_params is not None:
       matrix = moving_params.average(matrix)
     else:
-      tf.add_to_collection('Weights', matrix)
+      tf.compat.v1.add_to_collection('Weights', matrix)
     
     # Get the bias
     if add_bias:
-      bias = tf.get_variable('Biases', [output_size], initializer=tf.zeros_initializer())
+      bias = tf.compat.v1.get_variable('Biases', [output_size], initializer=tf.zeros_initializer())
       if moving_params is not None:
         bias = moving_params.average(bias)
     else:
@@ -106,7 +106,7 @@ def linear(inputs, output_size, add_bias=True, n_splits=1, initializer=None, sco
     # Do the multiplication
     new = tf.matmul(concatenation, matrix) + bias
     new = tf.reshape(new, output_shape)
-    new.set_shape([tf.Dimension(None) for _ in range(len(shapes[0])-1)] + [tf.Dimension(output_size)])
+    new.set_shape([tf.compat.v1.Dimension(None) for _ in range(len(shapes[0])-1)] + [tf.compat.v1.Dimension(output_size)])
     if n_splits > 1:
       return tf.split(axis=len(new.get_shape().as_list())-1, num_or_size_splits=n_splits, value=new)
     else:
@@ -116,7 +116,7 @@ def linear(inputs, output_size, add_bias=True, n_splits=1, initializer=None, sco
 def bilinear(inputs1, inputs2, output_size, add_bias2=True, add_bias1=True, add_bias=False, initializer=None, scope=None, moving_params=None):
   """"""
   
-  with tf.variable_scope(scope or 'Bilinear'):
+  with tf.compat.v1.variable_scope(scope or 'Bilinear'):
     # Reformat the inputs
     ndims = len(inputs1.get_shape().as_list())
     inputs1_shape = tf.shape(inputs1)
@@ -147,11 +147,11 @@ def bilinear(inputs1, inputs2, output_size, add_bias2=True, add_bias1=True, add_
       mat = orthonormal_initializer(inputs1_size+add_bias1, inputs2_size+add_bias2)[:,None,:]
       mat = np.concatenate([mat]*output_size, axis=1)
       initializer = tf.constant_initializer(mat)
-    weights = tf.get_variable('Weights', [inputs1_size+add_bias1, output_size, inputs2_size+add_bias2], initializer=initializer)
+    weights = tf.compat.v1.get_variable('Weights', [inputs1_size+add_bias1, output_size, inputs2_size+add_bias2], initializer=initializer)
     if moving_params is not None:
       weights = moving_params.average(weights)
     else:
-      tf.add_to_collection('Weights', weights)
+      tf.compat.v1.add_to_collection('Weights', weights)
     
     # Do the multiplications
     # (bn x d) (d x rd) -> (bn x rd)
@@ -167,7 +167,7 @@ def bilinear(inputs1, inputs2, output_size, add_bias2=True, add_bias1=True, add_
     
     # Get the bias
     if add_bias:
-      bias = tf.get_variable('Biases', [output_size], initializer=tf.zeros_initializer())
+      bias = tf.compat.v1.get_variable('Biases', [output_size], initializer=tf.zeros_initializer())
       if moving_params is not None:
         bias = moving_params.average(bias)
       bilin += tf.expand_dims(bias, 1)
@@ -180,7 +180,7 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
              scope=None, moving_params=None):
   """"""
 
-  with tf.variable_scope(scope or 'Bilinear'):
+  with tf.compat.v1.variable_scope(scope or 'Bilinear'):
     # Reformat the inputs
     ndims = len(inputs1.get_shape().as_list())
     inputs1_shape = tf.shape(inputs1)
@@ -213,12 +213,12 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
       mat = orthonormal_initializer(inputs1_size + add_bias1, inputs2_size + add_bias2)[:, None, :]
       mat = np.concatenate([mat] * output_size, axis=1)
       initializer = tf.constant_initializer(mat)
-    weights = tf.get_variable('Weights', [inputs1_size + add_bias1, output_size, inputs2_size + add_bias2],
+    weights = tf.compat.v1.get_variable('Weights', [inputs1_size + add_bias1, output_size, inputs2_size + add_bias2],
                               initializer=initializer)
     if moving_params is not None:
       weights = moving_params.average(weights)
     else:
-      tf.add_to_collection('Weights', weights)
+      tf.compat.v1.add_to_collection('Weights', weights)
 
     # inputs1: num_triggers_in_batch x 1 x self.trigger_mlp_size
     # inputs2: batch x seq_len x self.role_mlp_size
@@ -237,7 +237,7 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
 
     # Get the bias
     if add_bias:
-      bias = tf.get_variable('Biases', [output_size], initializer=tf.zeros_initializer())
+      bias = tf.compat.v1.get_variable('Biases', [output_size], initializer=tf.zeros_initializer())
       if moving_params is not None:
         bias = moving_params.average(bias)
       bilin += tf.expand_dims(bias, 1)
@@ -248,7 +248,7 @@ def bilinear_noreshape(inputs1, inputs2, output_size, add_bias2=True, add_bias1=
 def diagonal_bilinear(inputs1, inputs2, output_size, add_bias2=True, add_bias1=True, add_bias=False, initializer=None, scope=None, moving_params=None):
   """"""
   
-  with tf.variable_scope(scope or 'Bilinear'):
+  with tf.compat.v1.variable_scope(scope or 'Bilinear'):
     # Reformat the inputs
     ndims = len(inputs1.get_shape().as_list())
     inputs1_shape = tf.shape(inputs1)
@@ -271,16 +271,16 @@ def diagonal_bilinear(inputs1, inputs2, output_size, add_bias2=True, add_bias1=T
     output_shape = tf.stack(output_shape)
     inputs1 = tf.reshape(inputs1, tf.stack([batch_size, inputs1_bucket_size, inputs1_size]))
     inputs2 = tf.reshape(inputs2, tf.stack([batch_size, inputs2_bucket_size, inputs2_size]))
-    inputs1.set_shape([tf.Dimension(None)]*2 + [tf.Dimension(inputs1_size)])
-    inputs2.set_shape([tf.Dimension(None)]*2 + [tf.Dimension(inputs2_size)])
+    inputs1.set_shape([tf.compat.v1.Dimension(None)]*2 + [tf.compat.v1.Dimension(inputs1_size)])
+    inputs2.set_shape([tf.compat.v1.Dimension(None)]*2 + [tf.compat.v1.Dimension(inputs2_size)])
     
     inputs = broadcast_mult(inputs1, inputs2)
-    with tf.variable_scope('Bilinear'):
+    with tf.compat.v1.variable_scope('Bilinear'):
       bilin = linear(inputs, output_size, add_bias=add_bias, initializer=initializer, scope=scope, moving_params=moving_params)
-    with tf.variable_scope('Linear1'):
+    with tf.compat.v1.variable_scope('Linear1'):
       lin1 = linear(inputs1, output_size, add_bias=False, initializer=initializer, scope=scope, moving_params=moving_params)
       lin1 = tf.expand_dims(lin1, 2)
-    with tf.variable_scope('Linear2'):
+    with tf.compat.v1.variable_scope('Linear2'):
       lin2 = linear(inputs2, output_size, add_bias=False, initializer=initializer, scope=scope, moving_params=moving_params)
       lin2 = tf.expand_dims(lin2, 1)
 
@@ -292,10 +292,10 @@ def diagonal_bilinear(inputs1, inputs2, output_size, add_bias2=True, add_bias1=T
 def layer_norm(inputs, beta_start=0, gamma_start=1, scope=None, moving_params=None):
   """"""
   
-  with tf.variable_scope(scope or "Layer_norm"):
-    gamma = tf.get_variable('Gamma', shape=[],
+  with tf.compat.v1.variable_scope(scope or "Layer_norm"):
+    gamma = tf.compat.v1.get_variable('Gamma', shape=[],
                             initializer=tf.constant_initializer(gamma_start))
-    beta = tf.get_variable('Beta', shape=[],
+    beta = tf.compat.v1.get_variable('Beta', shape=[],
                             initializer=tf.constant_initializer(beta_start))
     if moving_params is not None:
       gamma = moving_params.average(gamma)
@@ -318,7 +318,7 @@ def broadcast_add(inputs1, inputs2):
   inputs = inputs1 + inputs2
   inputs = tf.reshape(inputs, [inputs1_shape[0], inputs1_shape[2],  inputs1_shape[1], inputs2_shape[1]])
   inputs = tf.transpose(inputs, [0,2,3,1])
-  inputs.set_shape([tf.Dimension(None)]*3 + [tf.Dimension(inputs_size)])
+  inputs.set_shape([tf.compat.v1.Dimension(None)]*3 + [tf.compat.v1.Dimension(inputs_size)])
   return inputs
   
 #===============================================================
@@ -335,7 +335,7 @@ def broadcast_sub(inputs1, inputs2):
   inputs = inputs1 - inputs2
   inputs = tf.reshape(inputs, [inputs1_shape[0], inputs1_shape[2], inputs1_shape[1], inputs2_shape[1]])
   inputs = tf.transpose(inputs, [0,2,3,1])
-  inputs.set_shape([tf.Dimension(None)]*3 + [tf.Dimension(inputs_size)])
+  inputs.set_shape([tf.compat.v1.Dimension(None)]*3 + [tf.compat.v1.Dimension(inputs_size)])
   return inputs
 
 #===============================================================
@@ -352,7 +352,7 @@ def broadcast_mult(inputs1, inputs2):
   inputs = inputs1 * inputs2
   inputs = tf.reshape(inputs, tf.stack([inputs1_shape[0], inputs1_shape[2],  inputs1_shape[1], inputs2_shape[1]]))
   inputs = tf.transpose(inputs, [0,2,3,1])
-  inputs.set_shape([tf.Dimension(None)]*3 + [tf.Dimension(inputs_size)])
+  inputs.set_shape([tf.compat.v1.Dimension(None)]*3 + [tf.compat.v1.Dimension(inputs_size)])
   return inputs
 
 #***************************************************************

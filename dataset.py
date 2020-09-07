@@ -40,7 +40,7 @@ class Dataset(Configurable):
     self.vocabs = vocabs
 
     self.train_domains_set = set(self.train_domains.split(',')) if self.train_domains != '-' and self.name == "Trainset" else set()
-    print("Loading training data from domains:", self.train_domains_set if self.train_domains_set else "all")
+    #print("Loading training data from domains:", self.train_domains_set if self.train_domains_set else "all")
 
     self._file_iterator = self.file_iterator(filename)
     self._train = (filename == self.train_file)
@@ -52,12 +52,12 @@ class Dataset(Configurable):
 
     if self.use_elmo:
       from lib.models import ElmoLSTMEncoder
-      with tf.variable_scope(tf.get_variable_scope(), reuse=(self.name != "Trainset")):
+      with tf.compat.v1.variable_scope(tf.get_variable_scope(), reuse=(self.name != "Trainset")):
         self.elmo_encoder = ElmoLSTMEncoder(self)
 
-    self.inputs = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')
-    self.targets = tf.placeholder(dtype=tf.int32, shape=(None,None,None), name='targets')
-    self.step = tf.placeholder_with_default(0., shape=None, name='step')
+    self.inputs = tf.compat.v1.placeholder(dtype=tf.int32, shape=(None,None,None), name='inputs')
+    self.targets = tf.compat.v1.placeholder(dtype=tf.int32, shape=(None,None,None), name='targets')
+    self.step = tf.compat.v1.placeholder_with_default(0., shape=None, name='step')
     self.builder = builder()
   
   #=============================================================
@@ -211,10 +211,10 @@ class Dataset(Configurable):
       #   examples += 1
     # tmp_f.close()
     if self.one_example_per_predicate:
-      print("Loaded %d sentences with %d tokens, %d examples (%d predicates) (%s)" % (sents, toks, examples, total_predicates, self.name))
+      #print("Loaded %d sentences with %d tokens, %d examples (%d predicates) (%s)" % (sents, toks, examples, total_predicates, self.name))
       return buff2
     else:
-      print(f"Loaded {sents} sentences with {toks} tokens {self.name}")
+      #print(f"Loaded {sents} sentences with {toks} tokens {self.name}")
       return buff
   
   #=============================================================

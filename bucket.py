@@ -97,7 +97,7 @@ class Bucket(Configurable):
         datum = np.array(datum)
         data[i, :datum.shape[0], :datum.shape[1]] = datum
       self._data = data
-      self._sents = np.array(self._sents)
+      self._sents = np.array(self._sents, dtype=object)
     else:
       self._data = np.zeros((0, 1), dtype=np.float32)
       self._sents = np.zeros((0, 1), dtype=str)

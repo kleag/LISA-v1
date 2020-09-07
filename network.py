@@ -1055,14 +1055,14 @@ if __name__ == '__main__':
         saver = tf.train.Saver(var_list=network.save_vars, save_relative_paths=True)
         saver.restore(sess, tf.train.latest_checkpoint(network.save_dir, latest_filename=network.name.lower()))
         # TODO make this save pcolor plots of all matrices to a directory in save_dir
-        #with tf.variable_scope('RNN0/BiRNN_FW/LSTMCell/Linear', reuse=True):
-        #  pkl.dump(sess.run(tf.get_variable('Weights')), open('mat0.pkl', 'w'))
-        #with tf.variable_scope('RNN1/BiRNN_FW/LSTMCell/Linear', reuse=True):
-        #  pkl.dump(sess.run(tf.get_variable('Weights')), open('mat1.pkl', 'w'))
-        #with tf.variable_scope('RNN2/BiRNN_FW/LSTMCell/Linear', reuse=True):
-        #  pkl.dump(sess.run(tf.get_variable('Weights')), open('mat2.pkl', 'w'))
-        #with tf.variable_scope('MLP/Linear', reuse=True):
-        #  pkl.dump(sess.run(tf.get_variable('Weights')), open('mat3.pkl', 'w'))
+        #with tf.compat.v1.variable_scope('RNN0/BiRNN_FW/LSTMCell/Linear', reuse=True):
+        #  pkl.dump(sess.run(tf.compat.v1.get_variable('Weights')), open('mat0.pkl', 'w'))
+        #with tf.compat.v1.variable_scope('RNN1/BiRNN_FW/LSTMCell/Linear', reuse=True):
+        #  pkl.dump(sess.run(tf.compat.v1.get_variable('Weights')), open('mat1.pkl', 'w'))
+        #with tf.compat.v1.variable_scope('RNN2/BiRNN_FW/LSTMCell/Linear', reuse=True):
+        #  pkl.dump(sess.run(tf.compat.v1.get_variable('Weights')), open('mat2.pkl', 'w'))
+        #with tf.compat.v1.variable_scope('MLP/Linear', reuse=True):
+        #  pkl.dump(sess.run(tf.compat.v1.get_variable('Weights')), open('mat3.pkl', 'w'))
         network.savefigs(sess)
       else:
         #os.system('echo Testing: >> %s/HEAD' % network.save_dir)

@@ -316,18 +316,18 @@ class Vocab(Configurable):
       embed_size = self._embed_size
     
     with tf.device('/cpu:0'):
-      with tf.variable_scope(self.name):
+      with tf.compat.v1.variable_scope(self.name):
         if self.name == "Words" and self._embed_size > 0 and self.use_pretrained and not self.add_to_pretrained:
           self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
           self.trainable_embeddings = tf.Variable(self.pretrained_embeddings, trainable=True, name='Trainable')
-          print("Loaded pre-trained embeddings. Trainable: True")
+          #print("Loaded pre-trained embeddings. Trainable: True")
         else:
           if self._embed_size > 0:
-            self.trainable_embeddings = tf.get_variable('Trainable', shape=(len(self._str2idx), embed_size), initializer=initializer)
+            self.trainable_embeddings = tf.compat.v1.get_variable('Trainable', shape=(len(self._str2idx), embed_size), initializer=initializer)
           if self.use_pretrained:
             self.pretrained_embeddings /= np.std(self.pretrained_embeddings)
             self.pretrained_embeddings = tf.Variable(self.pretrained_embeddings, trainable=False, name='Pretrained')
-            print("Loaded pre-trained embeddings. Trainable: False")
+            #print("Loaded pre-trained embeddings. Trainable: False")
     return
   
   #=============================================================
@@ -341,7 +341,7 @@ class Vocab(Configurable):
     
     embed_input = tf.nn.embedding_lookup(trainable_embeddings, inputs)
     if moving_params is None:
-      tf.add_to_collection('Weights', embed_input)
+      tf.compat.v1.add_to_collection('Weights', embed_input)
     if self.use_pretrained and pret_inputs is not None:
       return embed_input, tf.nn.embedding_lookup(self.pretrained_embeddings, pret_inputs)
     else:
@@ -364,9 +364,9 @@ class Vocab(Configurable):
     embed_input = tf.matmul(tf.reshape(inputs, [-1, input_size]),
                             trainable_embeddings)
     embed_input = tf.reshape(embed_input, tf.stack([batch_size, bucket_size, self._embed_size]))
-    embed_input.set_shape([tf.Dimension(None), tf.Dimension(None), tf.Dimension(self._embed_size)])
+    embed_input.set_shape([tf.compat.v1.Dimension(None), tf.compat.v1.Dimension(None), tf.compat.v1.Dimension(self._embed_size)])
     if moving_params is None:
-      tf.add_to_collection('Weights', embed_input)
+      tf.compat.v1.add_to_collection('Weights', embed_input)
     return embed_input
   
   #=============================================================

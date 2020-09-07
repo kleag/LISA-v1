@@ -32,7 +32,7 @@ class LSTMCell(BaseCell):
   def __call__(self, inputs, state, scope=None):
     """"""
     
-    with tf.variable_scope(scope or type(self).__name__):
+    with tf.compat.v1.variable_scope(scope or type(self).__name__):
       cell_tm1, hidden_tm1 = tf.split(axis=1, num_or_size_splits=2, value=state)
       if self.recur_diag_bilin:
         inputs1, inputs2 = tf.split(axis=1, num_or_size_splits=2, value=inputs)
@@ -44,8 +44,8 @@ class LSTMCell(BaseCell):
                              add_bias=False,
                              n_splits=4,
                              moving_params=self.moving_params)
-      with tf.variable_scope('Linear'):
-        biases = tf.get_variable('Biases', [4*self.output_size], initializer=tf.zeros_initializer())
+      with tf.compat.v1.variable_scope('Linear'):
+        biases = tf.compat.v1.get_variable('Biases', [4*self.output_size], initializer=tf.zeros_initializer())
       biases = tf.split(axis=0, num_or_size_splits=4, value=biases)
       cell_act, input_act, forget_act, output_act = linear
       cell_bias, input_bias, forget_bias, output_bias = biases

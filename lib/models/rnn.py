@@ -82,7 +82,7 @@ def rnn(cell, inputs, initial_state=None, dtype=None, sequence_length=None, scop
   # Create a new scope in which the caching device is either
   # determined by the parent scope, or is set to place the cached
   # Variable using the same placement as for the rest of the RNN.
-  with tf.variable_scope(scope or "RNN") as varscope:
+  with tf.compat.v1.variable_scope(scope or "RNN") as varscope:
     if varscope.caching_device is None:
       varscope.set_caching_device(lambda op: op.device)
 
@@ -121,7 +121,7 @@ def rnn(cell, inputs, initial_state=None, dtype=None, sequence_length=None, scop
 
     for time, input_ in enumerate(inputs):
       # if time > 0: tf.get_variable_scope().reuse_variables()
-      with tf.variable_scope(reuse=(time > 0)):
+      with tf.compat.v1.variable_scope(reuse=(time > 0)):
         # pylint: disable=cell-var-from-loop
         call_cell = lambda: cell(input_, state)
         # pylint: enable=cell-var-from-loop
@@ -342,12 +342,12 @@ def bidirectional_rnn(cell_fw, cell_bw, inputs, initial_state_fw=None, initial_s
 
   name = scope or "BiRNN"
   # Forward direction
-  with tf.variable_scope(name + "_FW") as fw_scope:
+  with tf.compat.v1.variable_scope(name + "_FW") as fw_scope:
     output_fw, output_state_fw = rnn(cell_fw, inputs, initial_state_fw, dtype,
                        sequence_length, scope=fw_scope)
 
   # Backward direction
-  with tf.variable_scope(name + "_BW") as bw_scope:
+  with tf.compat.v1.variable_scope(name + "_BW") as bw_scope:
     tmp, output_state_bw = rnn(cell_bw, _reverse_seq(inputs, sequence_length),
                  initial_state_bw, dtype, sequence_length, scope=bw_scope)
   output_bw = _reverse_seq(tmp, sequence_length)
@@ -406,7 +406,7 @@ def dynamic_bidirectional_rnn(cell_fw, cell_bw, inputs, sequence_length, initial
 
   name = scope or "BiRNN"
   # Forward direction
-  with tf.variable_scope(name + "_FW") as fw_scope:
+  with tf.compat.v1.variable_scope(name + "_FW") as fw_scope:
     output_fw, output_state_fw = dynamic_rnn(cell_fw, inputs, sequence_length, initial_state_fw, ff_keep_prob, recur_keep_prob, dtype, parallel_iterations, swap_memory, time_major, scope=fw_scope)
 
   # Backward direction
@@ -414,7 +414,7 @@ def dynamic_bidirectional_rnn(cell_fw, cell_bw, inputs, sequence_length, initial
     rev_inputs = tf.reverse_sequence(inputs, sequence_length, 0, 1)
   else:
     rev_inputs = tf.reverse_sequence(inputs, sequence_length, 1, 0)
-  with tf.variable_scope(name + "_BW") as bw_scope:
+  with tf.compat.v1.variable_scope(name + "_BW") as bw_scope:
     tmp, output_state_bw = dynamic_rnn(cell_bw, rev_inputs, sequence_length, initial_state_bw, ff_keep_prob, recur_keep_prob, dtype, parallel_iterations, swap_memory, time_major, scope=bw_scope)
   if time_major:
     output_bw = tf.reverse_sequence(tmp, sequence_length, 0, 1)
@@ -501,7 +501,7 @@ def dynamic_rnn(cell, inputs, sequence_length=None, initial_state=None, ff_keep_
   # Create a new scope in which the caching device is either
   # determined by the parent scope, or is set to place the cached
   # Variable using the same placement as for the rest of the RNN.
-  with tf.variable_scope(scope or "RNN") as varscope:
+  with tf.compat.v1.variable_scope(scope or "RNN") as varscope:
     if varscope.caching_device is None:
       varscope.set_caching_device(lambda op: op.device)
     input_shape = tf.shape(inputs)

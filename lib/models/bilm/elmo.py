@@ -66,7 +66,7 @@ def weight_layers(name, bilm_ops, l2_coef=None,
       # no regularization
       reg = 0.0
     else:
-      W = tf.get_variable(
+      W = tf.compat.v1.get_variable(
         '{}_ELMo_W'.format(name),
         shape=(n_lm_layers,),
         initializer=tf.zeros_initializer,
@@ -100,7 +100,7 @@ def weight_layers(name, bilm_ops, l2_coef=None,
         raise ValueError
 
     # scale the weighted sum by gamma
-    gamma = tf.get_variable(
+    gamma = tf.compat.v1.get_variable(
       '{}_ELMo_gamma'.format(name),
       shape=(1,),
       initializer=tf.ones_initializer,

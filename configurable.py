@@ -58,9 +58,9 @@ class Configurable(object):
       config_files.append(kwargs.pop('config_file'))
     elif 'save_dir' in kwargs:
       config_files.append(f"{kwargs['save_dir']}/config.cfg")
-    print(f"Configurable.configure {config_files}")
+    #print(f"Configurable.configure {config_files}")
     files_read = config.read(config_files)
-    print(f"Configurable.configure loaded: {files_read}")
+    #print(f"Configurable.configure loaded: {files_read}")
     for option, value in list(kwargs.items()):
       if option == "files":
         continue

@@ -35,7 +35,7 @@ class CifLSTMCell(BaseCell):
     if self.recur_diag_bilin:
       inputs1, inputs2 = tf.split(axis=1, num_or_size_splits=2, value=inputs)
       inputs = tf.concat(axis=1, values=[inputs1*inputs2, inputs1, inputs2])
-    with tf.variable_scope(scope or type(self).__name__):
+    with tf.compat.v1.variable_scope(scope or type(self).__name__):
       cell_tm1, hidden_tm1 = tf.split(axis=1, num_or_size_splits=2, value=state)
       linear = linalg.linear([inputs, hidden_tm1],
                           self.output_size,

@@ -50,7 +50,7 @@ class BaseCell(Configurable):
   def zero_state(self, batch_size, dtype):
     """"""
     
-    zero_state = tf.get_variable('Zero_state',
+    zero_state = tf.compat.v1.get_variable('Zero_state',
                                  shape=self.state_size,
                                  dtype=dtype,
                                  initializer=tf.zeros_initializer())

@@ -38,7 +38,7 @@ class KGParser(BaseParser):
     targets = dataset.targets
     
     reuse = (moving_params is not None)
-    self.tokens_to_keep3D = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,0], vocabs[0].ROOT)), 2)
+    self.tokens_to_keep3D = tf.expand_dims(tf.cast(tf.greater(inputs[:,:,0], vocabs[0].ROOT), tf.float32), 2)
     self.sequence_lengths = tf.reshape(tf.reduce_sum(self.tokens_to_keep3D, [1, 2]), [-1,1])
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params
@@ -48,21 +48,21 @@ class KGParser(BaseParser):
     
     top_recur = self.embed_concat(word_inputs+pret_inputs, tag_inputs)
     for i in range(self.n_recur):
-      with tf.variable_scope('RNN%d' % i, reuse=reuse):
+      with tf.compat.v1.variable_scope('RNN%d' % i, reuse=reuse):
         top_recur, _ = self.RNN(top_recur)
     
     top_mlp = top_recur
-    with tf.variable_scope('MLP0', reuse=reuse):
+    with tf.compat.v1.variable_scope('MLP0', reuse=reuse):
       parse_mlp, rel_mlp = self.double_MLP(top_mlp, n_splits=2)
     
-    with tf.variable_scope('Parses', reuse=reuse):
+    with tf.compat.v1.variable_scope('Parses', reuse=reuse):
       parse_logits = tf.squeeze(self.linear_classifier(parse_mlp, 1))
       parse_output = self.output(parse_logits, targets[:,:,1])
       if moving_params is None:
         predictions = targets[:,:,1]
       else:
         predictions = parse_output['predictions']
-    with tf.variable_scope('Rels', reuse=reuse):
+    with tf.compat.v1.variable_scope('Rels', reuse=reuse):
       rel_logits, rel_logits_cond = self.conditional_linear_classifier(rel_mlp, len(vocabs[2]), predictions)
       rel_output = self.output(rel_logits, targets[:,:,2])
       rel_output['probabilities'] = self.conditional_probabilities(rel_logits_cond, transpose=False)

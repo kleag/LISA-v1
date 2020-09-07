@@ -26,7 +26,7 @@ class ParserBilinear(BaseParser):
     targets = dataset.targets
     
     reuse = (moving_params is not None)
-    self.tokens_to_keep3D = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,0], vocabs[0].ROOT)), 2)
+    self.tokens_to_keep3D = tf.expand_dims(tf.cast(tf.greater(inputs[:,:,0], vocabs[0].ROOT), tf.float32), 2)
     self.sequence_lengths = tf.reshape(tf.reduce_sum(self.tokens_to_keep3D, [1, 2]), [-1,1])
     self.n_tokens = tf.reduce_sum(self.sequence_lengths)
     self.moving_params = moving_params
@@ -36,7 +36,7 @@ class ParserBilinear(BaseParser):
     if self.add_to_pretrained:
       word_inputs += pret_inputs
     if self.word_l2_reg > 0:
-      unk_mask = tf.expand_dims(tf.to_float(tf.greater(inputs[:,:,1], vocabs[0].UNK)),2)
+      unk_mask = tf.expand_dims(tf.cast(tf.greater(inputs[:,:,1], vocabs[0].UNK), tf.float32),2)
       word_loss = self.word_l2_reg*tf.nn.l2_loss((word_inputs - pret_inputs) * unk_mask)
     embed_inputs = self.embed_concat(word_inputs, tag_inputs)
     
@@ -61,14 +61,14 @@ class ParserBilinear(BaseParser):
     #   self.recur_keep_prob = 1.0
 
     for i in range(self.cnn_layers):
-      with tf.variable_scope('CNN%d' % i, reuse=reuse):
+      with tf.compat.v1.variable_scope('CNN%d' % i, reuse=reuse):
         top_recur = self.CNN(top_recur, kernel, self.cnn_dim,
                              self.recur_keep_prob if i < self.n_recur - 1 else 1.0,
                              self.info_func if i < self.n_recur - 1 else tf.identity)
 
-    with tf.variable_scope('proj', reuse=reuse):
+    with tf.compat.v1.variable_scope('proj', reuse=reuse):
       top_recur = tf.expand_dims(top_recur, 1)
-      params = tf.get_variable("proj", [1, 1, self.cnn_dim, hidden_size])
+      params = tf.compat.v1.get_variable("proj", [1, 1, self.cnn_dim, hidden_size])
       top_recur = tf.nn.conv2d(top_recur, params, [1, 1, 1, 1], "SAME")
       top_recur = tf.squeeze(top_recur, 1)
 
@@ -76,20 +76,20 @@ class ParserBilinear(BaseParser):
 
     for i in range(self.n_recur):
       # RNN:
-      # with tf.variable_scope('RNN%d' % i, reuse=reuse):
+      # with tf.compat.v1.variable_scope('RNN%d' % i, reuse=reuse):
       #   top_recur, _ = self.RNN(top_recur)
 
       # CNN:
-      # with tf.variable_scope('CNN%d' % i, reuse=reuse):
+      # with tf.compat.v1.variable_scope('CNN%d' % i, reuse=reuse):
       #   top_recur = self.CNN(top_recur, kernel, cnn_dim,
       #                        self.recur_keep_prob if i < self.n_recur-1 else 1.0,
       #                        self.info_func if i < self.n_recur-1 else tf.identity)
       #
-      # params = tf.get_variable("proj", [1, 1, cnn_dim, hidden_size])
+      # params = tf.compat.v1.get_variable("proj", [1, 1, cnn_dim, hidden_size])
       # top_recur = tf.nn.conv2d(top_recur, params, [1, 1, 1, 1], "SAME")
 
       # Transformer:
-      with tf.variable_scope('Transformer%d' % i, reuse=reuse):
+      with tf.compat.v1.variable_scope('Transformer%d' % i, reuse=reuse):
         top_recur = self.transformer(top_recur, hidden_size, self.num_heads,
                                      attn_dropout, relu_dropout, prepost_dropout, self.relu_hidden_size,
                                      self.info_func, reuse)
@@ -98,19 +98,19 @@ class ParserBilinear(BaseParser):
     # a whole stack of unnormalized layer outputs.
     top_recur = nn.layer_norm(top_recur, reuse)
 
-    with tf.variable_scope('MLP', reuse=reuse):
+    with tf.compat.v1.variable_scope('MLP', reuse=reuse):
       dep_mlp, head_mlp = self.MLP(top_recur, self.class_mlp_size+self.attn_mlp_size, n_splits=2)
       dep_arc_mlp, dep_rel_mlp = dep_mlp[:,:,:self.attn_mlp_size], dep_mlp[:,:,self.attn_mlp_size:]
       head_arc_mlp, head_rel_mlp = head_mlp[:,:,:self.attn_mlp_size], head_mlp[:,:,self.attn_mlp_size:]
     
-    with tf.variable_scope('Arcs', reuse=reuse):
+    with tf.compat.v1.variable_scope('Arcs', reuse=reuse):
       arc_logits = self.bilinear_classifier(dep_arc_mlp, head_arc_mlp)
       arc_output = self.output(arc_logits, targets[:,:,1])
       if moving_params is None:
         predictions = targets[:,:,1]
       else:
         predictions = arc_output['predictions']
-    with tf.variable_scope('Rels', reuse=reuse):
+    with tf.compat.v1.variable_scope('Rels', reuse=reuse):
       rel_logits, rel_logits_cond = self.conditional_bilinear_classifier(dep_rel_mlp, head_rel_mlp, len(vocabs[2]), predictions)
       rel_output = self.output(rel_logits, targets[:,:,2])
       rel_output['probabilities'] = self.conditional_probabilities(rel_logits_cond)

@@ -80,7 +80,7 @@ class RadamOptimizer(BaseOptimizer):
     
     x_tm1, g_t, idxs = cache['x_tm1'], cache['g_t'], cache['idxs']
     idxs, idxs_ = tf.unique(idxs)
-    g_t_ = tf.unsorted_segment_sum(g_t, idxs_, tf.size(idxs))
+    g_t_ = tf.math.unsorted_segment_sum(g_t, idxs_, tf.size(idxs))
     updates = cache['updates']
     
     if self.mu > 0:

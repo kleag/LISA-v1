@@ -32,9 +32,9 @@ class GRUCell(BaseCell):
   def __call__(self, inputs, state, scope=None):
     """"""
     
-    with tf.variable_scope(scope or type(self).__name__):
+    with tf.compat.v1.variable_scope(scope or type(self).__name__):
       cell_tm1, hidden_tm1 = tf.split(axis=1, num_or_size_splits=2, value=state)
-      with tf.variable_scope('Gates'):
+      with tf.compat.v1.variable_scope('Gates'):
         linear = linalg.linear([inputs, hidden_tm1],
                                self.output_size,
                                add_bias=True,
@@ -44,7 +44,7 @@ class GRUCell(BaseCell):
         update_gate = linalg.sigmoid(update_act-self.forget_bias)
         reset_gate = linalg.sigmoid(reset_act)
         reset_state = reset_gate * hidden_tm1
-      with tf.variable_scope('Candidate'):
+      with tf.compat.v1.variable_scope('Candidate'):
         hidden_act = linalg.linear([inputs, reset_state],
                                    self.output_size,
                                    add_bias=True,

@@ -14,7 +14,7 @@ This code is based on a fork of Timothy Dozat's
 This code, ported to python 3, is released for exact replication of the paper. 
 **You can find a work-in-progress but vastly improved re-implementation of LISA [here](https://github.com/strubell/LISA).**
 
-It contains also a script, usable standalone or as a lib, to analyze arbitrary texts. 
+It contains also a script, usable standalone or as a lib, to analyze arbitrary texts. See [its documentation below](https://github.com/kleag/LISA-v1#analyze-arbitrary-text-files).
 
 Requirements:
 ----

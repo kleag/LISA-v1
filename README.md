@@ -14,6 +14,8 @@ This code is based on a fork of Timothy Dozat's
 This code, ported to python 3, is released for exact replication of the paper. 
 **You can find a work-in-progress but vastly improved re-implementation of LISA [here](https://github.com/strubell/LISA).**
 
+It contains also a script, usable standalone or as a lib, to analyze arbitrary texts. 
+
 Requirements:
 ----
 - Python 3.6
@@ -208,3 +210,63 @@ CoNLL-2012 dependency parsing results for released models (dev, test):
 | Model                       | UAS     | LAS     |     | UAS    | LAS    |
 | --------------------------- | ------- | ------- | --- | ------ | ------ |
 | `dm-conll12-elmo`           | 95.30   | 92.51   |     | 95.30  | 93.05  |
+
+## Analyze arbitrary text files
+
+To analyze a text file with the model saved in `model`, use the `srl.py` script:
+
+```bash
+$ python srl.py --save_dir model file1.txt [file2.txt…]
+```
+
+The result will be written in files named from the input file name suffixed with `.srl.conll`.
+
+You can also use this script as an API:
+
+```python
+Python 3.6.10 |Anaconda, Inc.| (default, May  8 2020, 02:54:21) 
+[GCC 7.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import srl
+>>> with open("README.md", 'r') as f:                                                                                 
+...     text = f.read()                                                                                               
+... 
+>>> cargs={"save_dir":"model", "config_file":"config/lisa-conll05-gc.cfg"}                                            
+>>> analyzer = srl.Analyzer(cargs)                                                                                    
+Configurable.configure ['config/defaults.cfg', 'config/parser.cfg', 'config/lisa-conll05-gc.cfg']
+Configurable.configure loaded: ['config/defaults.cfg', 'config/lisa-conll05-gc.cfg']
+Loading vocabs
+…
+Loading model:  model
+INFO:tensorflow:Restoring parameters from model/parser-trained-138
+>>> result = analyzer.analyze(text)
+>>> print(result)
+…
+1       This    _       DT      _       _       2       nsubj   -       O       O       O
+2       is      _       VBZ     _       _       0       root    -       O       O       O
+3       the     _       DT      _       _       5       det     -       O       O       O
+4       original        _       JJ      _       _       5       amod    -       O       O       O
+5       implementation  _       NN      _       _       2       xcomp   -       O       O       O
+6       of      _       IN      _       _       5       prep    -       O       O       O
+7       the     _       DT      _       _       11      det     -       O       O       O
+8       linguistically  _       RB      _       _       10      advmod  -       B-AM-MNR        O       O
+9       -       _       IN      _       _       10      dep     -       O       O       O
+10      informed        _       VBN     _       _       11      amod    informed        B-V     O       O
+11      self    _       NN      _       _       6       pobj    -       B-A1    O       O
+12      -       _       IN      _       _       11      cc      -       O       O       O
+13      attention       _       NN      _       _       11      dep     -       O       O       O
+14      (       _       -LRB-   _       _       15      dep     -       O       O       O
+15      LISA    _       NNP     _       _       17      dep     -       O       B-A1    O
+16      )       _       -RRB-   _       _       15      dep     -       O       I-A1    O
+17      model   _       NN      _       _       11      dep     -       O       I-A1    O
+18      described       _       VBN     _       _       17      vmod    described       O       B-V     O
+19      in      _       IN      _       _       18      prep    -       O       B-AM-LOC        O
+20      the     _       DT      _       _       22      det     -       O       I-AM-LOC        O
+21      following       _       VBG     _       _       22      amod    following       O       I-AM-LOC        O
+22      paper   _       NN      _       _       19      pobj    -       O       I-AM-LOC        O
+23      :       _       :       _       _       2       punct   -       O       O       O
+…
+>>> 
+```
+
+

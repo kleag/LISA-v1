@@ -91,7 +91,7 @@ class Network(Configurable):
     """
     """
 
-    tf.compat.v1.logging.log(tf.compat.v1.logging.INFO, 
+    tf.compat.v1.logging.log(tf.compat.v1.logging.INFO,
                              f"analyze analyzing: {text}")
     result = ""
     temp = tempfile.NamedTemporaryFile(mode='w+t')
@@ -99,12 +99,17 @@ class Network(Configurable):
     #print(text)
     doc = nlp(text)
     #sentence_id = 0
+    tokens_localization = {}
     for sentence_id, sentence in enumerate(doc.sents):
       tokens = {}
       for token_id, token in enumerate(sentence):
         tokens[token] = token_id
+      real_token_id = 0
       for token_id, token in enumerate(sentence):
         if len(token.text) > 0 and token.text != '\n' and not token.is_space:
+          # associate token pos and len to the identification of the token
+          tokens_localization[(sentence_id, real_token_id)] = (token.idx, token.__len__())
+          real_token_id += 1
           # 0:domain  1:sent_id 2:id  3:word+word_type
           # 4:gold_pos 5:auto_pos    6:parse_head  7:parse_label
           if token.dep_ == "ROOT":
@@ -113,7 +118,7 @@ class Network(Configurable):
           else:
             depid = int(tokens[token.head]) + 1
             dep = dep_transcat_table[token.dep_] if token.dep_ in dep_transcat_table else token.dep_
-          line = (f'conll05\t{sentence_id}\t{token_id}'
+          line = (f'conll05\t{sentence_id}\t{real_token_id}'
                   f'\t{token.text}\t{token.tag_}\t{token.tag_}'
                   f'\t{depid}\t{dep}'
                   f'\t_\t-\t-\t-\t-\tO')
@@ -122,16 +127,16 @@ class Network(Configurable):
       #print(f">>>")
       temp.write(f"\n")
     temp.flush()
-             
+    #print(f"tokens_localization: {tokens_localization}")
     tokenized_file = temp
     tokenized_filename = temp.name
 
     # TODO Convert text_file to conll_file
-    analyze_set = Dataset(tokenized_filename, self._vocabs, Parser, 
+    analyze_set = Dataset(tokenized_filename, self._vocabs, Parser,
                         self._config, name='Analyzeset')
     def analyze_minibatches():
       """"""
-             
+
       return analyze_set.get_minibatches(self.test_batch_size,
         self.model.input_idxs,
         self.model.target_idxs,
@@ -161,13 +166,13 @@ class Network(Configurable):
     for batch_num, (feed_dict, sents) in enumerate(analyze_minibatches()):
       mb_inputs = feed_dict[analyze_set.inputs]
       mb_targets = feed_dict[analyze_set.targets]
-      (probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits, 
-       srl_correct, srl_count, srl_predicates, srl_predicate_targets, 
-       transition_params, attn_weights, attn_correct, pos_correct, 
+      (probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits,
+       srl_correct, srl_count, srl_predicates, srl_predicate_targets,
+       transition_params, attn_weights, attn_correct, pos_correct,
        pos_preds) = sess.run(ops, feed_dict=feed_dict)
-      preds, _, _, _, _, _, _, _, _ = self.model.validate(mb_inputs, 
-          mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits, 
-          srl_predicates, srl_predicate_targets, pos_preds, None) 
+      preds, _, _, _, _, _, _, _, _ = self.model.validate(mb_inputs,
+          mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits,
+          srl_predicates, srl_predicate_targets, pos_preds, None)
       all_predictions[-1].extend(preds)
       all_sents[-1].extend(sents)
       if len(all_predictions[-1]) == len(analyze_set[bkt_idx]):
@@ -178,24 +183,25 @@ class Network(Configurable):
 
     data_indices = analyze_set._metabucket.data
 
-    # ID: Word index, integer starting at 1 for each new sentence; may be a 
+    # ID: Word index, integer starting at 1 for each new sentence; may be a
     #     range for multiword tokens; may be a decimal number for empty nodes.
     # FORM: Word form or punctuation symbol.
     # LEMMA: Lemma or stem of word form.
     # UPOSTAG: Universal part-of-speech tag.
     # XPOSTAG: Language-specific part-of-speech tag; underscore if not available.
-    # FEATS: List of morphological features from the universal feature inventory 
-    #        or from a defined language-specific extension; underscore if not 
+    # FEATS: List of morphological features from the universal feature inventory
+    #        or from a defined language-specific extension; underscore if not
     #        available.
     # HEAD: Head of the current word, which is either a value of ID or zero (0).
-    # DEPREL: Universal dependency relation to the HEAD (root iff HEAD = 0) or a 
+    # DEPREL: Universal dependency relation to the HEAD (root iff HEAD = 0) or a
     #         defined language-specific subtype of one.
     # DEPS: Enhanced dependency graph in the form of a list of head-deprel pairs.
     # MISC: Any other annotation.
-
+    sentence_id = 0
     # write predicted parse
     for p_idx, (bkt_idx, idx) in enumerate(data_indices):
       preds = all_predictions[p_idx] if self.one_example_per_predicate else all_predictions[bkt_idx][idx]
+      sentence_id += 1
       words = all_sents[bkt_idx][idx]
       num_gold_srls = preds[0, 13]
       num_pred_srls = preds[0, 14]
@@ -205,9 +211,9 @@ class Network(Configurable):
       else:
         predicate_indices = preds[0, 15:15+num_pred_srls]
       # print("predicate indices", predicate_indices)
-      srl_preds_str = list(map(list, 
-                             list(zip(*[[self._vocabs[3][i] 
-                                         for i in j] 
+      srl_preds_str = list(map(list,
+                             list(zip(*[[self._vocabs[3][i]
+                                         for i in j]
                              for j in np.transpose(srl_preds)]))))
       # sent[:, 6] = targets[tokens, 0] # 5 targets[0] = gold_tag
       # sent[:, 7] = parse_preds[tokens]  # 6 = pred parse head
@@ -220,8 +226,12 @@ class Network(Configurable):
         head = pred[8] + 1
         tok_id = i + 1
         # assert self.tags[datum[6]] == self.tags[pred[7]]
+        position, length = tokens_localization[(sentence_id-1, tok_id-1)]
         tup = (
-              str(tok_id),  # id
+              str(sentence_id), # sent id
+              str(tok_id),  # tok id
+              str(position),
+              str(length),
               word,  # form
               "_",
               self.tags[pred[7]],  # gold tag
@@ -242,7 +252,7 @@ class Network(Configurable):
 
   #=============================================================
   def _gen_ops(self):
-    """Generate a graph for train set and return a dict with all tensors and 
+    """Generate a graph for train set and return a dict with all tensors and
     the output values necessary to compute the result
     """
 
@@ -279,16 +289,16 @@ class Analyzer(Configurable):
     """"""
 
     self._network = Network(Parser, **cargs)
-      
+
     config_proto = tf.compat.v1.ConfigProto()
     config_proto.gpu_options.per_process_gpu_memory_fraction = self._network.per_process_gpu_memory_fraction
 
     self._sess = tf.compat.v1.Session(config=config_proto)
     self._sess.run(tf.compat.v1.global_variables_initializer())
-    saver = tf.compat.v1.train.Saver(var_list=self._network.save_vars, 
+    saver = tf.compat.v1.train.Saver(var_list=self._network.save_vars,
                            save_relative_paths=True)
     print("Loading model: ", self._network.load_dir)
-    saver.restore(self._sess, 
+    saver.restore(self._sess,
                   tf.train.latest_checkpoint(
                       self._network.load_dir,
                       latest_filename=self._network.name.lower()))
@@ -307,8 +317,8 @@ if __name__ == '__main__':
   argparser = argparse.ArgumentParser()
 
   _, extra_args = argparser.parse_known_args()
-  cargs = {k: v for (k, v) in 
-           list(vars(Configurable.argparser.parse_args(extra_args)).items()) 
+  cargs = {k: v for (k, v) in
+           list(vars(Configurable.argparser.parse_args(extra_args)).items())
            if v is not None}
   analyzer = Analyzer(cargs)
   for text_file in cargs['files']:

@@ -19,9 +19,10 @@
 
 
 
-import os
 import argparse
 import numpy as np
+import os
+import sys
 import tensorflow as tf
 
 from configparser import ConfigParser
@@ -58,7 +59,7 @@ class Configurable(object):
       config_files.append(kwargs.pop('config_file'))
     elif 'save_dir' in kwargs:
       config_files.append(f"{kwargs['save_dir']}/config.cfg")
-    #print(f"Configurable.configure {config_files}")
+    print(f"Configurable.configure {config_files}", file=sys.stderr)
     files_read = config.read(config_files)
     #print(f"Configurable.configure loaded: {files_read}")
     for option, value in list(kwargs.items()):

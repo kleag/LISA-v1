@@ -18,6 +18,7 @@
 import numpy as np
 import tensorflow as tf
 import spacy
+import sys
 import tempfile
 
 from lib.models.parsers.parser import Parser
@@ -95,8 +96,8 @@ class Network(Configurable):
                              f"analyze analyzing: {text}")
     result = ""
     temp = tempfile.NamedTemporaryFile(mode='w+t')
-    #print(f"analyze writing to temp file {temp.name}:")
-    #print(text)
+    print(f"Network.analyze writing to temp file {temp.name}:", file=sys.stderr)
+    print(f"Network.analyze '{text}'", file=sys.stderr)
     doc = nlp(text)
     #sentence_id = 0
     tokens_localization = {}
@@ -122,9 +123,9 @@ class Network(Configurable):
                   f'\t{token.text}\t{token.tag_}\t{token.tag_}'
                   f'\t{depid}\t{dep}'
                   f'\t_\t-\t-\t-\t-\tO')
-          #print(f">>> {line}")
+          print(f">>> {line}", file=sys.stderr)
           temp.write(f"{line}\n")
-      #print(f">>>")
+      print(f">>>", file=sys.stderr)
       temp.write(f"\n")
     temp.flush()
     #print(f"tokens_localization: {tokens_localization}")
@@ -245,7 +246,7 @@ class Network(Configurable):
         word_str = word if i in predicate_indices else '-'
         fields = (word_str,) + tuple(srl_pred)
         tup += fields
-        #print(f"Network.analyze tup: {tup}")
+        print(f"Network.analyze tup: {tup}", file=sys.stderr)
         result += "\t".join(tup) + "\n"
       result += "\n"
     return result

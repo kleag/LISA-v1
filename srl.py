@@ -164,6 +164,7 @@ class Network(Configurable):
     all_predictions = [[]]
     all_sents = [[]]
     bkt_idx = 0
+    print(f"Network.analyze before sending to model", file=sys.stderr)
     for batch_num, (feed_dict, sents) in enumerate(analyze_minibatches()):
       mb_inputs = feed_dict[analyze_set.inputs]
       mb_targets = feed_dict[analyze_set.targets]
@@ -182,6 +183,7 @@ class Network(Configurable):
           all_predictions.append([])
           all_sents.append([])
 
+    print(f"Network.analyze model finished analyses", file=sys.stderr)
     data_indices = analyze_set._metabucket.data
 
     # ID: Word index, integer starting at 1 for each new sentence; may be a

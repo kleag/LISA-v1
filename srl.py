@@ -296,10 +296,11 @@ class Analyzer(Configurable):
 
     self._network = Network(Parser, **cargs)
 
-    config_proto = tf.compat.v1.ConfigProto()
-    config_proto.gpu_options.per_process_gpu_memory_fraction = self._network.per_process_gpu_memory_fraction
+    #config_proto = tf.compat.v1.ConfigProto()
+    #config_proto.gpu_options.per_process_gpu_memory_fraction = self._network.per_process_gpu_memory_fraction
 
-    self._sess = tf.compat.v1.Session(config=config_proto)
+    #self._sess = tf.compat.v1.Session(config=config_proto)
+    self._sess = tf.compat.v1.Session()
     self._sess.run(tf.compat.v1.global_variables_initializer())
     saver = tf.compat.v1.train.Saver(var_list=self._network.save_vars,
                            save_relative_paths=True)

@@ -168,13 +168,16 @@ class Network(Configurable):
     for batch_num, (feed_dict, sents) in enumerate(analyze_minibatches()):
       mb_inputs = feed_dict[analyze_set.inputs]
       mb_targets = feed_dict[analyze_set.targets]
+      print(f"Network.analyze sending a batch to model", file=sys.stderr)
       (probs, n_cycles, len_2_cycles, srl_probs, srl_preds, srl_logits,
        srl_correct, srl_count, srl_predicates, srl_predicate_targets,
        transition_params, attn_weights, attn_correct, pos_correct,
        pos_preds) = sess.run(ops, feed_dict=feed_dict)
+      print(f"Network.analyze model finished handling a batch", file=sys.stderr)
       preds, _, _, _, _, _, _, _, _ = self.model.validate(mb_inputs,
           mb_targets, probs, n_cycles, len_2_cycles, srl_preds, srl_logits,
           srl_predicates, srl_predicate_targets, pos_preds, None)
+      print(f"Network.analyze batch validated", file=sys.stderr)
       all_predictions[-1].extend(preds)
       all_sents[-1].extend(sents)
       if len(all_predictions[-1]) == len(analyze_set[bkt_idx]):

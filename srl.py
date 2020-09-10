@@ -303,11 +303,12 @@ class Analyzer(Configurable):
     self._sess.run(tf.compat.v1.global_variables_initializer())
     saver = tf.compat.v1.train.Saver(var_list=self._network.save_vars,
                            save_relative_paths=True)
-    print("Loading model: ", self._network.load_dir)
+    print(f"Analyzer() Loading model: {self._network.load_dir}", file=sys.stderr)
     saver.restore(self._sess,
                   tf.train.latest_checkpoint(
                       self._network.load_dir,
                       latest_filename=self._network.name.lower()))
+    print(f"Analyzer() model loaded", file=sys.stderr)
 
 
   def analyze(self, text):

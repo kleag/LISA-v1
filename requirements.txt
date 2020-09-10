@@ -1,4 +1,4 @@
-tensorflow==1.15
+tensorflow-cpu==1.15
 h5py
 scipy
 spacy

@@ -233,27 +233,31 @@ class Network(Configurable):
         head = pred[8] + 1
         tok_id = i + 1
         # assert self.tags[datum[6]] == self.tags[pred[7]]
-        position, length = tokens_localization[(sentence_id-1, tok_id-1)]
-        tup = (
-              str(sentence_id), # sent id
-              str(tok_id),  # tok id
-              str(position),
-              str(length),
-              word,  # form
-              "_",
-              self.tags[pred[7]],  # gold tag
-              # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
-              "_",
-              "_",
-              str(head if head != tok_id else 0),  # pred head
-              self.rels[pred[9]] # pred label
-        )
-        srl_pred = srl_preds_str[i] if srl_preds_str else []
-        word_str = word if i in predicate_indices else '-'
-        fields = (word_str,) + tuple(srl_pred)
-        tup += fields
-        print(f"Network.analyze tup: {tup}", file=sys.stderr)
-        result += "\t".join(tup) + "\n"
+        try:
+          position, length = tokens_localization[(sentence_id-1, tok_id-1)]
+          tup = (
+                str(sentence_id), # sent id
+                str(tok_id),  # tok id
+                str(position),
+                str(length),
+                word,  # form
+                "_",
+                self.tags[pred[7]],  # gold tag
+                # self.tags[pred[11]] if self.joint_pos_predicates or self.train_pos else self.tags[pred[4]], # pred tag or auto tag
+                "_",
+                "_",
+                str(head if head != tok_id else 0),  # pred head
+                self.rels[pred[9]] # pred label
+          )
+          srl_pred = srl_preds_str[i] if srl_preds_str else []
+          word_str = word if i in predicate_indices else '-'
+          fields = (word_str,) + tuple(srl_pred)
+          tup += fields
+          print(f"Network.analyze tup: {tup}", file=sys.stderr)
+          result += "\t".join(tup) + "\n"
+        except KeyError as e:
+          print(f"There is no such token localization ({sentence_id-1}, "
+                f"{tok_id-1})", file=sys.stderr)
       result += "\n"
     return result
 

@@ -35,9 +35,10 @@ dep_transcat_table = {
     "attr": "xcomp"
 }
 
-nlp = spacy.load('en')
+nlp = spacy.load('en_core_web_sm')
 
-#***************************************************************
+
+# ***************************************************************
 class Network(Configurable):
   """"""
 
